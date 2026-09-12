@@ -1,0 +1,2 @@
+import { useEffect, useState } from "react";
+export function useSoftwareStore<T>(selector:()=>T){ const [value,setValue]=useState(selector); useEffect(()=>{ const refresh=()=>setValue(selector()); window.addEventListener("storage",refresh); window.addEventListener("nextf:software-store",refresh as EventListener); return()=>{window.removeEventListener("storage",refresh);window.removeEventListener("nextf:software-store",refresh as EventListener);}; },[selector]); return value; }

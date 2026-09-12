@@ -1,0 +1,2 @@
+import { useEffect,useState } from "react";
+export function useDigitalAdmin<T>(selector:()=>T){const [value,setValue]=useState(selector);useEffect(()=>{const refresh=()=>setValue(selector());window.addEventListener("nextf:digital-admin",refresh);window.addEventListener("storage",refresh);return()=>{window.removeEventListener("nextf:digital-admin",refresh);window.removeEventListener("storage",refresh);};},[selector]);return value;}

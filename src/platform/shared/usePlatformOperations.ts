@@ -1,0 +1,2 @@
+import { useEffect,useState } from "react";
+export function usePlatformOperations<T>(selector:()=>T){const [value,setValue]=useState(selector);useEffect(()=>{const refresh=()=>setValue(selector());window.addEventListener("nextf:platform-operations",refresh);window.addEventListener("storage",refresh);return()=>{window.removeEventListener("nextf:platform-operations",refresh);window.removeEventListener("storage",refresh);};},[selector]);return value;}

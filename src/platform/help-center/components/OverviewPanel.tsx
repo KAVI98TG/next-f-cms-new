@@ -1,0 +1,21 @@
+import { useMemo, useState } from "react";
+import { BookOpen, CircleHelp, LifeBuoy, MessageSquareText, Search, ThumbsUp } from "lucide-react";
+import { Badge, Card, FormField, MetricCard, SelectInput, TextInput } from "../../../shared/components";
+import { helpCenterStore } from "../data/helpCenterStore";
+import type { HelpAudience } from "../data/types";
+import { useHelpCenter } from "../shared/useHelpCenter";
+
+export function OverviewPanel() {
+  const articles=useHelpCenter(helpCenterStore.getArticles), faqs=useHelpCenter(helpCenterStore.getFaqs), requests=useHelpCenter(helpCenterStore.getRequests), feedback=useHelpCenter(helpCenterStore.getFeedback), announcements=useHelpCenter(helpCenterStore.getAnnouncements), settings=useHelpCenter(helpCenterStore.getSettings);
+  const [query,setQuery]=useState(""); const [audience,setAudience]=useState<HelpAudience>(settings.defaultAudience);
+  const results=useMemo(()=>helpCenterStore.search(query,audience),[query,audience,articles,faqs,announcements]);
+  const resolved=requests.filter((r)=>["resolved","closed"].includes(r.status)).length;
+  const helpful=feedback.length?Math.round(feedback.filter((f)=>f.rating==="helpful").length/feedback.length*100):100;
+  return <>
+    <div className="compact-metrics"><MetricCard label="Published knowledge" value={String(articles.filter((a)=>a.status==="published").length+faqs.filter((f)=>f.status==="published").length)} detail="Articles + FAQs" icon={BookOpen}/><MetricCard label="Open requests" value={String(requests.filter((r)=>!["resolved","closed"].includes(r.status)).length)} detail={`${resolved} resolved`} icon={LifeBuoy}/><MetricCard label="Helpful feedback" value={`${helpful}%`} detail={`${feedback.length} responses`} icon={ThumbsUp}/><MetricCard label="Announcements" value={String(announcements.filter((a)=>a.status==="published").length)} detail="Published notices" icon={MessageSquareText}/></div>
+    <div className="dashboard-grid">
+      <Card className="operation-section"><div className="operation-section__head"><div><span>Customer preview</span><h3>{settings.welcomeTitle}</h3></div><Search size={18}/></div><p className="muted-copy">{settings.welcomeText}</p><div className="form-grid form-grid--two"><FormField label="Search help"><TextInput value={query} onChange={(e)=>setQuery(e.target.value)} placeholder="Try: license, top-up, invoice…"/></FormField><FormField label="Business"><SelectInput value={audience} onChange={(e)=>setAudience(e.target.value as HelpAudience)}><option value="all">All NEXT F</option><option value="digital">Digital</option><option value="gaming">Gaming Store</option><option value="software">Software</option></SelectInput></FormField></div><div className="help-search-results">{results.length===0?<div className="table-empty-state"><CircleHelp size={18}/><span>No published help content matches this search.</span></div>:results.slice(0,7).map((item)=><div className="help-search-result" key={`${item.type}:${item.id}`}><span><strong>{item.title}</strong><small>{item.detail}</small></span><div><Badge tone="info">{item.type}</Badge><Badge>{item.audience}</Badge></div></div>)}</div></Card>
+      <Card><div className="operation-section__head"><div><span>Routing health</span><h3>Customer support entry point</h3></div><LifeBuoy size={18}/></div><div className="help-routing-list"><div className="help-routing-row"><div><strong>Unified customer entry</strong><p>Knowledge and requests cover Digital, Gaming Store and Software.</p></div><Badge tone="success">Active</Badge></div><div className="help-routing-row"><div><strong>Automatic business routing</strong><p>Requests with a selected business can be routed immediately.</p></div><Badge tone={settings.autoRouteRequests?"success":"warning"}>{settings.autoRouteRequests?"On":"Off"}</Badge></div><div className="help-routing-row"><div><strong>Feedback collection</strong><p>Measure whether customer-facing answers are actually useful.</p></div><Badge tone={settings.enableFeedback?"success":"neutral"}>{settings.enableFeedback?"On":"Off"}</Badge></div><div className="help-routing-row"><div><strong>Contact requests</strong><p>Escalate unresolved help into a routed support request.</p></div><Badge tone={settings.enableContactRequests?"success":"neutral"}>{settings.enableContactRequests?"On":"Off"}</Badge></div></div></Card>
+    </div>
+  </>;
+}

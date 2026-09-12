@@ -1,0 +1,35 @@
+{
+  "name": "@next-f/admin",
+  "private": true,
+  "version": "0.11.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "check:architecture": "node scripts/quality-check.mjs",
+    "check:platform": "node scripts/platform-check.mjs",
+    "check:digital": "node scripts/digital-check.mjs",
+    "check:digital-operations": "node scripts/digital-operations-check.mjs",
+    "check:gaming": "node scripts/gaming-check.mjs",
+    "check:software": "node scripts/software-check.mjs",
+    "check:saas": "node scripts/saas-check.mjs",
+    "check:product": "node scripts/product-completion-check.mjs",
+    "check:acceptance": "node scripts/final-acceptance-check.mjs",
+    "check:architecture-completion": "node scripts/architecture-completion-check.mjs",
+    "check:help-center": "node scripts/help-center-check.mjs"
+  },
+  "dependencies": {
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.7",
+    "@types/node": "^26.1.2",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4"
+  }
+}

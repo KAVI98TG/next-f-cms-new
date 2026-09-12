@@ -1,0 +1,2 @@
+import { Badge } from "../../shared/components";
+export function SoftwareStatus({value}:{value:string}){ const success=["active","published","paid","stable","eligible","resolved","downloaded"].includes(value); const danger=["revoked","expired","withdrawn","refunded","urgent","cancelled"].includes(value); const warning=["grace","past_due","beta","release_candidate","pending","draft","open","high","issued","suspended"].includes(value); return <Badge tone={success?"success":danger?"danger":warning?"warning":"neutral"}>{value.replace(/_/g," ")}</Badge>; }
