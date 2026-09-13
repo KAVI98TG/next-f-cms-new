@@ -7,7 +7,7 @@
   :root { --sidebar-width: 280px; }
   .sidebar { transform: translateX(-103%); transition: transform .2s ease; box-shadow: var(--shadow-lg); }
   .sidebar--open { transform: translateX(0); }
-  .mobile-backdrop { position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:45; }
+  .mobile-backdrop { position:fixed;inset:0;background:var(--mobile-overlay);z-index:45; }
   .mobile-backdrop.is-open { display:block; }
   .app-shell__main { margin-left:0; }
   .topbar__menu { display:inline-grid !important; }

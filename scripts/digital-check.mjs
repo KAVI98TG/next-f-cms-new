@@ -30,7 +30,7 @@ check("accepted proposal creates client", store.includes("write(KEYS.clients"));
 check("accepted proposal creates invoice", store.includes("write(KEYS.invoices"));
 check("accepted proposal creates project", store.includes("write(KEYS.projects"));
 check("invoice payment can activate project", store.includes('status: "active"'));
-check("Digital data is browser-persistent", store.includes("window.localStorage"));
+check("Digital data uses shared durable storage boundary", store.includes("readDurableValue")&&store.includes("writeDurableValue")&&!store.includes("window.localStorage"));
 check("No Digital .gitkeep placeholders", !fs.readdirSync(path.join(root, "src/next-f"), { recursive: true }).some((name) => String(name).endsWith(".gitkeep")));
 
 console.log("NEXT F CMS V0.4.0 Digital Core regression check");

@@ -12,6 +12,7 @@ import { HealthPage } from "../platform/health/HealthPage";
 import { AcceptancePage } from "../platform/acceptance/AcceptancePage";
 import { SettingsPage } from "../platform/settings/SettingsPage";
 import { AccountsPage } from "../platform/accounts/AccountsPage";
+import { IdentityPage } from "../platform/identity/IdentityPage";
 import { PaymentsPage } from "../platform/payments/PaymentsPage";
 import { DataManagementPage } from "../platform/data-management/DataManagementPage";
 import { OrganizationsPage } from "../platform/organizations/OrganizationsPage";
@@ -28,6 +29,7 @@ import { ServicesPage } from "../next-f/services/ServicesPage";
 import { ProjectsPage } from "../next-f/projects/ProjectsPage";
 import { BillingPage } from "../next-f/billing/BillingPage";
 import { SitesPage } from "../next-f/sites/SitesPage";
+import { WebsitePlatformPage } from "../next-f/website-platform/WebsitePlatformPage";
 import { SupportPage } from "../next-f/support/SupportPage";
 import { AutomationPage } from "../next-f/automation/AutomationPage";
 import { ReportsPage } from "../next-f/reports/ReportsPage";
@@ -69,6 +71,7 @@ const routes: Record<string, ReactNode> = {
   "/platform/logs": <LogsPage />,
   "/platform/backup": <BackupPage />,
   "/platform/cleanup": <CleanupPage />,
+  "/platform/identity": <IdentityPage />,
   "/platform/accounts": <AccountsPage />,
   "/platform/payments": <PaymentsPage />,
   "/platform/access": <AccessPage />,
@@ -88,6 +91,7 @@ const routes: Record<string, ReactNode> = {
   "/next-f/projects": <ProjectsPage />,
   "/next-f/billing": <BillingPage />,
   "/next-f/sites": <SitesPage />,
+  "/next-f/website-platform": <WebsitePlatformPage />,
   "/next-f/support": <SupportPage />,
   "/next-f/automation": <AutomationPage />,
   "/next-f/reports": <ReportsPage />,

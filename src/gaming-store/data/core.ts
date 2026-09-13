@@ -1,5 +1,6 @@
 import { platformStore } from "../../platform/services/platformStore";
 import type { GamingSupplier, SupplierProduct, GamingProduct, GamingCustomer, GamingOrder, GamingSupportCase, GamingSettings, GamingActivity, ProductAvailability } from "./types";
+import { readDurableValue, writeDurableValue, removeDurableValue } from "../../services/production/durableStorage";
 
 export const KEYS = {
   suppliers: "nextf.v0.5.gaming.suppliers",
@@ -94,18 +95,12 @@ export const seedActivity: GamingActivity[] = [
   { id: "ga_3", title: "Order needs review", detail: "GS-5003 was paid but failed before supplier charge.", tone: "warning", createdAt: ago(15) },
 ];
 
-export function read<T>(key: string, seed: T): T {
-  if (typeof window === "undefined") return seed;
-  const raw = window.localStorage.getItem(key);
-  if (!raw) { window.localStorage.setItem(key, JSON.stringify(seed)); return seed; }
-  try { return JSON.parse(raw) as T; }
-  catch { window.localStorage.setItem(key, JSON.stringify(seed)); return seed; }
-}
+export function read<T>(key: string, seed: T): T { return readDurableValue(key, seed); }
 
 export function write<T>(key: string, value: T): T {
-  window.localStorage.setItem(key, JSON.stringify(value));
+  const result = writeDurableValue(key, value);
   window.dispatchEvent(new CustomEvent("nextf:gaming-store", { detail: key }));
-  return value;
+  return result;
 }
 
 export function uid(prefix: string) { return `${prefix}_${crypto.randomUUID()}`; }
@@ -130,4 +125,4 @@ export function orderReconciliation(order: GamingOrder) {
 }
 
 
-export function resetGamingCore(){ Object.values(KEYS).forEach((key)=>window.localStorage.removeItem(key)); window.dispatchEvent(new CustomEvent("nextf:gaming-store",{detail:"reset"})); }
+export function resetGamingCore(){ Object.values(KEYS).forEach((key)=>removeDurableValue(key)); window.dispatchEvent(new CustomEvent("nextf:gaming-store",{detail:"reset"})); }

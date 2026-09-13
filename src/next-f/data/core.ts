@@ -1,4 +1,5 @@
 import type { ServicePackage, DigitalLead, DigitalOpportunity, DigitalProposal, DigitalClient, DigitalInvoice, DigitalProject, DigitalTask, DigitalDeliverable, DigitalApproval, DigitalSubscription, DigitalSite, DigitalTicket, DigitalWorkflow, DigitalActivity } from "./types";
+import { readDurableValue, writeDurableValue, removeDurableValue } from "../../services/production/durableStorage";
 
 export const KEYS = {
   services: "nextf.v0.4.digital.services",
@@ -108,24 +109,12 @@ export const seedActivity: DigitalActivity[] = [
   { id: "act_4", title: "Site health degraded", detail: "Serene Stay response time crossed the local health threshold.", entityType: "site", entityId: "site_2", tone: "warning", createdAt: ago(1) },
 ];
 
-export function read<T>(key: string, seed: T): T {
-  if (typeof window === "undefined") return seed;
-  const raw = window.localStorage.getItem(key);
-  if (!raw) {
-    window.localStorage.setItem(key, JSON.stringify(seed));
-    return seed;
-  }
-  try { return JSON.parse(raw) as T; }
-  catch {
-    window.localStorage.setItem(key, JSON.stringify(seed));
-    return seed;
-  }
-}
+export function read<T>(key: string, seed: T): T { return readDurableValue(key, seed); }
 
 export function write<T>(key: string, value: T): T {
-  window.localStorage.setItem(key, JSON.stringify(value));
+  const result = writeDurableValue(key, value);
   window.dispatchEvent(new CustomEvent("nextf:digital-store", { detail: key }));
-  return value;
+  return result;
 }
 
 export function id(prefix: string) {
@@ -156,6 +145,6 @@ export function recurringFrequency(service?: ServicePackage): "monthly" | "annua
 
 
 export function resetDigitalCore() {
-  Object.values(KEYS).forEach((key) => window.localStorage.removeItem(key));
+  Object.values(KEYS).forEach((key) => removeDurableValue(key));
   window.dispatchEvent(new CustomEvent("nextf:digital-store", { detail: "reset" }));
 }

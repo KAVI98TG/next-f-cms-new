@@ -9,6 +9,7 @@ import { commerceCenter } from "../shared/commerceCenter";
 import { buildGlobalSearchIndex } from "../shared/searchIndex";
 import { getOperationsNotifications } from "../shared/operationsCenter";
 import { helpCenterStore } from "../../platform/help-center/data/helpCenterStore";
+import { getDurableStateStatus } from "../production/durableStorage";
 
 export type AcceptanceStatus = "pass" | "warning" | "fail" | "deferred";
 export type AcceptanceCategory = "Application" | "Platform" | "Digital" | "Gaming" | "Software" | "Shared" | "Infrastructure";
@@ -20,8 +21,10 @@ const unique = (values:string[]) => new Set(values.map((value)=>value.toLowerCas
 const check = (category:AcceptanceCategory, id:string, label:string, ok:boolean, passDetail:string, failDetail:string, warning=false):AcceptanceCheck => ({ category, id, label, status:ok?"pass":warning?"warning":"fail", detail:ok?passDetail:failDetail });
 
 function storageAvailable(){
-  try { const key="nextf.v0.10.acceptance.probe"; window.localStorage.setItem(key,"1"); window.localStorage.removeItem(key); return true; } catch { return false; }
+  const status=getDurableStateStatus();
+  return status.initialized&&!status.lastError;
 }
+
 
 export function runFinalAcceptance():AcceptanceReport {
   const checks:AcceptanceCheck[]=[];
@@ -35,7 +38,7 @@ export function runFinalAcceptance():AcceptanceReport {
 
   const routePaths=allNavigation.map((item)=>item.path);
   checks.push(check("Application","routes-unique","Unique route registry",unique(routePaths),`${routePaths.length} registered routes are unique.`,`Duplicate route paths detected.`));
-  checks.push(check("Application","storage","Browser persistence",storageAvailable(),"Local storage read/write probe passed.","Browser local storage is unavailable."));
+  checks.push(check("Application","storage","Durable data boundary",storageAvailable(),"CMS data boundary initialized successfully.","CMS durable data boundary is unavailable."));
   checks.push(check("Application","route-shape","Workspace route boundaries",routePaths.every((path)=>["/platform/","/next-f/","/gaming-store/","/software/"].some((prefix)=>path.startsWith(prefix))),"All routes belong to a defined workspace.","At least one route falls outside a defined workspace."));
 
   const roleIds=ids(roles); const permissionCatalog=new Set(platformPermissionCatalog.flatMap((group)=>group.permissions));
@@ -61,7 +64,7 @@ export function runFinalAcceptance():AcceptanceReport {
   checks.push(check("Platform","help-announcements","Help Center announcements",helpAnnouncements.every((row)=>!!row.title.trim()&&!!row.message.trim()&&!!row.publishAt),"Help Center announcements contain publishable content.","A Help Center announcement is incomplete."));
 
   const serviceIds=ids(services), leadIds=ids(leads), clientIds=ids(clients), oppIds=ids(opps), projectIds=ids(projects), siteIds=ids(sites), subscriptionIds=ids(subscriptions);
-  checks.push(check("Digital","lead-service","Lead → service references",leads.every((row)=>serviceIds.has(row.serviceId)),`${leads.length} leads reference valid services.`,`A lead references a missing service.`));
+  checks.push(check("Digital","lead-service","Lead → service references",leads.every((row)=>typeof row.serviceId==="string"&&serviceIds.has(row.serviceId)),`${leads.length} leads reference valid services.`,`A lead references a missing service.`));
   checks.push(check("Digital","opportunity-refs","Opportunity relationships",opps.every((row)=>serviceIds.has(row.serviceId)&&(!row.leadId||leadIds.has(row.leadId))&&(!row.clientId||clientIds.has(row.clientId))),"Opportunity relationships are intact.","An opportunity has an orphan lead, client or service reference."));
   checks.push(check("Digital","proposal-refs","Proposal relationships",proposals.every((row)=>oppIds.has(row.opportunityId)&&serviceIds.has(row.serviceId)&&(!row.clientId||clientIds.has(row.clientId))),"Proposal relationships are intact.","A proposal has an orphan opportunity, client or service reference."));
   checks.push(check("Digital","invoice-refs","Invoice relationships",invoices.every((row)=>clientIds.has(row.clientId)&&(!row.projectId||projectIds.has(row.projectId))&&(!row.subscriptionId||subscriptionIds.has(row.subscriptionId))),"Invoice relationships are intact.","An invoice has an orphan client, project or subscription reference."));

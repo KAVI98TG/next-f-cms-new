@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
-const BASE = "/admin";
+const BASE = "";
 
 type RouterContextValue = {
   pathname: string;
@@ -10,9 +10,7 @@ type RouterContextValue = {
 const RouterContext = createContext<RouterContextValue | null>(null);
 
 function normalizeBrowserPath() {
-  const value = window.location.pathname.startsWith(BASE)
-    ? window.location.pathname.slice(BASE.length)
-    : window.location.pathname;
+  const value = window.location.pathname;
   return value === "" || value === "/" ? "/next-f/dashboard" : value.replace(/\/$/, "");
 }
 
@@ -27,7 +25,7 @@ export function RouterProvider({ children }: { children: ReactNode }) {
 
   const navigate = useCallback((path: string, options?: { replace?: boolean }) => {
     const normalized = path.startsWith("/") ? path : `/${path}`;
-    const url = `${BASE}${normalized}`;
+    const url = normalized;
     if (options?.replace) window.history.replaceState({}, "", url);
     else window.history.pushState({}, "", url);
     setPathname(normalized);

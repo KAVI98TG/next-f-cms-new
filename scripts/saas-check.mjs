@@ -18,8 +18,8 @@ check("global entity search",palette.includes("searchGlobal")&&read("src/service
 check("shared account normalization",read("src/services/shared/commerceCenter.ts").includes("getSharedAccounts")&&read("src/services/shared/commerceCenter.ts").includes("normalizeEmail"));
 check("unified payment shape",read("src/services/shared/commerceCenter.ts").includes("SharedPayment")&&read("src/services/shared/commerceCenter.ts").includes("getSharedPayments"));
 check("cross-business operations notifications",notifications.includes("useOperationsCenter")&&read("src/services/shared/operationsCenter.ts").includes("getSuppliers")&&read("src/services/shared/operationsCenter.ts").includes("getLicenses"));
-check("local export utility",data.includes("Export local backup")&&data.includes("nextf-cms-local-backup"));
-check("local import utility",data.includes("Import backup")&&data.includes("file.text"));
+check("durable export utility",data.includes("Export backup")&&data.includes("nextf-cms-durable-backup"));
+check("durable import utility",data.includes("Import backup")&&data.includes("file.text")&&data.includes("importDurableStorageRecords"));
 check("global error boundary",read("src/main.tsx").includes("AppErrorBoundary"));
 check("consistent empty state",read("src/shared/components/DataTable.tsx").includes("table-empty-state")&&read("src/shared/components/StatePanel.tsx").includes('state: "empty" | "loading" | "error"'));
 check("skip navigation",shell.includes('href="#main-content"')&&shell.includes('id="main-content"'));

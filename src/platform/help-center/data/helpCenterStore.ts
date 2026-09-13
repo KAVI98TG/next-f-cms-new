@@ -1,5 +1,6 @@
 import { platformStore } from "../../services/platformStore";
 import type { HelpAnnouncement, HelpArticle, HelpAudience, HelpCategory, HelpCenterSettings, HelpFaq, HelpFeedback, HelpRequest, HelpSavedReply } from "./types";
+import { readDurableValue, writeDurableValue } from "../../../services/production/durableStorage";
 
 const K = {
   categories: "nextf.v0.11.help.categories",
@@ -72,18 +73,11 @@ const seedSettings: HelpCenterSettings = {
   autoRouteRequests:true,
 };
 
-function read<T>(key:string, seed:T):T {
-  if (typeof window === "undefined") return seed;
-  try {
-    const raw = window.localStorage.getItem(key);
-    if (!raw) { window.localStorage.setItem(key, JSON.stringify(seed)); return seed; }
-    return JSON.parse(raw) as T;
-  } catch { return seed; }
-}
+function read<T>(key:string, seed:T):T { return readDurableValue(key, seed); }
 function write<T>(key:string, value:T):T {
-  window.localStorage.setItem(key, JSON.stringify(value));
+  const result=writeDurableValue(key,value);
   window.dispatchEvent(new CustomEvent("nextf:help-center", { detail:key }));
-  return value;
+  return result;
 }
 function audit(action:string,target:string,detail:string,tone:"neutral"|"info"|"warning"|"danger"="info") {
   platformStore.addAudit("Admin", action, target, "Help Center", detail, tone);

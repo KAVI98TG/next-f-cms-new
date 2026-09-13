@@ -41,6 +41,7 @@ import {
   Trash2,
   Tags,
   UsersRound,
+  UserRoundCheck,
   Workflow,
   Wrench,
 } from "lucide-react";
@@ -69,6 +70,12 @@ export const domains: DomainDefinition[] = [
         description: "Staff accounts and access state.",
       },
       {
+        label: "NEXT F Accounts",
+        path: "/platform/identity",
+        icon: UserRoundCheck,
+        description: "Canonical identity records separated from staff and customer authorization.",
+      },
+      {
         label: "Organizations",
         path: "/platform/organizations",
         icon: Building2,
@@ -85,7 +92,7 @@ export const domains: DomainDefinition[] = [
         path: "/platform/accounts",
         icon: ContactRound,
         description:
-          "Cross-business identity links without flattening domain profiles.",
+          "Legacy cross-business customer profile aggregation; not authentication identity.",
       },
       {
         label: "Payments",
@@ -204,7 +211,7 @@ export const domains: DomainDefinition[] = [
         label: "Clients",
         path: "/next-f/clients",
         icon: ContactRound,
-        description: "Client 360, contacts and portal access.",
+        description: "Client 360, contacts and Customer Workspace relationship.",
       },
       {
         label: "Services",
@@ -229,6 +236,12 @@ export const domains: DomainDefinition[] = [
         path: "/next-f/sites",
         icon: Activity,
         description: "Websites, deployments, domains and maintenance.",
+      },
+      {
+        label: "Website Platform",
+        path: "/next-f/website-platform",
+        icon: Boxes,
+        description: "Customer Workspace provisioning, managed-site connections, contracts and demo access.",
       },
       {
         label: "Support",

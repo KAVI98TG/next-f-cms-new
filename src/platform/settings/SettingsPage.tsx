@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { Building2, RotateCcw, Save, ShieldCheck } from "lucide-react";
+import { Building2, MonitorCog, RotateCcw, Save, ShieldCheck } from "lucide-react";
 import { Button, Card, FormField, SectionHeader, SelectInput, TextInput, Toggle } from "../../shared/components";
 import { platformStore } from "../services/platformStore";
+import { useTheme, type ThemeMode } from "../../app/theme/ThemeProvider";
 
 export function SettingsPage() {
   const [settings, setSettings] = useState(() => platformStore.getSettings());
   const [saved, setSaved] = useState(false);
+  const { mode: themeMode, resolvedTheme, setMode: setThemeMode } = useTheme();
 
   const save = () => {
     platformStore.saveSettings(settings);
@@ -28,6 +30,22 @@ export function SettingsPage() {
           <FormField label="Support email"><TextInput type="email" value={settings.supportEmail} onChange={(event) => setSettings({ ...settings, supportEmail: event.target.value })}/></FormField>
           <FormField label="Timezone"><SelectInput value={settings.timezone} onChange={(event) => setSettings({ ...settings, timezone: event.target.value })}><option value="Asia/Colombo">Asia/Colombo</option><option value="UTC">UTC</option></SelectInput></FormField>
           <FormField label="Default currency"><SelectInput value={settings.defaultCurrency} onChange={(event) => setSettings({ ...settings, defaultCurrency: event.target.value })}><option value="LKR">LKR</option><option value="USD">USD</option><option value="EUR">EUR</option></SelectInput></FormField>
+        </div>
+      </Card>
+      <Card>
+        <div className="settings-section-title"><MonitorCog size={18}/><div><strong>Appearance</strong><small>Choose a theme for this browser. System follows your device preference automatically.</small></div></div>
+        <div className="form-grid form-grid--two">
+          <FormField label="Theme">
+            <SelectInput value={themeMode} onChange={(event) => setThemeMode(event.target.value as ThemeMode)}>
+              <option value="system">System</option>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </SelectInput>
+          </FormField>
+          <div className="theme-preview" aria-live="polite">
+            <span className={`theme-preview__swatch theme-preview__swatch--${resolvedTheme}`} aria-hidden="true"/>
+            <span><strong>{resolvedTheme === "dark" ? "Dark" : "Light"} active</strong><small>{themeMode === "system" ? "Following system preference" : "Explicit browser preference"}</small></span>
+          </div>
         </div>
       </Card>
       <Card>

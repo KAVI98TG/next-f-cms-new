@@ -2,6 +2,7 @@ import type { Permission } from "./types";
 
 const routePermissions: Array<[string, Permission]> = [
   ["/platform/users", "platform.users.manage"],
+  ["/platform/identity", "platform.users.manage"],
   ["/platform/organizations", "platform.organizations.manage"],
   ["/platform/domains", "platform.domains.manage"],
   ["/platform/security", "platform.security.manage"],
@@ -16,6 +17,7 @@ const routePermissions: Array<[string, Permission]> = [
   ["/next-f/sales", "digital.sales.manage"],
   ["/next-f/projects", "digital.projects.manage"],
   ["/next-f/billing", "digital.billing.manage"],
+  ["/next-f/website-platform", "digital.website-platform.manage"],
   ["/next-f/sites", "digital.sites.manage"],
   ["/next-f/settings", "digital.settings.manage"],
   ["/next-f", "digital.read"],

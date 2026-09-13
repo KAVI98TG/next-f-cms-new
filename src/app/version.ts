@@ -1,2 +1,2 @@
-export const APP_VERSION = "0.11.0";
-export const APP_RELEASE = "Platform Help Center";
+export const APP_VERSION = "0.25.0";
+export const APP_RELEASE = "Production Go-Live P2 · Production Identity";

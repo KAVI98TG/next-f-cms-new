@@ -1,15 +1,9 @@
 import type { Repository, RepositoryRecord } from "./types";
+import { readDurableValue, writeDurableValue } from "../production/durableStorage";
 
 export function createLocalRepository<T extends RepositoryRecord>(storageKey: string, seed: T[] = []): Repository<T> {
-  const read = (): T[] => {
-    const raw = window.localStorage.getItem(storageKey);
-    if (!raw) {
-      window.localStorage.setItem(storageKey, JSON.stringify(seed));
-      return [...seed];
-    }
-    try { return JSON.parse(raw) as T[]; } catch { return [...seed]; }
-  };
-  const write = (records: T[]) => window.localStorage.setItem(storageKey, JSON.stringify(records));
+  const read = (): T[] => readDurableValue(storageKey, seed);
+  const write = (records: T[]) => writeDurableValue(storageKey, records);
   return {
     async list() { return read(); },
     async get(id) { return read().find((record) => record.id === id) ?? null; },

@@ -35,7 +35,7 @@ check("recurring proposal handoff", store.includes("recurringFrequency(service)"
 check("recurring invoice linked to subscription", store.includes("subscriptionId: subscription?.id") || store.includes("subscriptionId:subscription?.id"));
 check("payment advances renewal", store.includes("this.advanceSubscription(invoice.subscriptionId)"));
 check("project acceptance seeds tasks", store.includes("write(KEYS.tasks"));
-check("all operations persist locally", ["subscriptions","tasks","deliverables","approvals","sites","tickets","workflows"].every((key) => store.includes(`KEYS.${key}`)));
+check("all operations use persisted store keys", ["subscriptions","tasks","deliverables","approvals","sites","tickets","workflows"].every((key) => store.includes(`KEYS.${key}`)));
 check("no next-f placeholder READMEs", !["sites","support","automation","reports"].some((dir) => fs.existsSync(path.join(root, `src/next-f/${dir}/README.md`))));
 
 const srcRoot = path.join(root, "src");

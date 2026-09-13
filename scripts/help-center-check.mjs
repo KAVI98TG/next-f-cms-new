@@ -24,7 +24,7 @@ check("help center permission catalog",platform.includes('"platform.help.manage"
 check("support role can manage help center",platform.includes('role_support')&&platform.includes('"platform.help.manage"'));
 check("fallback super admin can manage help center",session.includes('"platform.help.manage"'));
 for(const name of ["getCategories","getArticles","getFaqs","getAnnouncements","getReplies","getRequests","getFeedback","getSettings","addCategory","addArticle","addFaq","addAnnouncement","addReply","createRequest","routeRequest","addFeedback","saveSettings","search"]) check(`store ${name}`,store.includes(`${name}`));
-check("store browser persistence",store.includes("window.localStorage")&&store.includes("nextf:help-center"));
+check("store uses shared durable storage boundary",store.includes("readDurableValue")&&store.includes("writeDurableValue")&&store.includes("nextf:help-center"));
 check("store platform audit integration",store.includes("platformStore.addAudit"));
 check("store platform notification integration",store.includes("platformStore.saveNotifications"));
 for(const view of ["overview","knowledge","announcements","requests","replies","feedback","settings"]) check(`view ${view}`,page.includes(`"${view}"`));
@@ -53,5 +53,5 @@ check("acceptance validates announcements",acceptance.includes("Help Center anno
 check("platform dashboard exposes help queue",dashboard.includes("Help requests")&&dashboard.includes("Customer Help Center"));
 check("platform health checks help center",health.includes("Customer Help Center")&&health.includes("helpCenterStore"));
 check("architecture document includes help center",architecture.includes("Customer Help Center")&&architecture.includes("help-center/")&&architecture.includes("Saved Replies"));
-const pkg=JSON.parse(read("package.json")); check("package version 0.11.0",pkg.version==="0.11.0"); check("help center npm QA script",pkg.scripts?.["check:help-center"]==="node scripts/help-center-check.mjs");
+const pkg=JSON.parse(read("package.json")); check("package version includes Help Center release",Number(pkg.version.split(".")[1]||0)>=11); check("help center npm QA script",pkg.scripts?.["check:help-center"]==="node scripts/help-center-check.mjs");
 console.log("NEXT F CMS V0.11.0 Platform Help Center check"); for(const item of pass) console.log(`PASS  ${item}`); for(const item of fail) console.error(`FAIL  ${item}`); console.log(`\n${pass.length} passed, ${fail.length} failed`); if(fail.length)process.exit(1);

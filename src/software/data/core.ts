@@ -1,13 +1,14 @@
 import { platformStore } from "../../platform/services/platformStore";
 import type { SoftwareProduct,SoftwareEdition,SoftwareRelease,SoftwareCustomer,SoftwareOrder,SoftwareLicense,SoftwareActivation,SoftwareSubscription,UpdateCheck,DownloadRecord,SoftwareSupportCase,SoftwareSettings,SoftwareActivity,ReleaseChannel } from "./types";
+import { readDurableValue, writeDurableValue, removeDurableValue } from "../../services/production/durableStorage";
 
 export const KEYS = {
   products:"nextf.v0.6.software.products", editions:"nextf.v0.6.software.editions", releases:"nextf.v0.6.software.releases", customers:"nextf.v0.6.software.customers", orders:"nextf.v0.6.software.orders", licenses:"nextf.v0.6.software.licenses", activations:"nextf.v0.6.software.activations", subscriptions:"nextf.v0.6.software.subscriptions", updates:"nextf.v0.6.software.updates", downloads:"nextf.v0.6.software.downloads", support:"nextf.v0.6.software.support", settings:"nextf.v0.6.software.settings", activity:"nextf.v0.6.software.activity",
 };
 const now = Date.now(); const ago=(m:number)=>new Date(now-m*60_000).toISOString(); const future=(days:number)=>new Date(now+days*86_400_000).toISOString();
 export const uid=(prefix:string)=>`${prefix}_${Math.random().toString(36).slice(2,8)}${Date.now().toString(36).slice(-4)}`;
-export function read<T>(key:string, seed:T):T { try { const value=window.localStorage.getItem(key); return value?JSON.parse(value):seed; } catch { return seed; } }
-export function write<T>(key:string,value:T){ window.localStorage.setItem(key,JSON.stringify(value)); window.dispatchEvent(new CustomEvent("nextf:software-store",{detail:key})); }
+export function read<T>(key:string, seed:T):T { return readDurableValue(key,seed); }
+export function write<T>(key:string,value:T){ const result=writeDurableValue(key,value); window.dispatchEvent(new CustomEvent("nextf:software-store",{detail:key})); return result; }
 export function nextNumber(prefix:string, rows:Array<{number:string}>, start:number){ const max=Math.max(start-1,...rows.map((r)=>Number(r.number.replace(/\D/g,""))||0)); return `${prefix}${max+1}`; }
 export function licenseKey(){ const block=()=>Math.random().toString(36).slice(2,6).toUpperCase(); return `NFSW-${block()}-${block()}-${block()}-${block()}`; }
 export function audit(title:string,target:string,detail:string,tone:"neutral"|"info"|"success"|"warning"|"danger"="info"){ try { platformStore.addAudit("Admin", title, target, "Software", detail, tone === "success" ? "info" : tone); } catch {} }
@@ -70,4 +71,4 @@ export function monthsFrom(date:string,months:number){ const d=new Date(date); d
 export function latestPublishedRelease(productId:string,channel:ReleaseChannel="stable"){ const rank:Record<ReleaseChannel,number>={development:0,beta:1,release_candidate:2,stable:3}; return read<SoftwareRelease[]>(KEYS.releases,seedReleases).filter((r)=>r.productId===productId&&r.status==="published"&&rank[r.channel]>=rank[channel]).sort((a,b)=>new Date(b.releasedAt??b.createdAt).getTime()-new Date(a.releasedAt??a.createdAt).getTime())[0]; }
 
 
-export function resetSoftwareCore(){Object.values(KEYS).forEach((key)=>window.localStorage.removeItem(key));window.dispatchEvent(new CustomEvent("nextf:software-store",{detail:"reset"}));}
+export function resetSoftwareCore(){Object.values(KEYS).forEach((key)=>removeDurableValue(key));window.dispatchEvent(new CustomEvent("nextf:software-store",{detail:"reset"}));}

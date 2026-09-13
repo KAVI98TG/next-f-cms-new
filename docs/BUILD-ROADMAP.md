@@ -10,10 +10,20 @@
 8. ✅ V0.8.0 Product Completion + Deep QA
 9. ✅ V0.9.0 Final Product Acceptance
 10. ✅ V0.10.0 Final Architecture Completion
-11. Local dependency-backed build + visual smoke QA
-12. Production infrastructure adapters
-13. D1/R2/Workers/Wrangler setup
-14. Production migrations, staging and end-to-end QA
-15. Production deployment and go-live
+11. ✅ V0.11.0 Platform Customer Help Center
+12. ✅ V0.12.0 Website Platform staff foundation
+13. ✅ V0.13.0 Platform identity + customer organization/workspace memberships
+14. ✅ V0.14.0 Demo Access + real customer provisioning lifecycle
+15. ✅ V0.15.0 Contract Registry resolver foundation + Site Manifest evidence lifecycle (real canonical adapter population awaits Registry source)
+16. ✅ V0.16.0 Service entitlements + Customer Capability Access Policy foundation (real canonical policy population awaits Registry source)
+17. ✅ V0.17.0 Change requests, approvals, revisions + publishing governance
+18. ✅ V0.18.0 Shared Admin/Customer API boundary
+19. ✅ V0.19.0 nextf.lk first-party integration boundary (exact live route wiring awaits public-site source/crawl)
+20. V0.20.0 Local dependency-backed build + visual smoke QA
+21. Production infrastructure adapters
+22. D1/R2/Workers/Wrangler setup
+23. Separate Customer Workspace application integration
+24. Production migrations, staging and end-to-end QA
+25. Production deployment and go-live
 
-V0.10.0 marks completion of the agreed CMS application architecture. Production infrastructure remains deliberately outside the CMS code-completion stage until the dependency-backed build and visual smoke test succeed.
+V0.12.0 preserves the completed CMS baseline and begins the approved Platform + NEXT F Digital upgrade. Production infrastructure remains deferred until the domain, authorization and contract-integration layers are stable and dependency-backed build/visual QA succeeds.

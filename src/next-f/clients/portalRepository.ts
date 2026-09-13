@@ -1,5 +1,6 @@
 import { platformStore } from "../../platform/services/platformStore";
 import { clientsRepository } from "../data/repositories/clientsRepository";
+import { readDurableValue, writeDurableValue } from "../../services/production/durableStorage";
 
 export type PortalAccess = {
   id: string;
@@ -17,8 +18,8 @@ const seed: PortalAccess[] = [
   {id:"portal_1",clientId:"client_1",email:"amal@example.com",status:"active",lastInviteAt:ago(200),lastLoginAt:ago(2),createdAt:ago(200)},
   {id:"portal_2",clientId:"client_2",email:"mihiri@example.com",status:"invited",lastInviteAt:ago(4),createdAt:ago(4)},
 ];
-function read(){if(typeof window==="undefined")return seed;try{const raw=window.localStorage.getItem(KEY);if(!raw){window.localStorage.setItem(KEY,JSON.stringify(seed));return seed;}return JSON.parse(raw) as PortalAccess[];}catch{return seed;}}
-function write(value:PortalAccess[]){window.localStorage.setItem(KEY,JSON.stringify(value));window.dispatchEvent(new CustomEvent("nextf:digital-admin",{detail:KEY}));return value;}
+function read(){return readDurableValue(KEY,seed);}
+function write(value:PortalAccess[]){const result=writeDurableValue(KEY,value);window.dispatchEvent(new CustomEvent("nextf:digital-admin",{detail:KEY}));return result;}
 const uid=()=>`portal_${crypto.randomUUID()}`;
 export const portalRepository={
   get:read,

@@ -1,4 +1,5 @@
 import { platformStore } from "../../platform/services/platformStore";
+import { readDurableValue, writeDurableValue } from "../../services/production/durableStorage";
 
 export type DigitalBusinessSettings = {
   proposalValidityDays: number;
@@ -19,19 +20,7 @@ export const defaultDigitalBusinessSettings: DigitalBusinessSettings = {
   portalEnabledByDefault: true,
 };
 
-function read(): DigitalBusinessSettings {
-  if (typeof window === "undefined") return defaultDigitalBusinessSettings;
-  try {
-    const raw = window.localStorage.getItem(KEY);
-    if (!raw) {
-      window.localStorage.setItem(KEY, JSON.stringify(defaultDigitalBusinessSettings));
-      return defaultDigitalBusinessSettings;
-    }
-    return { ...defaultDigitalBusinessSettings, ...(JSON.parse(raw) as Partial<DigitalBusinessSettings>) };
-  } catch {
-    return defaultDigitalBusinessSettings;
-  }
-}
+function read(): DigitalBusinessSettings { return { ...defaultDigitalBusinessSettings, ...readDurableValue<Partial<DigitalBusinessSettings>>(KEY, defaultDigitalBusinessSettings) }; }
 
 export const digitalSettingsRepository = {
   get: read,
@@ -44,7 +33,7 @@ export const digitalSettingsRepository = {
       requireClientApproval: Boolean(settings.requireClientApproval),
       portalEnabledByDefault: Boolean(settings.portalEnabledByDefault),
     };
-    window.localStorage.setItem(KEY, JSON.stringify(normalized));
+    writeDurableValue(KEY, normalized);
     window.dispatchEvent(new CustomEvent("nextf:digital-settings", { detail: KEY }));
     platformStore.addAudit("Admin", "Digital settings updated", "NEXT F Digital", "NEXT F Digital", "Business workflow defaults changed.", "info");
     return normalized;

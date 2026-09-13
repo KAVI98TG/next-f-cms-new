@@ -14,7 +14,7 @@ export function AccessPage() {
   const [open, setOpen] = useState(false);
   const [roleName, setRoleName] = useState("");
   const [roleDescription, setRoleDescription] = useState("");
-  const { user: sessionUser, assumeUser } = useSession();
+  const { user: sessionUser, mode, assumeUser } = useSession();
   const selected = useMemo(() => roles.find((role) => role.id === selectedId) ?? roles[0], [roles, selectedId]);
 
   const memberCount = (roleId: string) => users.filter((user) => user.roleId === roleId).length;
@@ -43,7 +43,7 @@ export function AccessPage() {
 
   return <div className="page">
     <SectionHeader eyebrow="Platform" title="Roles & permissions" description="Domain-scoped access control keeps Digital, Gaming Store, Software and Platform responsibilities separated." action={<Button variant="primary" onClick={() => setOpen(true)}><Plus size={16}/>New role</Button>} />
-    <Card className="permission-preview"><div><span className="section-header__eyebrow">Local permission preview</span><strong>Active session: {sessionUser.name} · {sessionUser.role}</strong><small>Switch between active staff accounts to test route and navigation enforcement before production authentication exists.</small></div><div className="table-actions">{users.filter((item)=>item.status==="active").map((item)=><Button key={item.id} variant={sessionUser.id===item.id?"primary":"ghost"} onClick={()=>assumeUser(item.id)}>{item.name}</Button>)}</div></Card>
+    <Card className="permission-preview"><div><span className="section-header__eyebrow">{mode === "production-access" ? "Verified production session" : "Local permission preview"}</span><strong>Active session: {sessionUser.name} · {sessionUser.role}</strong><small>{mode === "production-access" ? "Identity and permissions are bound to the verified Cloudflare Access principal. Staff impersonation is disabled in production." : "Switch between active staff accounts to test route and navigation enforcement during local development."}</small></div>{mode === "local-development" && assumeUser && <div className="table-actions">{users.filter((item)=>item.status==="active").map((item)=><Button key={item.id} variant={sessionUser.id===item.id?"primary":"ghost"} onClick={()=>assumeUser(item.id)}>{item.name}</Button>)}</div>}</Card>
     <div className="access-layout">
       <Card className="role-list-card">
         <div className="card-heading"><span><UsersRound size={18}/></span><div><strong>Roles</strong><small>{roles.length} permission groups</small></div></div>
@@ -56,7 +56,7 @@ export function AccessPage() {
             const enabled = selected.permissions.includes(permission);
             return <div className="permission-row" key={permission}><span><span className={`permission-check ${enabled ? "is-on" : ""}`}>{enabled && <Check size={12}/>}</span><span><strong>{permission}</strong><small>{permission.endsWith(".read") ? "View module data" : "Perform protected operations"}</small></span></span><Toggle checked={enabled} onChange={(value) => togglePermission(permission, value)} /></div>;
           })}</div></section>)}</div>
-          {selected.system && <div className="inline-notice"><ShieldCheck size={17}/><span><strong>Super Admin is protected.</strong><small>Its permissions are fixed during the local development stage.</small></span></div>}
+          {selected.system && <div className="inline-notice"><ShieldCheck size={17}/><span><strong>Super Admin is protected.</strong><small>Its permissions are governed by the active authorization policy; production requests are still enforced server-side.</small></span></div>}
         </>}
       </Card>
     </div>

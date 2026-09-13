@@ -1,68 +1,46 @@
-# NEXT F CMS V0.11.0 - Project Status
+# NEXT F CMS V0.25.0 — Project Status
 
 ## Status
 
-**Platform Customer Help Center implemented.**
+**Main internal CMS source roadmap and Production Go-Live P0–P2 source work are complete. Production V1.0 remains evidence-gated.**
 
-V0.11.0 adds a shared customer-help capability under Platform without collapsing the three business-specific support systems.
+V0.25.0 preserves root deployment, global Light/Dark/System theming and the P1 D1 durable-state bridge, then replaces the production frontend local-development session with a verified Cloudflare Access-bound staff principal. Production startup now authenticates before durable state initialization and fails closed when Access verification or the exact active D1 staff binding fails.
 
-## Added in V0.11.0
+The separate Customer Workspace remains outside the main-CMS roadmap and will be built as a separate application at `workspace.nextf.lk` after the CMS production release is proven.
 
-### Customer Help Center
-- Shared Help Center overview and internal customer-facing preview/search.
-- Knowledge Base articles with draft/published state, category, audience and featured metadata.
-- Categories scoped to all NEXT F, Digital, Gaming Store or Software.
-- FAQs with audience and publish state.
-- Customer announcements with audience, publish schedule and archive state.
-- Unified customer help-request queue.
-- Request priority and lifecycle: new, routed, in progress, waiting customer, resolved, closed.
-- Business routing: unassigned, Digital, Gaming Store, Software.
-- Saved agent replies with shortcuts and audience scope.
-- Customer feedback tracking for helpful / not-helpful knowledge content.
-- Customer Help Center settings for search, feedback, contact requests, anonymous requests and automatic business routing.
+## Completed main-CMS phases
 
-### Platform integration
-- New `platform.help.manage` permission.
-- Support role automatically receives shared Help Center management without privileged Platform configuration permissions.
-- Global CMS search indexes Help Center articles, FAQs and requests.
-- High/urgent Help Center requests surface in the Platform Operations Inbox.
-- Help actions write Platform audit events and new requests create Platform notifications.
-- Platform dashboard exposes the shared Help Center queue.
-- System Health validates loaded Help Center content/request state.
-- Final Product Acceptance now validates Help Center slugs, references, request identity/routing, saved-reply shortcuts, settings and announcements.
-- Final architecture document updated to make Customer Help Center a permanent Platform capability.
+- Website Platform foundation.
+- NEXT F Account / customer organization / workspace / membership model.
+- Real customer provisioning and isolated Demo governance.
+- Contract Registry / Site Manifest resolver foundation.
+- Service entitlements and Customer Capability Access Policy.
+- Change requests, approvals, external revisions and publishing governance.
+- Shared backend/API trust boundary.
+- `nextf.lk` first-party projection/ingress boundary.
+- Runtime/release source hardening.
+- Cloudflare production infrastructure foundation.
+- Lifecycle/offboarding/portability and production acceptance ledger.
+- Production Go-Live P0 — root routing, global theming, SPA/deployment frontend cleanup.
+- Production Go-Live P1 — D1 durable operational-state bridge and connected staff query/command handlers.
+- Production Go-Live P2 — verified Cloudflare Access frontend identity and production impersonation removal.
 
-## Architecture rule
+## P2 production identity properties
 
-The Help Center provides **one customer entry point**. It does not replace:
-- NEXT F Digital → Support
-- Gaming Store → Support
-- NEXT F Software → Support
+- `staff.session.get` returns only a verified, D1-bound staff principal.
+- JWT signature, expiry, issued-at sanity, issuer and audience are checked at the Worker.
+- Active binding and exact Access `sub` matching are required.
+- Production frontend permissions come from the server principal, not a browser-selected user.
+- React renders only after production identity initialization succeeds.
+- Local staff switching is not exposed in production API mode and is hard-guarded if invoked.
+- Server-side authorization from P1 remains the actual security boundary.
 
-The Platform Help Center owns knowledge, discovery, contact entry and routing. Business support modules own fulfillment and domain-specific issue resolution.
+## Still pending before production V1.0
 
-## Infrastructure boundary
+The next phase is **P3 — Cloudflare Deployment & Environment Proof**: create/bind the real staging and production resources, apply D1 migrations, configure the Access application/policy and real staff binding, set secrets/environment values, deploy the Worker/frontend and collect acceptance evidence.
 
-No public Help Center deployment, email provider, production authentication, D1, R2, Workers or Wrangler configuration is added in this release. The Help Center uses browser-persistent local stores and production-neutral contracts until infrastructure integration.
+After P3, production acceptance still includes dependency-backed `npm ci && npm run build`, browser/E2E/security/concurrency tests, backup/restore evidence, authoritative Contracts/Site Manifest deployment, real managed-site adapter receipts and the remaining lifecycle/public-ingress acceptance gates.
 
-## V0.11.0 QA result
+V0.25.0 therefore remains a **production go-live source candidate**, not production V1.0.
 
-- Architecture regression: **18/18 passed**
-- Platform Core regression: **24/24 passed**
-- Digital Core regression: **29/29 passed**
-- Digital Operations regression: **41/41 passed**
-- Gaming Store Core regression: **50/50 passed**
-- Software Core regression: **70/70 passed**
-- SaaS Completion regression: **34/34 passed**
-- Product Completion regression: **49/49 passed**
-- Final Product Acceptance regression: **67/67 passed**
-- Architecture Completion regression: **76/76 passed**
-- Platform Help Center: **72/72 passed**
-- Implementation TS/TSX files: **162**
-- Relative import checks: **passed** through regression suites
-- Dependency-independent semantic TypeScript pass: **passed** with temporary external-library declarations; temporary QA files were removed before packaging.
-- Source placeholder check: **clean**
-
-## Dependency-backed build status
-
-A real `npm install --ignore-scripts --no-audit --no-fund` was attempted and timed out in this execution environment. No partial `node_modules` or package-lock artifact is shipped. Run `npm install` followed by `npm run build` in the normal development environment before production infrastructure integration.
+See `docs/V0.25.0-PRODUCTION-GO-LIVE-P2-PRODUCTION-IDENTITY.md`, `docs/QA-V0.25.0.md`, `docs/MAIN-CMS-COMPLETION-STATUS.md` and Website Platform → Lifecycle & Production Acceptance.

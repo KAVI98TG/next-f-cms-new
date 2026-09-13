@@ -1,0 +1,45 @@
+import fs from "node:fs";
+import path from "node:path";
+
+const pass=[]; const fail=[]; const check=(label,ok)=>ok?pass.push(label):fail.push(label); const read=(file)=>fs.readFileSync(file,"utf8"); const exists=(file)=>fs.existsSync(file);
+const pkg=JSON.parse(read("package.json")); const lock=JSON.parse(read("package-lock.json")); const version=read("src/app/version.ts");
+const session=read("src/app/auth/SessionProvider.tsx"); const sessionClient=read("src/services/production/staffSession.ts"); const main=read("src/main.tsx"); const access=read("infrastructure/cloudflare/src/access.ts"); const staff=read("infrastructure/cloudflare/src/staff.ts"); const worker=read("infrastructure/cloudflare/src/index.ts"); const contracts=read("src/services/backend/contracts.ts"); const accessPage=read("src/platform/roles/AccessPage.tsx"); const denied=read("src/shared/pages/AccessDeniedPage.tsx"); const provision=read("scripts/generate-staff-binding-sql.mjs");
+const [major,minor]=pkg.version.split(".").map(Number);
+check("P2 version 0.25+",major===0&&minor>=25&&lock.version===pkg.version&&lock.packages?.[""]?.version===pkg.version&&read("VERSION").trim()===pkg.version&&version.includes(`APP_VERSION = "${pkg.version}"`));
+check("P2 release label",version.includes('APP_RELEASE = "Production Go-Live P2 · Production Identity"'));
+check("P2 QA wired",pkg.scripts?.["check:go-live-p2"]==="node scripts/production-go-live-p2-check.mjs");
+check("production session client exists",exists("src/services/production/staffSession.ts")&&sessionClient.includes("initializeProductionStaffSession")&&sessionClient.includes('operation: "staff.session.get"'));
+check("production session validates Access assurance",sessionClient.includes('row.assurance !== "cloudflare-access"')&&sessionClient.includes('assurance: "cloudflare-access"'));
+check("production session filters known permissions",sessionClient.includes("filter(isPermission)"));
+check("bootstrap authenticates before durable state",main.indexOf("await initializeProductionStaffSession()")>=0&&main.indexOf("await initializeProductionStaffSession()")<main.indexOf("await initializeDurableStorage()"));
+check("bootstrap fails closed for identity",main.includes("verified staff identity or durable backend is unavailable"));
+check("session provider selects production verified principal",session.includes("getProductionStaffSession")&&session.includes('runtime.mode === "production-api" ? readProductionSessionUser() : readLocalSessionUser()'));
+check("production session permissions come from server principal",session.includes("permissions: principal.permissions"));
+check("production impersonation is not exposed",session.includes('...(runtime.mode === "local-prototype" ? { assumeUser } : {})'));
+check("production impersonation hard guard",session.includes('if (runtime.mode === "production-api") throw new Error("Staff impersonation is disabled in production")'));
+check("production session does not register local storage listeners",session.includes('if (runtime.mode === "production-api") return;'));
+check("Access UI distinguishes verified session",accessPage.includes("Verified production session")&&accessPage.includes("Staff impersonation is disabled in production"));
+check("Access UI exposes switcher only locally",accessPage.includes('mode === "local-development" && assumeUser'));
+check("access denied restore only locally",denied.includes('mode==="local-development"&&assumeUser'));
+check("backend contract registers staff session",contracts.includes('"staff.session.get"')&&contracts.includes("verified Cloudflare Access-bound production staff principal"));
+check("worker staff session handler exists",staff.includes('input.operation==="staff.session.get"')&&staff.includes('assurance:"cloudflare-access"'));
+check("Access missing assertion maps to 401",access.includes('new AccessVerificationError("UNAUTHENTICATED", "Missing Cloudflare Access assertion")'));
+check("Access verifies RS256 signature",access.includes('header.alg !== "RS256"')&&access.includes("crypto.subtle.verify"));
+check("Access validates expiry and token timing",access.includes("payload.exp <= now")&&access.includes("payload.iat > now + 60")&&access.includes("payload.nbf > now + 60"));
+check("Access requires application token",access.includes('payload.type !== "app"'));
+check("Access validates issuer",access.includes("payload.iss !== expectedIssuer(env)"));
+check("Access validates audience",access.includes("audience.includes(env.ACCESS_AUD)"));
+check("Access identity uses non-invented assurance",access.includes('assurance: "cloudflare-access" as const'));
+check("Worker maps Access verification errors",worker.includes("AccessVerificationError")&&worker.includes("error instanceof AccessVerificationError"));
+check("active D1 binding required",staff.includes('row.status!=="active"')&&staff.includes("STAFF_IDENTITY_NOT_BOUND"));
+check("exact Access subject binding required",staff.includes('row.access_subject!==identity.subject')&&staff.includes("STAFF_SUBJECT_MISMATCH"));
+check("binding provisioning helper exists",exists("scripts/generate-staff-binding-sql.mjs")&&provision.includes("staff_identity_bindings")&&provision.includes("--subject")&&provision.includes("--super-admin"));
+check("P2 release doc exists",exists("docs/V0.25.0-PRODUCTION-GO-LIVE-P2-PRODUCTION-IDENTITY.md"));
+check("P2 QA doc exists",exists("docs/QA-V0.25.0.md"));
+
+const productionFiles=["src/services/production/staffSession.ts","infrastructure/cloudflare/src/access.ts","infrastructure/cloudflare/src/staff.ts"];
+check("production identity files do not use localStorage",productionFiles.every((file)=>!read(file).includes("localStorage")));
+const sessionLocalStorageUses=(session.match(/window\.localStorage/g)||[]).length;
+check("SessionProvider localStorage remains local-only",sessionLocalStorageUses===2&&session.includes("readLocalSessionUser")&&session.includes('runtime.mode === "production-api"'));
+
+console.log("NEXT F CMS Production Go-Live P2 Production Identity check"); for(const item of pass)console.log(`PASS  ${item}`); for(const item of fail)console.error(`FAIL  ${item}`); console.log(`\n${pass.length} passed, ${fail.length} failed`); if(fail.length)process.exit(1);

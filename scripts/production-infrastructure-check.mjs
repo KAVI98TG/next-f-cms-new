@@ -1,0 +1,34 @@
+import fs from "node:fs";
+const pass=[]; const fail=[]; const check=(label,ok)=>ok?pass.push(label):fail.push(label); const read=(p)=>fs.readFileSync(p,"utf8"); const exists=(p)=>fs.existsSync(p);
+const required=[
+  "infrastructure/cloudflare/src/index.ts","infrastructure/cloudflare/src/env.ts","infrastructure/cloudflare/src/access.ts","infrastructure/cloudflare/src/repository.ts","infrastructure/cloudflare/src/idempotency.ts","infrastructure/cloudflare/src/publicIngress.ts","infrastructure/cloudflare/src/audit.ts","infrastructure/cloudflare/migrations/0001_core.sql","infrastructure/cloudflare/wrangler.example.jsonc","infrastructure/cloudflare/README.md","src/services/production/runtime.ts","src/services/production/httpClient.ts","docs/V0.21.0-PRODUCTION-INFRASTRUCTURE-FOUNDATION.md","docs/QA-V0.21.0.md"
+]; required.forEach((p)=>check(`file ${p}`,exists(p)));
+const env=read("infrastructure/cloudflare/src/env.ts"), access=read("infrastructure/cloudflare/src/access.ts"), worker=read("infrastructure/cloudflare/src/index.ts"), migration=read("infrastructure/cloudflare/migrations/0001_core.sql"), ingress=read("infrastructure/cloudflare/src/publicIngress.ts"), repo=read("infrastructure/cloudflare/src/repository.ts"), idem=read("infrastructure/cloudflare/src/idempotency.ts"), runtime=read("src/services/production/runtime.ts"), client=read("src/services/production/httpClient.ts"), page=read("src/platform/infrastructure/InfrastructurePage.tsx"), pkg=JSON.parse(read("package.json")), lock=JSON.parse(read("package-lock.json")), version=read("VERSION").trim(), app=read("src/app/version.ts");
+const semverAtLeast021=(value)=>{const [a,b,c]=value.split(".").map(Number);return a>0||(a===0&&(b>21||(b===21&&c>=0)));};
+const appVersionMatch=app.match(/APP_VERSION = "([^"]+)"/);
+check("version remains V0.21+",semverAtLeast021(pkg.version)&&semverAtLeast021(lock.version)&&semverAtLeast021(lock.packages?.[""]?.version||"0.0.0")&&semverAtLeast021(version)&&Boolean(appVersionMatch&&semverAtLeast021(appVersionMatch[1])));
+check("production infrastructure QA wired",pkg.scripts?.["check:production-infrastructure"]==="node scripts/production-infrastructure-check.mjs");
+for(const binding of ["DB","FILES","EVENTS","PUBLIC_RATE_LIMITER","TURNSTILE_SECRET_KEY","ACCESS_TEAM_DOMAIN","ACCESS_AUD","SERVICE_CREDENTIAL_SECRET"]) check(`binding ${binding}`,env.includes(binding));
+check("Access assertion header validated",access.includes('cf-access-jwt-assertion'));
+check("Access JWT requires RS256",access.includes('header.alg !== "RS256"'));
+check("Access JWT verifies signature",access.includes("crypto.subtle.verify"));
+check("Access JWT checks expiry",access.includes("payload.exp <= now"));
+check("Access JWT checks audience",access.includes("audience.includes(env.ACCESS_AUD)"));
+check("public Turnstile server verification",ingress.includes("turnstile/v0/siteverify"));
+check("public rate limiter enforced",worker.includes("enforcePublicRateLimit"));
+check("public Turnstile enforced",worker.includes("verifyTurnstile"));
+check("public commands require idempotency",worker.includes('request.headers.get("idempotency-key")'));
+check("public commands enqueue durable event",worker.includes("env.EVENTS.send"));
+check("public CORS allowlist",worker.includes("env.CMS_ORIGIN")&&worker.includes("env.WORKSPACE_ORIGIN")&&worker.includes("env.PUBLIC_SITE_ORIGIN"));
+check("staff routes validate Access",worker.includes("verifyAccessAssertion"));
+check("staff routes dispatch durable query/command handlers",worker.includes("handleStaffQuery")&&worker.includes("handleStaffCommand")&&worker.includes("resolveStaffPrincipal"));
+for(const table of ["app_documents","idempotency_records","audit_events","staff_identity_bindings","outbox_events","file_objects","public_projection_snapshots"]) check(`D1 table ${table}`,migration.includes(`CREATE TABLE IF NOT EXISTS ${table}`));
+check("D1 JSON validity constraints",migration.includes("json_valid"));
+check("D1 workspace indexes",migration.includes("idx_app_documents_workspace")&&migration.includes("idx_audit_workspace"));
+check("optimistic concurrency repository",repo.includes("expectedVersion")&&repo.includes("version=version+1")&&repo.includes("Optimistic concurrency conflict"));
+check("durable idempotency repository",idem.includes("class D1IdempotencyRepository")&&idem.includes("principal_fingerprint")&&idem.includes("request_hash"));
+check("production runtime does not fallback when selected without URL",runtime.includes("production backend mode is enabled")&&runtime.includes("throw new Error"));
+check("HTTP client requires idempotency on commands",client.includes("Production commands require an idempotency key"));
+check("HTTP client sends credentials",client.includes('credentials:"include"'));
+check("Infrastructure UI exposes production foundation",page.includes("Cloudflare Worker + D1 handlers")&&page.includes("fails closed"));
+console.log("NEXT F CMS V0.21.0 Production Infrastructure Foundation check"); for(const x of pass)console.log(`PASS  ${x}`);for(const x of fail)console.error(`FAIL  ${x}`);console.log(`\n${pass.length} passed, ${fail.length} failed`);if(fail.length)process.exit(1);

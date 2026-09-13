@@ -5,9 +5,9 @@ import { digitalStore, type DigitalClient } from "../data/digitalStore";
 import { DigitalStatus } from "../shared/DigitalStatus";
 import { formatDate, formatLkr } from "../shared/format";
 import { useDigitalStore } from "../shared/useDigitalStore";
-import { digitalAdminStore } from "../operations/digitalAdminStore";
-import { useDigitalAdmin } from "../operations/useDigitalAdmin";
-import { useToast } from "../../shared/feedback/ToastProvider";
+import { websitePlatformStore } from "../website-platform/websitePlatformStore";
+import { useWebsitePlatformStore } from "../website-platform/useWebsitePlatformStore";
+import { useRouter } from "../../app/router/RouterProvider";
 
 export function ClientsPage() {
   const clients = useDigitalStore(digitalStore.getClients);
@@ -17,8 +17,9 @@ export function ClientsPage() {
   const subscriptions = useDigitalStore(digitalStore.getSubscriptions);
   const sites = useDigitalStore(digitalStore.getSites);
   const tickets = useDigitalStore(digitalStore.getTickets);
-  const portalAccess = useDigitalAdmin(digitalAdminStore.getPortalAccess);
-  const { notify } = useToast();
+  const customerWorkspaces = useWebsitePlatformStore(websitePlatformStore.getWorkspaces);
+  const siteConnections = useWebsitePlatformStore(websitePlatformStore.getSiteConnections);
+  const { navigate } = useRouter();
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState(clients[0]?.id ?? "");
   const rows = useMemo(() => clients.filter((client) => `${client.name} ${client.company} ${client.email}`.toLowerCase().includes(query.toLowerCase())), [clients, query]);
@@ -39,7 +40,7 @@ export function ClientsPage() {
   const clientSubscriptions = selected ? subscriptions.filter((item) => item.clientId === selected.id) : [];
   const clientSites = selected ? sites.filter((item) => item.clientId === selected.id) : [];
   const clientTickets = selected ? tickets.filter((item) => item.clientId === selected.id) : [];
-  const portal = selected ? portalAccess.find((item) => item.clientId === selected.id) : undefined;
+  const customerWorkspace = selected ? customerWorkspaces.find((item) => item.clientId === selected.id && item.status !== "closed") : undefined;
 
   return <div className="page">
     <SectionHeader eyebrow="NEXT F Digital" title="Clients" description="A single client record for commercial history, delivery status and billing context." />
@@ -69,7 +70,7 @@ export function ClientsPage() {
         <div className="client-360-section"><strong>Recurring services</strong>{clientSubscriptions.length ? clientSubscriptions.slice(0, 3).map((item) => <div className="mini-record" key={item.id}><div><strong>{item.name}</strong><small>Renews {formatDate(item.nextRenewalAt)}</small></div><div className="client-360-row-status"><DigitalStatus value={item.status}/><small>{formatLkr(item.amount)}</small></div></div>) : <p className="empty-copy">No recurring services.</p>}</div>
         <div className="client-360-section"><strong>Managed sites</strong>{clientSites.length ? clientSites.slice(0, 3).map((site) => <div className="mini-record" key={site.id}><div><strong>{site.domain}</strong><small>{site.responseMs ? `${site.responseMs} ms` : "No response"}</small></div><div className="client-360-row-status"><DigitalStatus value={site.status}/></div></div>) : <p className="empty-copy">No managed sites.</p>}</div>
         <div className="client-360-section"><strong>Support</strong>{clientTickets.length ? clientTickets.slice(0, 3).map((ticket) => <div className="mini-record" key={ticket.id}><div><strong>{ticket.number}</strong><small>{ticket.subject}</small></div><div className="client-360-row-status"><DigitalStatus value={ticket.status}/></div></div>) : <p className="empty-copy">No support tickets.</p>}</div>
-        <div className="client-360-section"><strong>Client portal access</strong>{portal ? <div className="mini-record"><div><strong>{portal.email || selected.email}</strong><small>{portal.lastLoginAt ? `Last login ${formatDate(portal.lastLoginAt)}` : portal.lastInviteAt ? `Invited ${formatDate(portal.lastInviteAt)}` : "Portal access configured"}</small></div><div className="table-actions"><DigitalStatus value={portal.status}/>{portal.status === "active" ? <Button variant="ghost" onClick={() => { digitalAdminStore.updatePortalAccess(portal.id,{status:"suspended"}); notify({title:"Portal access suspended",tone:"success"}); }}>Suspend</Button> : <Button onClick={() => { digitalAdminStore.updatePortalAccess(portal.id,{status:"active"}); notify({title:"Portal access activated",tone:"success"}); }}>Activate</Button>}<Button variant="ghost" onClick={() => { digitalAdminStore.createPortalAccess(selected.id); notify({title:"Portal invitation refreshed",tone:"success"}); }}>Re-invite</Button></div></div> : <div className="mini-record"><div><strong>No portal access</strong><small>Invite this client to the future client portal.</small></div><Button onClick={() => { digitalAdminStore.createPortalAccess(selected.id); notify({title:"Portal invitation created",tone:"success"}); }}>Invite client</Button></div>}</div>
+        <div className="client-360-section"><strong>Customer Workspace</strong>{customerWorkspace ? <div className="mini-record"><div><strong>{customerWorkspace.name}</strong><small>{siteConnections.filter((item) => item.workspaceId === customerWorkspace.id && item.status !== "revoked").length} connected site(s) · provisioning state: {customerWorkspace.status.replaceAll("_", " ")}</small></div><div className="table-actions"><DigitalStatus value={customerWorkspace.status}/><Button variant="ghost" onClick={() => navigate("/next-f/website-platform")}>Manage</Button></div></div> : <div className="mini-record"><div><strong>Not provisioned</strong><small>Customer access is never granted from the client record. Provisioning, account membership and entitlements are managed separately.</small></div><Button onClick={() => navigate("/next-f/website-platform")}>Open Website Platform</Button></div>}</div>
         <p className="client-notes">{selected.notes}</p>
       </Card>}
     </div>

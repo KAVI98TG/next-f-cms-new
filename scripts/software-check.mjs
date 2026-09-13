@@ -22,7 +22,7 @@ check("download attempts limited",store.includes("maxDownloadAttempts"));
 check("support cases product aware",store.includes("SoftwareSupportCase")&&store.includes("productId"));
 check("payment issues license",store.includes("License")&&store.includes("License ${license.key} issued"));
 check("refund revokes license",store.includes("Associated license revoked"));
-check("browser-persistent software store",store.includes("localStorage"));
+check("software store uses shared durable storage boundary",store.includes("readDurableValue")&&store.includes("writeDurableValue")&&!store.includes("window.localStorage"));
 check("platform audit integration",store.includes("platformStore.addAudit"));
 check("no cloudflare setup in software core",!store.includes("D1Database")&&!store.includes("R2Bucket")&&!store.includes("wrangler"));
 const softwareFiles=fs.readdirSync(path.join(root,"src/software"),{recursive:true}); check("no software placeholder READMEs",!softwareFiles.some((n)=>String(n).endsWith("README.md"))); check("no software .gitkeep placeholders",!softwareFiles.some((n)=>String(n).endsWith(".gitkeep")));

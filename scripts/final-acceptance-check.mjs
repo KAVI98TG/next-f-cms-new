@@ -19,7 +19,7 @@ check("acceptance report export",acceptancePage.includes("Export report")&&accep
 check("acceptance score",acceptancePage.includes("Acceptance score")&&acceptancePage.includes("productReady"));
 check("acceptance responsive styles",css.includes(".acceptance-banner")&&css.includes(".acceptance-row")&&css.includes("max-width:680px"));
 check("application route integrity check",acceptance.includes("Unique route registry")&&acceptance.includes("Workspace route boundaries"));
-check("browser storage probe",acceptance.includes("storageAvailable")&&acceptance.includes("localStorage"));
+check("durable storage readiness probe",acceptance.includes("storageAvailable")&&acceptance.includes("getDurableStateStatus"));
 check("platform user-role integrity",acceptance.includes("Staff role references"));
 check("platform unique staff emails",acceptance.includes("Unique staff emails"));
 check("platform permission catalog integrity",acceptance.includes("Known role permissions")&&acceptance.includes("Manage/read dependency"));

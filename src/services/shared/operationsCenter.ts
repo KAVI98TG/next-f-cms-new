@@ -3,9 +3,10 @@ import { digitalStore } from "../../next-f/data/digitalStore";
 import { gamingStore } from "../../gaming-store/data/gamingStore";
 import { softwareStore } from "../../software/data/softwareStore";
 import { helpCenterStore } from "../../platform/help-center/data/helpCenterStore";
+import { readDurableValue, writeDurableValue } from "../production/durableStorage";
 
 const ACK_KEY = "nextf.v0.7.operations.acknowledged";
-const acked = () => { try { return JSON.parse(window.localStorage.getItem(ACK_KEY) ?? "[]") as string[]; } catch { return []; } };
+const acked = () => readDurableValue<string[]>(ACK_KEY, []);
 const generated = (id: string, title: string, detail: string, domain: string, tone: PlatformNotification["tone"], createdAt: string): PlatformNotification => ({ id, title, detail, domain, tone, read: acked().includes(id), createdAt });
 
 export function getOperationsNotifications(): PlatformNotification[] {
@@ -27,13 +28,13 @@ export function markOperationsNotification(id: string, readState = true) {
   if (!id.startsWith("ops:")) return platformStore.markNotification(id, readState);
   const set = new Set(acked());
   if (readState) set.add(id); else set.delete(id);
-  window.localStorage.setItem(ACK_KEY, JSON.stringify([...set]));
+  writeDurableValue(ACK_KEY, [...set]);
   window.dispatchEvent(new CustomEvent("nextf:operations-center"));
 }
 
 export function markAllOperationsNotifications() {
   platformStore.markAllNotifications();
   const generatedIds = getOperationsNotifications().filter((item) => item.id.startsWith("ops:")).map((item) => item.id);
-  window.localStorage.setItem(ACK_KEY, JSON.stringify(generatedIds));
+  writeDurableValue(ACK_KEY, generatedIds);
   window.dispatchEvent(new CustomEvent("nextf:operations-center"));
 }

@@ -33,8 +33,12 @@ export type DigitalLead = {
   email: string;
   phone: string;
   source: string;
-  serviceId: string;
+  serviceId?: string;
   estimatedValue: number;
+  enquiryDetail?: string;
+  sourceContext?: string;
+  privacyConsentAt?: string;
+  marketingConsentAt?: string;
   status: LeadStatus;
   owner: string;
   nextAction: string;

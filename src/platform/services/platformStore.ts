@@ -1,3 +1,4 @@
+import { readDurableValue, writeDurableValue, removeDurableValue } from "../../services/production/durableStorage";
 export type UserStatus = "active" | "invited" | "suspended";
 export type AuditTone = "neutral" | "info" | "warning" | "danger";
 export type NotificationTone = "info" | "warning" | "danger" | "success";
@@ -82,7 +83,7 @@ const seedUsers: PlatformUser[] = [
 
 export const platformPermissionCatalog = [
   { group: "Platform", permissions: ["platform.read", "platform.users.manage", "platform.access.manage", "platform.audit.read", "platform.settings.manage", "platform.organizations.manage", "platform.domains.manage", "platform.security.manage", "platform.logs.read", "platform.backup.manage", "platform.cleanup.manage", "platform.help.manage"] },
-  { group: "NEXT F Digital", permissions: ["digital.read", "digital.sales.manage", "digital.projects.manage", "digital.billing.manage", "digital.sites.manage", "digital.settings.manage"] },
+  { group: "NEXT F Digital", permissions: ["digital.read", "digital.sales.manage", "digital.projects.manage", "digital.billing.manage", "digital.sites.manage", "digital.website-platform.manage", "digital.settings.manage"] },
   { group: "Gaming Store", permissions: ["gaming.read", "gaming.orders.manage", "gaming.products.manage", "gaming.suppliers.manage", "gaming.finance.manage"] },
   { group: "NEXT F Software", permissions: ["software.read", "software.products.manage", "software.releases.manage", "software.licenses.manage", "software.billing.manage"] },
 ];
@@ -91,7 +92,7 @@ const allPermissions = platformPermissionCatalog.flatMap((group) => group.permis
 
 const seedRoles: PlatformRole[] = [
   { id: "role_super", name: "Super Admin", description: "Full control across the entire NEXT F platform.", members: 1, permissions: allPermissions, system: true },
-  { id: "role_digital", name: "Digital Manager", description: "Operate sales, clients, projects, billing and client sites.", members: 1, permissions: ["platform.read", "digital.read", "digital.sales.manage", "digital.projects.manage", "digital.billing.manage", "digital.sites.manage", "digital.settings.manage"], system: false },
+  { id: "role_digital", name: "Digital Manager", description: "Operate sales, clients, projects, billing and client sites.", members: 1, permissions: ["platform.read", "digital.read", "digital.sales.manage", "digital.projects.manage", "digital.billing.manage", "digital.sites.manage", "digital.website-platform.manage", "digital.settings.manage"], system: false },
   { id: "role_gaming", name: "Gaming Operator", description: "Operate Gaming Store catalog, orders, suppliers and finance.", members: 1, permissions: ["platform.read", "gaming.read", "gaming.orders.manage", "gaming.products.manage", "gaming.suppliers.manage", "gaming.finance.manage"], system: false },
   { id: "role_support", name: "Support", description: "Read customer operations and work the shared Help Center and business support queues.", members: 1, permissions: ["platform.read", "platform.help.manage", "digital.read", "gaming.read", "software.read"], system: false },
 ];
@@ -99,7 +100,7 @@ const seedRoles: PlatformRole[] = [
 const seedAudit: AuditEvent[] = [
   { id: "audit_1", actor: "Admin", action: "Foundation upgraded", target: "Platform Core V0.2.0", domain: "Platform", detail: "New platform control layer initialized locally.", tone: "info", timestamp: ago(8) },
   { id: "audit_2", actor: "Admin", action: "Role reviewed", target: "Gaming Operator", domain: "Platform", detail: "Gaming domain permissions reviewed.", tone: "neutral", timestamp: ago(75) },
-  { id: "audit_3", actor: "System", action: "Health check", target: "Local repository", domain: "Platform", detail: "Browser persistence adapter responded successfully.", tone: "neutral", timestamp: ago(130) },
+  { id: "audit_3", actor: "System", action: "Health check", target: "Local repository", domain: "Platform", detail: "Shared durable repository boundary responded successfully.", tone: "neutral", timestamp: ago(130) },
   { id: "audit_4", actor: "Admin", action: "Integration deferred", target: "Production data adapter", domain: "Platform", detail: "Production infrastructure remains intentionally disconnected.", tone: "warning", timestamp: ago(240) },
 ];
 
@@ -127,25 +128,12 @@ const seedSettings: PlatformSettings = {
   emailNotifications: true,
 };
 
-function read<T>(key: string, seed: T): T {
-  if (typeof window === "undefined") return seed;
-  const raw = window.localStorage.getItem(key);
-  if (!raw) {
-    window.localStorage.setItem(key, JSON.stringify(seed));
-    return seed;
-  }
-  try {
-    return JSON.parse(raw) as T;
-  } catch {
-    window.localStorage.setItem(key, JSON.stringify(seed));
-    return seed;
-  }
-}
+function read<T>(key: string, seed: T): T { return readDurableValue(key, seed); }
 
 function write<T>(key: string, value: T): T {
-  window.localStorage.setItem(key, JSON.stringify(value));
+  const result = writeDurableValue(key, value);
   window.dispatchEvent(new CustomEvent("nextf:platform-store", { detail: key }));
-  return value;
+  return result;
 }
 
 export const platformStore = {
@@ -175,7 +163,7 @@ export const platformStore = {
     const roles = read(KEYS.roles, seedRoles);
     const normalized = roles.map((role) => {
       if (role.id === "role_super") return { ...role, permissions: allPermissions };
-      if (role.id === "role_digital" && !role.permissions.includes("digital.settings.manage")) return { ...role, permissions: [...role.permissions, "digital.settings.manage"] };
+      if (role.id === "role_digital") { const required = ["digital.settings.manage", "digital.website-platform.manage"]; const missing = required.filter((permission) => !role.permissions.includes(permission)); if (missing.length) return { ...role, permissions: [...role.permissions, ...missing] }; }
       if (role.id === "role_support" && !role.permissions.includes("platform.help.manage")) return { ...role, permissions: [...role.permissions, "platform.help.manage"] };
       return role;
     });
@@ -233,7 +221,7 @@ export const platformStore = {
   },
 
   reset() {
-    Object.values(KEYS).forEach((key) => window.localStorage.removeItem(key));
+    Object.values(KEYS).forEach((key) => removeDurableValue(key));
     window.dispatchEvent(new CustomEvent("nextf:platform-store", { detail: "reset" }));
   }
 };

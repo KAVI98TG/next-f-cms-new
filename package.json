@@ -1,7 +1,7 @@
 {
   "name": "@next-f/admin",
   "private": true,
-  "version": "0.11.0",
+  "version": "0.25.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -17,7 +17,22 @@
     "check:product": "node scripts/product-completion-check.mjs",
     "check:acceptance": "node scripts/final-acceptance-check.mjs",
     "check:architecture-completion": "node scripts/architecture-completion-check.mjs",
-    "check:help-center": "node scripts/help-center-check.mjs"
+    "check:help-center": "node scripts/help-center-check.mjs",
+    "check:website-platform": "node scripts/website-platform-check.mjs",
+    "check:identity-membership": "node scripts/identity-membership-check.mjs",
+    "check:provisioning-demo": "node scripts/provisioning-demo-check.mjs",
+    "check:contract-registry": "node scripts/contract-registry-check.mjs",
+    "check:capability-policy": "node scripts/capability-access-policy-check.mjs",
+    "check:change-approvals": "node scripts/change-approval-publishing-check.mjs",
+    "check:backend-api": "node scripts/backend-api-boundary-check.mjs",
+    "check:public-site": "node scripts/public-site-integration-check.mjs",
+    "check:runtime-readiness": "node scripts/runtime-readiness-check.mjs",
+    "check:production-infrastructure": "node scripts/production-infrastructure-check.mjs",
+    "check:lifecycle-acceptance": "node scripts/lifecycle-production-acceptance-check.mjs",
+    "check:go-live-p0": "node scripts/production-go-live-p0-check.mjs",
+    "check:go-live-p1": "node scripts/production-go-live-p1-check.mjs",
+    "check:go-live-p2": "node scripts/production-go-live-p2-check.mjs",
+    "staff:binding-sql": "node scripts/generate-staff-binding-sql.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
