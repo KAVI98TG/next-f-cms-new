@@ -37,7 +37,7 @@ async function staffResponse(request:Request,env:WorkerEnv,id:string,route:{kind
     const principal=await resolveStaffPrincipal(env.DB,identity);
     const body=await request.json() as StaffRequestBody;
     if(route.kind==="query"){
-      const data=await handleStaffQuery({operation:route.operation,body,principal,env});
+      const data=await handleStaffQuery({operation:route.operation,body,principal,env,requestId:id,correlationId});
       return json({ok:true,requestId:id,correlationId,data});
     }
     const idempotencyKey=request.headers.get("idempotency-key");

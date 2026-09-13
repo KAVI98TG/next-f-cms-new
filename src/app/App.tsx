@@ -61,6 +61,7 @@ import { domains } from "./navigation";
 import { permissionForPath } from "./auth/permissions";
 import { useSession } from "./auth/SessionProvider";
 import { AccessDeniedPage } from "../shared/pages/AccessDeniedPage";
+import { AppErrorBoundary } from "../shared/components";
 
 const routes: Record<string, ReactNode> = {
   "/platform/dashboard": <PlatformDashboard />,
@@ -125,5 +126,5 @@ export function App() {
   const known = domains.some((domain) => domain.navigation.some((item) => pathname === item.path || pathname.startsWith(`${item.path}/`)));
   const permission = permissionForPath(pathname);
   const content = permission && !can(permission) ? <AccessDeniedPage permission={permission} /> : routes[pathname] ?? (known ? <ModuleOverviewPage /> : <NotFoundPage />);
-  return <AppShell>{content}</AppShell>;
+  return <AppShell><AppErrorBoundary scope="route" resetKey={pathname}>{content}</AppErrorBoundary></AppShell>;
 }

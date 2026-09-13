@@ -37,8 +37,9 @@
   .role-list { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .page-toolbar { align-items:stretch; flex-direction:column; }
   .toolbar-search { max-width:none; }
-  .page-toolbar__actions { width:100%; }
-  .page-toolbar__actions .select-input { flex:1; }
+  .page-toolbar__actions { width:100%; margin-left:0; justify-content:stretch; flex-wrap:wrap; }
+  .page-toolbar__actions .select-input { width:auto; min-width:150px; flex:1 1 180px; }
+  .page-toolbar__actions .button { flex:0 0 auto; }
   .form-grid--two { grid-template-columns:1fr; }
   .permission-card__header,.danger-zone { align-items:flex-start; flex-direction:column; }
   .notification-row { grid-template-columns:38px 1fr; }

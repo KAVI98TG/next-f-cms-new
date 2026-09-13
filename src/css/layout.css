@@ -44,3 +44,13 @@ kbd { border: 1px solid var(--border); background: var(--surface-soft); padding:
 .page { width: min(var(--content-max), 100%); margin: 0 auto; padding: 30px 30px 56px; }
 .page--center { min-height: calc(100vh - var(--topbar-height)); display: grid; place-items: center; }
 .mobile-backdrop,.drawer-backdrop { display: none; }
+
+.route-error-boundary {
+  min-height: calc(100vh - var(--topbar-height) - 48px);
+  display: grid;
+  place-items: center;
+}
+
+.route-error-boundary .state-panel {
+  width: min(680px, 100%);
+}

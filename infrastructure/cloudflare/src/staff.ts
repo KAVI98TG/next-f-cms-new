@@ -9,6 +9,14 @@ export type StaffRequestBody = { input?:unknown; workspaceScope?:{organizationId
 
 const STATE_NAMESPACE = "cms.staff-state";
 const STATE_KEY_PREFIX = "nextf.";
+const CUSTOMER_WORKSPACES_STATE_KEY = "nextf.v0.12.digital.customer-workspaces";
+
+type CustomerWorkspaceStateRecord = {
+  id: string;
+  organizationId: string;
+  status?: string;
+  [key: string]: unknown;
+};
 
 export class StaffApiError extends Error {
   constructor(public status:number, public code:string, message:string){ super(message); }
@@ -84,7 +92,21 @@ function canonical(value:unknown):string{
 }
 async function sha256(value:string){ const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(value)); return [...new Uint8Array(digest)].map((byte)=>byte.toString(16).padStart(2,"0")).join(""); }
 
-export async function handleStaffQuery(input:{operation:string;body:StaffRequestBody;principal:StaffPrincipal;env:WorkerEnv}){
+async function requireCustomerWorkspaceScope(input:{body:StaffRequestBody;principal:StaffPrincipal;env:WorkerEnv;requestId:string;correlationId:string;repository:D1DocumentRepository}) {
+  const organizationId=input.body.workspaceScope?.organizationId?.trim();
+  const workspaceId=input.body.workspaceScope?.workspaceId?.trim();
+  if(!organizationId||!workspaceId) throw new StaffApiError(400,"VALIDATION_FAILED","workspaceScope.organizationId and workspaceScope.workspaceId are required");
+  const document=await input.repository.get(STATE_NAMESPACE,CUSTOMER_WORKSPACES_STATE_KEY);
+  const rows=Array.isArray(document?.payload)?document.payload:[];
+  const workspace=rows.find((row):row is CustomerWorkspaceStateRecord=>Boolean(row)&&typeof row==="object"&&(row as CustomerWorkspaceStateRecord).id===workspaceId&&(row as CustomerWorkspaceStateRecord).organizationId===organizationId);
+  if(!workspace){
+    await recordAudit(input.env.DB,{id:crypto.randomUUID(),action:"staff.workspace.scope.denied",principalKind:"staff",principalId:input.principal.accountId,organizationId,workspaceId,targetType:"customer-workspace",targetId:workspaceId,outcome:"denied",requestId:input.requestId,correlationId:input.correlationId,detail:"Requested workspace did not match the supplied organization scope."});
+    throw new StaffApiError(403,"WORKSPACE_SCOPE_MISMATCH","The requested workspace does not belong to the supplied organization scope");
+  }
+  return {organizationId,workspaceId,workspace};
+}
+
+export async function handleStaffQuery(input:{operation:string;body:StaffRequestBody;principal:StaffPrincipal;env:WorkerEnv;requestId:string;correlationId:string}){
   if(input.operation==="staff.session.get") return { principalId:input.principal.principalId, staffUserId:input.principal.staffUserId, organizationId:input.principal.organizationId, email:input.principal.email, permissions:input.principal.permissions, assurance:"cloudflare-access" as const };
   const repository=new D1DocumentRepository(input.env.DB);
   if(input.operation==="staff.state.snapshot.get"){
@@ -97,11 +119,15 @@ export async function handleStaffQuery(input:{operation:string;body:StaffRequest
     const row=await repository.get(STATE_NAMESPACE,key);
     return row?{key,value:row.payload,version:row.version,updatedAt:row.updatedAt}:null;
   }
+  if(input.operation==="staff.workspace.get"){
+    if(!hasPermission(input.principal,"digital.website-platform.manage")) throw new StaffApiError(403,"FORBIDDEN","Website Platform permission is required");
+    const scope=await requireCustomerWorkspaceScope({...input,repository});
+    return scope.workspace;
+  }
   if(input.operation==="staff.workspace.activity.list"){
     if(!hasPermission(input.principal,"digital.website-platform.manage")) throw new StaffApiError(403,"FORBIDDEN","Website Platform permission is required");
-    const workspaceId=input.body.workspaceScope?.workspaceId;
-    if(!workspaceId) throw new StaffApiError(400,"VALIDATION_FAILED","workspaceScope.workspaceId is required");
-    const rows=await input.env.DB.prepare("SELECT id,action,principal_kind,principal_id,organization_id,workspace_id,target_type,target_id,outcome,request_id,correlation_id,detail,created_at FROM audit_events WHERE workspace_id=? ORDER BY created_at DESC LIMIT 200").bind(workspaceId).all<any>();
+    const scope=await requireCustomerWorkspaceScope({...input,repository});
+    const rows=await input.env.DB.prepare("SELECT id,action,principal_kind,principal_id,organization_id,workspace_id,target_type,target_id,outcome,request_id,correlation_id,detail,created_at FROM audit_events WHERE workspace_id=? AND organization_id=? ORDER BY created_at DESC LIMIT 200").bind(scope.workspaceId,scope.organizationId).all<any>();
     return rows.results;
   }
   if(input.operation==="staff.website-platform.queue.list"){

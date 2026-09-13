@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { CalendarClock, CircleDollarSign, Clock3, Download, Edit3, Mail, ReceiptText, RefreshCw, RotateCcw, WalletCards } from "lucide-react";
+import { CalendarClock, CircleDollarSign, Download, Edit3, Mail, ReceiptText, RefreshCw, RotateCcw, WalletCards } from "lucide-react";
 import { Button, Card, DataTable, FormField, MetricCard, Modal, PageToolbar, SectionHeader, SelectInput, TextInput, type DataTableColumn } from "../../shared/components";
 import { digitalStore, type DigitalInvoice, type DigitalSubscription } from "../data/digitalStore";
 import { DigitalStatus } from "../shared/DigitalStatus";
@@ -123,7 +123,7 @@ export function BillingPage() {
     </div>
 
     <Card className="operation-section">
-      <div className="operation-section__head"><div><span>Revenue operations</span><h3>Invoices</h3></div><div className="section-actions"><Button onClick={()=>openInvoice()}><ReceiptText size={15}/>Create invoice</Button><Clock3 size={18} /></div></div>
+      <div className="operation-section__head"><div><span>Revenue operations</span><h3>Invoices</h3></div><div className="section-actions"><Button variant="primary" onClick={()=>openInvoice()}><ReceiptText size={15}/>Create invoice</Button></div></div>
       <PageToolbar query={query} onQueryChange={setQuery} placeholder="Search invoices…"><SelectInput value={filter} onChange={(e) => setFilter(e.target.value)}><option value="all">All statuses</option><option value="issued">Issued</option><option value="partially_paid">Partially paid</option><option value="paid">Paid</option><option value="overdue">Overdue</option></SelectInput></PageToolbar>
       <DataTable rows={rows} columns={invoiceColumns} getKey={(row) => row.id} />
     </Card>

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Activity, BadgeCheck, Boxes, Building2, FileCheck2, FlaskConical, Globe2, KeyRound, Link2, Plus, RefreshCcw, ShieldAlert, ShieldCheck, SlidersHorizontal, UserCheck, UsersRound, Wrench } from "lucide-react";
+import { Activity, ArrowRight, BadgeCheck, Boxes, Building2, FileCheck2, FlaskConical, Globe2, KeyRound, Link2, Plus, RefreshCcw, ShieldAlert, ShieldCheck, SlidersHorizontal, UserCheck, UsersRound, Wrench } from "lucide-react";
 import { Badge, Button, Card, DataTable, FormField, MetricCard, Modal, PageToolbar, SectionHeader, SelectInput, TextInput, type DataTableColumn } from "../../shared/components";
 import { useToast } from "../../shared/feedback/ToastProvider";
 import { useSession } from "../../app/auth/SessionProvider";
@@ -29,7 +29,7 @@ const migrationTone = (status: LegacyPortalMigrationAssessment["state"]) => stat
 const reviewTone = (status: WorkspaceProvisioningReview["status"]) => status === "completed" || status === "approved" ? "success" : status === "blocked" ? "danger" : "warning";
 const environmentTone = (status: DemoEnvironmentRecord["status"]) => status === "active" ? "success" : status === "provisioning" ? "warning" : status === "revoked" ? "danger" : "neutral";
 
-type ViewKey = "workspaces" | "contracts" | "access-policy" | "approvals-publishing" | "backend-api" | "public-site" | "lifecycle" | "memberships" | "demo-requests" | "demo-environments" | "activity";
+type ViewKey = "overview" | "workspaces" | "contracts" | "access-policy" | "approvals-publishing" | "backend-api" | "public-site" | "lifecycle" | "memberships" | "demo-requests" | "demo-environments" | "activity";
 type AttachType = "project" | "service" | "site";
 
 export function WebsitePlatformPage() {
@@ -81,7 +81,7 @@ export function WebsitePlatformPage() {
   const { user } = useSession();
   const { notify } = useToast();
 
-  const [view, setView] = useState<ViewKey>("workspaces");
+  const [view, setView] = useState<ViewKey>("overview");
   const [query, setQuery] = useState("");
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
@@ -458,45 +458,102 @@ export function WebsitePlatformPage() {
     } catch (error) { notify({ title: "Manifest not received", description: error instanceof Error ? error.message : "Check the Site Manifest JSON.", tone: "danger" }); }
   };
 
-  const viewButtons: Array<{ key: ViewKey; label: string }> = [
-    { key: "workspaces", label: "Customer Workspaces" },
-    { key: "contracts", label: "Contracts & Manifests" },
-    { key: "access-policy", label: "Entitlements & Access Policy" },
-    { key: "approvals-publishing", label: "Approvals & Publishing" },
-    { key: "backend-api", label: "Backend / API Boundary" },
-    { key: "public-site", label: "nextf.lk Integration" },
-    { key: "lifecycle", label: "Lifecycle & Production Acceptance" },
-    { key: "memberships", label: "Memberships" },
-    { key: "demo-requests", label: "Demo Requests" },
-    { key: "demo-environments", label: "Demo Environments" },
-    { key: "activity", label: "Provisioning Activity" },
+  const viewGroups: Array<{ label: string; items: Array<{ key: ViewKey; label: string }> }> = [
+    {
+      label: "Operations",
+      items: [
+        { key: "overview", label: "Overview" },
+        { key: "workspaces", label: "Workspaces" },
+        { key: "memberships", label: "Memberships" },
+        { key: "demo-requests", label: "Demo requests" },
+        { key: "demo-environments", label: "Demo environments" },
+        { key: "activity", label: "Activity" },
+      ],
+    },
+    {
+      label: "Customer controls",
+      items: [
+        { key: "contracts", label: "Contracts" },
+        { key: "access-policy", label: "Access policy" },
+        { key: "approvals-publishing", label: "Approvals & publishing" },
+      ],
+    },
+    {
+      label: "Platform governance",
+      items: [
+        { key: "public-site", label: "nextf.lk" },
+        { key: "backend-api", label: "Backend / API" },
+        { key: "lifecycle", label: "Lifecycle & acceptance" },
+      ],
+    },
   ];
 
-  return <div className="page">
-    <SectionHeader eyebrow="NEXT F Digital" title="Website Platform" description="Staff control center for deliberate Customer Workspace provisioning, membership invitations, isolated Demo Access, managed-site connections and contract readiness." action={<div className="table-actions"><Button onClick={() => setLinkOpen(true)}><Link2 size={15}/>Link organization</Button><Button variant="primary" onClick={() => setWorkspaceOpen(true)}><Plus size={15}/>Request workspace</Button></div>} />
+  return <div className="page website-platform-page">
+    <SectionHeader eyebrow="NEXT F Digital" title="Website Platform" description="Operate customer workspaces, managed websites, customer access and publishing governance from one control surface." action={<div className="table-actions"><Button onClick={() => setLinkOpen(true)}><Link2 size={15}/>Link organization</Button><Button variant="primary" onClick={() => setWorkspaceOpen(true)}><Plus size={15}/>Request workspace</Button></div>} />
 
-    <div className="compact-metrics">
+    <div className="compact-metrics website-platform-metrics">
       <MetricCard label="Customer workspaces" value={String(workspaces.length)} detail={`${workspaces.filter((item) => item.status === "active").length} active · ${workspaces.filter((item) => item.status === "provisioning").length} provisioning`} icon={Building2} />
       <MetricCard label="Memberships" value={String(memberships.filter((item) => item.status !== "revoked").length)} detail={`${memberships.filter((item) => item.status === "invited").length} awaiting customer lifecycle`} icon={BadgeCheck} />
-      <MetricCard label="Demo environments" value={String(demoEnvironments.length)} detail={`${demoEnvironments.filter((item) => item.status === "active").length} isolated active`} icon={FlaskConical} />
-      <MetricCard label="Contract pin" value={WEBSITE_CONTRACT_VERSION} detail={SITE_MANIFEST_FILENAME} icon={FileCheck2} />
+      <MetricCard label="Managed sites" value={String(siteConnections.length)} detail={`${siteConnections.filter((item) => item.status === "connected").length} connected · ${siteConnections.filter((item) => item.status === "ready").length} ready`} icon={Globe2} />
+      <MetricCard label="Contract" value={WEBSITE_CONTRACT_VERSION} detail={registryReadiness.ready ? "Registry authority trusted" : `${SITE_MANIFEST_FILENAME} · resolver pending`} icon={FileCheck2} />
     </div>
 
-    <Card className="architecture-callout"><strong><ShieldCheck size={16}/> Provisioning is now an authorization prerequisite, not a UI status</strong><p>A real workspace cannot move from requested to active until staff review resolves a verified NEXT F Account, active Digital client, active customer organization, explicit client→organization relationship, and an eligible project/service relationship. Projects, services and sites are then attached explicitly. Registration never activates a workspace.</p></Card>
-    <Card className="architecture-callout"><strong><FlaskConical size={16}/> Demo Access is physically modeled as a different lifecycle</strong><p>Demo environments use synthetic-only datasets, demo template identities, expiry, reset, extension and revocation. They carry no production Customer Workspace ID, Digital client ID, project ID, site credential or production integration secret, and cannot become a real customer workspace through a status change.</p></Card>
-    <Card className="architecture-callout"><strong><Boxes size={16}/> Contract boundary remains fail-closed</strong><p>Provisioning never invents website modules, capabilities, permissions or API operations. Site connections remain pinned to exact Contract {WEBSITE_CONTRACT_VERSION}; only official Registry CLI or immutable Registry API evidence may make a snapshot trusted.</p></Card>
-    <Card className="architecture-callout"><strong><ShieldAlert size={16}/> Customer capability authorization is an intersection, never a grant shortcut</strong><p>Contract maximum ∩ validated Site Manifest support ∩ attached service entitlement ∩ customer role permission ∩ resource state ∩ field policy ∩ privacy/security restriction = effective customer capability. The most restrictive result wins, and missing customer-write policy fails closed.</p></Card>
-    <Card className="architecture-callout"><strong><FileCheck2 size={16}/> Approval, application and publication are three different events</strong><p>Customer proposals are anchored to an explicit authoritative resource revision. Staff approval never overwrites the resource. A connected-site adapter must return an application receipt with the resulting revision, and publication then goes through its own authorization/review and publishing receipt. Revision drift creates a conflict instead of silently overwriting newer work.</p></Card>
-    <Card className="architecture-callout"><strong><ShieldCheck size={16}/> Shared backend boundary is authoritative for both frontends</strong><p>The internal Admin CMS and separate Customer Workspace must authenticate into server-side principals and call the same governed API boundary. Customer workspace scope comes from the authenticated membership principal, not a browser-selected workspace ID. Demo and service principals use separate trust zones.</p></Card>
-    <Card className="architecture-callout"><strong><Globe2 size={16}/> nextf.lk is a first-party public surface, not a customer tenant</strong><p>The main NEXT F Digital site consumes deliberate public projections and dedicated low-trust ingress commands. It never receives Customer Workspace scope and never reads internal CMS/database tables directly. Exact live route/component bindings remain unmapped until source evidence is available.</p></Card>
+    <Card className="website-platform-nav" aria-label="Website Platform sections">
+      {viewGroups.map((group) => <div className="website-platform-nav__group" key={group.label}>
+        <span className="website-platform-nav__label">{group.label}</span>
+        <div className="website-platform-nav__items">
+          {group.items.map((item) => <button type="button" className={`website-platform-nav__item${view === item.key ? " is-active" : ""}`} key={item.key} onClick={() => setView(item.key)}>{item.label}</button>)}
+        </div>
+      </div>)}
+    </Card>
 
-    <Card><div className="table-actions" style={{ flexWrap: "wrap" }}>{viewButtons.map((item) => <Button key={item.key} variant={view === item.key ? "primary" : "ghost"} onClick={() => setView(item.key)}>{item.label}</Button>)}</div></Card>
+    {view === "overview" && <>
+      <div className="website-platform-overview-grid">
+        <Card className="website-platform-readiness">
+          <div className="card-section-heading">
+            <div><strong>Operational readiness</strong><p>Live status across tenancy, contracts, managed-site delivery and production acceptance.</p></div>
+            <Badge tone={productionAcceptanceSummary.productionReleaseAllowed ? "success" : "warning"}>{productionAcceptanceSummary.productionReleaseAllowed ? "Release ready" : `${productionAcceptanceSummary.criticalPending.length} gates open`}</Badge>
+          </div>
+          <div className="website-platform-status-list">
+            <button type="button" className="website-platform-status-row" onClick={() => setView("workspaces")}><span><Building2 size={16}/><span><strong>Customer tenancy</strong><small>{workspaces.filter((item) => item.status === "active").length} active workspaces · {organizationLinks.filter((item) => item.status === "active").length} organization links</small></span></span><Badge tone={workspaces.some((item) => item.status === "active") ? "success" : "neutral"}>{workspaces.some((item) => item.status === "active") ? "Active" : "No tenants"}</Badge></button>
+            <button type="button" className="website-platform-status-row" onClick={() => setView("contracts")}><span><FileCheck2 size={16}/><span><strong>Contract authority</strong><small>{registryReadiness.ready ? "Official Registry evidence is trusted" : "Canonical capability resolution remains fail-closed"}</small></span></span><Badge tone={registryReadiness.ready ? "success" : "warning"}>{registryReadiness.ready ? "Trusted" : "Pending"}</Badge></button>
+            <button type="button" className="website-platform-status-row" onClick={() => setView("approvals-publishing")}><span><Globe2 size={16}/><span><strong>Managed-site delivery</strong><small>{siteConnections.filter((item) => item.status === "connected").length} connected sites · {applicationReceipts.length + publishingReceipts.length} execution receipts</small></span></span><Badge tone={siteConnections.some((item) => item.status === "connected") ? "success" : "neutral"}>{siteConnections.some((item) => item.status === "connected") ? "Connected" : "No connections"}</Badge></button>
+            <button type="button" className="website-platform-status-row" onClick={() => setView("lifecycle")}><span><ShieldCheck size={16}/><span><strong>Production acceptance</strong><small>Evidence-gated release, lifecycle, retention and recovery controls</small></span></span><Badge tone={productionAcceptanceSummary.productionReleaseAllowed ? "success" : "warning"}>{productionAcceptanceSummary.productionReleaseAllowed ? "Passed" : "In progress"}</Badge></button>
+          </div>
+        </Card>
+
+        <Card className="website-platform-quick-actions">
+          <div className="card-section-heading"><div><strong>Operate the platform</strong><p>Jump directly to the workflows staff use most often.</p></div></div>
+          <div className="website-platform-action-grid">
+            <button type="button" onClick={() => setView("workspaces")}><span className="website-platform-action-grid__icon"><Building2 size={17}/></span><span><strong>Provision workspace</strong><small>Review eligibility, attach scope and activate tenancy.</small></span><ArrowRight size={16}/></button>
+            <button type="button" onClick={() => setView("memberships")}><span className="website-platform-action-grid__icon"><UsersRound size={17}/></span><span><strong>Manage members</strong><small>Invite, suspend or revoke Customer Workspace access.</small></span><ArrowRight size={16}/></button>
+            <button type="button" onClick={() => setView("contracts")}><span className="website-platform-action-grid__icon"><FileCheck2 size={17}/></span><span><strong>Validate contracts</strong><small>Review Registry, Site Manifest and canonical evidence.</small></span><ArrowRight size={16}/></button>
+            <button type="button" onClick={() => setView("approvals-publishing")}><span className="website-platform-action-grid__icon"><BadgeCheck size={17}/></span><span><strong>Review changes</strong><small>Govern customer proposals, application and publication.</small></span><ArrowRight size={16}/></button>
+          </div>
+        </Card>
+      </div>
+
+      <Card className="website-platform-governance">
+        <div className="card-section-heading"><div><strong>Governance guardrails</strong><p>Core rules stay visible without taking over the operational workspace.</p></div><Badge tone="info">Architecture</Badge></div>
+        <div className="website-platform-guardrail-grid">
+          <div><ShieldCheck size={16}/><span><strong>Provisioning is authorization</strong><small>Verified account, client, organization and eligible service/project relationships are prerequisites.</small></span></div>
+          <div><FlaskConical size={16}/><span><strong>Demo is isolated</strong><small>Synthetic demo lifecycle cannot become a production customer workspace by status change.</small></span></div>
+          <div><Boxes size={16}/><span><strong>Contracts stay fail-closed</strong><small>Only official Registry and Site Manifest evidence can resolve canonical capabilities and permissions.</small></span></div>
+          <div><ShieldAlert size={16}/><span><strong>Customer access is an intersection</strong><small>The most restrictive contract, entitlement, role, resource, field and security rule wins.</small></span></div>
+          <div><FileCheck2 size={16}/><span><strong>Approval is not publication</strong><small>Proposal, application and publication are separate auditable events with revision evidence.</small></span></div>
+          <div><ShieldCheck size={16}/><span><strong>One authoritative backend</strong><small>Admin CMS and Customer Workspace use server-side principals and the same governed API boundary.</small></span></div>
+          <div><Globe2 size={16}/><span><strong>nextf.lk stays first-party public</strong><small>Public projections and low-trust ingress never receive Customer Workspace tenancy or internal DB access.</small></span></div>
+        </div>
+      </Card>
+    </>}
 
     {view === "workspaces" && <>
+      <div className="website-platform-section-intro"><div><span>Tenancy operations</span><h3>Customer workspace provisioning</h3><p>Build the tenant relationship deliberately, review eligibility, then attach only authoritative Digital resources.</p></div><Badge tone="neutral">{workspaces.length} workspaces</Badge></div>
       <Card className="table-card"><div className="card-section-heading"><div><strong>Digital client → Customer Organization</strong><p>Explicit commercial-to-tenancy relationship. A client profile is not itself the tenant.</p></div></div><DataTable rows={organizationLinks} columns={linkColumns} getKey={(row) => row.id} empty="No customer organization links."/></Card>
       <Card><PageToolbar query={query} onQueryChange={setQuery} placeholder="Search customer workspaces…"/><DataTable rows={filteredWorkspaces} columns={workspaceColumns} getKey={(row) => row.id} empty="No customer workspaces match this search." /></Card>
       <Card className="table-card"><div className="card-section-heading"><div><strong>Provisioning reviews</strong><p>Eligibility checks must be approved before workspace scope is attached and activation is allowed.</p></div><Button onClick={() => setReviewOpen(true)}><UserCheck size={15}/>Start review</Button></div><DataTable rows={provisioningReviews} columns={reviewColumns} getKey={(row) => row.id} empty="No provisioning reviews." /></Card>
       <Card className="table-card"><div className="card-section-heading"><div><strong>Explicit project & service scope</strong><p>These are references to existing NEXT F Digital records, not duplicated project/service copies.</p></div><Button onClick={() => setAttachOpen(true)}><Wrench size={15}/>Attach scope</Button></div><DataTable rows={attachments} columns={attachmentColumns} getKey={(row) => row.id} empty="No project or service scope attached." /></Card>
+      <div className="website-platform-section-intro website-platform-section-intro--compact"><div><span>Website delivery</span><h3>Managed sites & migration</h3><p>Connect validated websites to active workspaces and keep legacy migration diagnostic-only.</p></div></div>
       <Card className="table-card"><div className="card-section-heading"><div><strong>Managed site connections</strong><p>Each connection moves through explicit registration, manifest, validation, readiness, connection, suspension and revocation states.</p></div></div><DataTable rows={siteConnections} columns={connectionColumns} getKey={(row) => row.id} empty="No sites are connected to Customer Workspaces." /></Card>
       <Card className="table-card"><div className="card-section-heading"><div><strong>Legacy PortalAccess migration review</strong><p>Diagnostic only. No email-only conversion, legacy state copy or automatic production membership activation occurs.</p></div></div><DataTable rows={migrationAssessments} columns={migrationColumns} getKey={(row) => row.portalAccessId} empty="No legacy portal records." /></Card>
     </>}
@@ -615,7 +672,7 @@ export function WebsitePlatformPage() {
       <Card className="table-card"><div className="card-section-heading"><div><strong>Customer roles</strong><p>Business roles remain separate from Platform staff roles. Website permission bindings stay empty until Contracts are resolved.</p></div></div><DataTable rows={customerRoles} columns={roleColumns} getKey={(row) => row.id} empty="No customer roles." /></Card>
     </>}
 
-    {view === "demo-requests" && <Card className="table-card"><div className="card-section-heading"><div><strong>Demo Access requests</strong><p>Submitted → review → approval/rejection → isolated environment provisioning. Approval alone grants no environment access.</p></div><MetricCard label="Open demo review" value={String(demoRequests.filter((item) => ["submitted", "under_review"].includes(item.status)).length)} detail="Independent lifecycle" icon={FlaskConical}/></div><DataTable rows={demoRequests} columns={demoColumns} getKey={(row) => row.id} empty="No demo access requests." /></Card>}
+    {view === "demo-requests" && <Card className="table-card"><div className="card-section-heading"><div><strong>Demo Access requests</strong><p>Submitted → review → approval/rejection → isolated environment provisioning. Approval alone grants no environment access.</p></div><div className="website-platform-header-stat"><span className="website-platform-header-stat__icon"><FlaskConical size={17}/></span><span><small>Open demo review</small><strong>{demoRequests.filter((item) => ["submitted", "under_review"].includes(item.status)).length}</strong><em>Independent lifecycle</em></span></div></div><DataTable rows={demoRequests} columns={demoColumns} getKey={(row) => row.id} empty="No demo access requests." /></Card>}
 
     {view === "demo-environments" && <Card className="table-card"><div className="card-section-heading"><div><strong>Isolated Demo Environments</strong><p>Synthetic sample data only. No real customer tenancy, production integrations, secrets, publishing path or production data.</p></div><RefreshCcw size={17}/></div><DataTable rows={demoEnvironments} columns={environmentColumns} getKey={(row) => row.id} empty="No isolated demo environments." /></Card>}
 

@@ -35,7 +35,7 @@ check("passed gates require evidence",store.includes("Passed production gates re
 for(const op of ["staff.lifecycle.offboarding.create","staff.lifecycle.offboarding.review","staff.lifecycle.offboarding.start","staff.lifecycle.site-disposition.apply","staff.lifecycle.offboarding.complete","staff.data-export.request","staff.asset-ownership.confirm","staff.contract-migration.create","staff.production-acceptance.record"])check(`backend operation ${op}`,contracts.includes(`"${op}"`));
 check("lifecycle commands staff only",contracts.includes('name: "staff.lifecycle.offboarding.create", kind: "command", allowedPrincipals: ["staff"]'));
 check("lifecycle commands idempotent",contracts.includes('name: "staff.lifecycle.offboarding.complete", kind: "command", allowedPrincipals: ["staff"], workspaceScoped: true, idempotency: "required"'));
-check("Website Platform lifecycle tab",page.includes('label: "Lifecycle & Production Acceptance"'));
+check("Website Platform lifecycle tab",page.includes('{ key: "lifecycle", label:') && page.includes('view === "lifecycle"'));
 check("UI exposes no auto billing shutdown",page.includes("Billing state never automatically shuts down a managed website"));
 check("UI exposes acceptance ledger",page.includes("Production acceptance ledger"));
 check("UI blocks V1 without evidence",page.includes("Every critical gate must have concrete deployment/runtime evidence"));
