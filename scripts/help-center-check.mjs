@@ -53,5 +53,5 @@ check("acceptance validates announcements",acceptance.includes("Help Center anno
 check("platform dashboard exposes help queue",dashboard.includes("Help requests")&&dashboard.includes("Customer Help Center"));
 check("platform health checks help center",health.includes("Customer Help Center")&&health.includes("helpCenterStore"));
 check("architecture document includes help center",architecture.includes("Customer Help Center")&&architecture.includes("help-center/")&&architecture.includes("Saved Replies"));
-const pkg=JSON.parse(read("package.json")); check("package version includes Help Center release",Number(pkg.version.split(".")[1]||0)>=11); check("help center npm QA script",pkg.scripts?.["check:help-center"]==="node scripts/help-center-check.mjs");
+const pkg=JSON.parse(read("package.json")); check("package version includes Help Center release",Number(pkg.version.split(".")[0]||0)>0||Number(pkg.version.split(".")[1]||0)>=11); check("help center npm QA script",pkg.scripts?.["check:help-center"]==="node scripts/help-center-check.mjs");
 console.log("NEXT F CMS V0.11.0 Platform Help Center check"); for(const item of pass) console.log(`PASS  ${item}`); for(const item of fail) console.error(`FAIL  ${item}`); console.log(`\n${pass.length} passed, ${fail.length} failed`); if(fail.length)process.exit(1);

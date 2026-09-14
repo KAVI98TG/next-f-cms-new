@@ -43,7 +43,7 @@ check("NEXT F Accounts route",app.includes('"/platform/identity": <IdentityPage 
 check("NEXT F Accounts navigation",nav.includes('label: "NEXT F Accounts"') && nav.includes('path: "/platform/identity"'));
 check("identity searchable",search.includes('type: "NEXT F Account"'));
 check("membership searchable",search.includes('type: "Customer Membership"'));
-check("package version keeps V0.13+ foundation",Number(pkg.version.split(".")[1])>=13);
+check("package version keeps V0.13+ foundation",Number(pkg.version.split(".")[0])>0||Number(pkg.version.split(".")[1])>=13);
 check("identity membership QA script",pkg.scripts?.["check:identity-membership"]==="node scripts/identity-membership-check.mjs");
 
 console.log("NEXT F CMS V0.13.0 Identity & Membership Foundation check");

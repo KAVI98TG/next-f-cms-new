@@ -24,7 +24,7 @@ const gitignore = read(".gitignore");
 const appVersion = read("src/app/version.ts");
 
 const [major, minor] = pkg.version.split(".").map(Number);
-check("P0 baseline retained at V0.23+", major === 0 && minor >= 23 && lock.version === pkg.version && lock.packages?.[""]?.version === pkg.version && read("VERSION").trim() === pkg.version && appVersion.includes(`APP_VERSION = "${pkg.version}"`));
+check("P0 baseline retained at V0.23+", (major > 0 || (major === 0 && minor >= 23)) && lock.version === pkg.version && lock.packages?.[""]?.version === pkg.version && read("VERSION").trim() === pkg.version && appVersion.includes(`APP_VERSION = "${pkg.version}"`));
 check("release metadata remains defined", appVersion.includes("APP_RELEASE = "));
 check("P0 QA wired", pkg.scripts?.["check:go-live-p0"] === "node scripts/production-go-live-p0-check.mjs");
 check("Vite deploys from root", vite.includes('base: "/"'));
@@ -47,7 +47,7 @@ check("global overlay tokens", tokens.includes("--overlay:") && tokens.includes(
 check("topbar theme control", topbar.includes("useTheme") && topbar.includes("toggleTheme"));
 check("settings theme selector", settings.includes('<option value="system">System</option>') && settings.includes('<option value="light">Light</option>') && settings.includes('<option value="dark">Dark</option>'));
 check("production env template is trackable", gitignore.includes("!.env.production.example"));
-check("production frontend env template", productionEnv.includes("VITE_NEXTF_ENVIRONMENT=production") && productionEnv.includes("VITE_NEXTF_BACKEND_MODE=production-api") && productionEnv.includes("VITE_NEXTF_API_BASE_URL=https://REPLACE-WITH-CMS-API-HOST"));
+check("production frontend env template", productionEnv.includes("VITE_NEXTF_ENVIRONMENT=production") && productionEnv.includes("VITE_NEXTF_BACKEND_MODE=production-api") && /VITE_NEXTF_API_BASE_URL=https:\/\/[A-Za-z0-9.-]+/.test(productionEnv));
 check("P0 release doc exists", exists("docs/V0.23.0-PRODUCTION-GO-LIVE-P0.md"));
 
 const sourceFiles = [];

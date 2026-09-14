@@ -297,6 +297,12 @@ export const domains: DomainDefinition[] = [
         description: "Catalog, mapping, categories and availability.",
       },
       {
+        label: "Digital Catalog vNext",
+        path: "/gaming-store/catalog-vnext",
+        icon: Blocks,
+        description: "NEXT F products, retail offers and multi-supplier routing.",
+      },
+      {
         label: "Pricing",
         path: "/gaming-store/pricing",
         icon: Tags,

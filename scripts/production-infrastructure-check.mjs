@@ -1,9 +1,9 @@
 import fs from "node:fs";
 const pass=[]; const fail=[]; const check=(label,ok)=>ok?pass.push(label):fail.push(label); const read=(p)=>fs.readFileSync(p,"utf8"); const exists=(p)=>fs.existsSync(p);
 const required=[
-  "infrastructure/cloudflare/src/index.ts","infrastructure/cloudflare/src/env.ts","infrastructure/cloudflare/src/access.ts","infrastructure/cloudflare/src/repository.ts","infrastructure/cloudflare/src/idempotency.ts","infrastructure/cloudflare/src/publicIngress.ts","infrastructure/cloudflare/src/audit.ts","infrastructure/cloudflare/migrations/0001_core.sql","infrastructure/cloudflare/wrangler.example.jsonc","infrastructure/cloudflare/README.md","src/services/production/runtime.ts","src/services/production/httpClient.ts","docs/V0.21.0-PRODUCTION-INFRASTRUCTURE-FOUNDATION.md","docs/QA-V0.21.0.md"
+  "infrastructure/cloudflare/src/index.ts","infrastructure/cloudflare/src/env.ts","infrastructure/cloudflare/src/access.ts","infrastructure/cloudflare/src/repository.ts","infrastructure/cloudflare/src/idempotency.ts","infrastructure/cloudflare/src/publicIngress.ts","infrastructure/cloudflare/src/audit.ts","infrastructure/cloudflare/src/maintenance.ts","infrastructure/cloudflare/migrations/0001_core.sql","infrastructure/cloudflare/wrangler.example.jsonc","infrastructure/cloudflare/README.md","src/services/production/runtime.ts","src/services/production/httpClient.ts","docs/V0.21.0-PRODUCTION-INFRASTRUCTURE-FOUNDATION.md","docs/QA-V0.21.0.md"
 ]; required.forEach((p)=>check(`file ${p}`,exists(p)));
-const env=read("infrastructure/cloudflare/src/env.ts"), access=read("infrastructure/cloudflare/src/access.ts"), worker=read("infrastructure/cloudflare/src/index.ts"), staff=read("infrastructure/cloudflare/src/staff.ts"), migration=read("infrastructure/cloudflare/migrations/0001_core.sql"), ingress=read("infrastructure/cloudflare/src/publicIngress.ts"), repo=read("infrastructure/cloudflare/src/repository.ts"), idem=read("infrastructure/cloudflare/src/idempotency.ts"), runtime=read("src/services/production/runtime.ts"), client=read("src/services/production/httpClient.ts"), page=read("src/platform/infrastructure/InfrastructurePage.tsx"), pkg=JSON.parse(read("package.json")), lock=JSON.parse(read("package-lock.json")), version=read("VERSION").trim(), app=read("src/app/version.ts");
+const maintenance=read("infrastructure/cloudflare/src/maintenance.ts"), env=read("infrastructure/cloudflare/src/env.ts"), access=read("infrastructure/cloudflare/src/access.ts"), worker=read("infrastructure/cloudflare/src/index.ts"), staff=read("infrastructure/cloudflare/src/staff.ts"), migration=read("infrastructure/cloudflare/migrations/0001_core.sql"), ingress=read("infrastructure/cloudflare/src/publicIngress.ts"), repo=read("infrastructure/cloudflare/src/repository.ts"), idem=read("infrastructure/cloudflare/src/idempotency.ts"), runtime=read("src/services/production/runtime.ts"), client=read("src/services/production/httpClient.ts"), page=read("src/platform/infrastructure/InfrastructurePage.tsx"), pkg=JSON.parse(read("package.json")), lock=JSON.parse(read("package-lock.json")), version=read("VERSION").trim(), app=read("src/app/version.ts");
 const semverAtLeast021=(value)=>{const [a,b,c]=value.split(".").map(Number);return a>0||(a===0&&(b>21||(b===21&&c>=0)));};
 const appVersionMatch=app.match(/APP_VERSION = "([^"]+)"/);
 check("version remains V0.21+",semverAtLeast021(pkg.version)&&semverAtLeast021(lock.version)&&semverAtLeast021(lock.packages?.[""]?.version||"0.0.0")&&semverAtLeast021(version)&&Boolean(appVersionMatch&&semverAtLeast021(appVersionMatch[1])));
@@ -19,6 +19,15 @@ check("public rate limiter enforced",worker.includes("enforcePublicRateLimit"));
 check("public Turnstile enforced",worker.includes("verifyTurnstile"));
 check("public commands require idempotency",worker.includes('request.headers.get("idempotency-key")'));
 check("public commands enqueue durable event",worker.includes("env.EVENTS.send"));
+
+check("public exact replay before second Turnstile consumption",worker.includes("idempotency.get(idempotencyKey)")&&worker.indexOf("idempotency.get(idempotencyKey)")<worker.indexOf("if(!(await verifyTurnstile"));
+check("public completed replay returns durable receipt",worker.includes("replayed:true")&&worker.includes("IDEMPOTENCY_REPLAY_RESULT_UNAVAILABLE"));
+check("scheduled handler runs maintenance",worker.includes('runMaintenance(env,"scheduled")'));
+check("staff maintenance command exists",staff.includes('staff.system.maintenance.run')&&staff.includes('platform.cleanup.manage'));
+check("demo expiry maintenance exists",maintenance.includes("runDemoExpirySweep")&&maintenance.includes("expiredEnvironments"));
+check("audit and outbox retention maintenance exists",maintenance.includes("DELETE FROM audit_events")&&maintenance.includes("DELETE FROM outbox_events"));
+check("idempotency expiry maintenance exists",maintenance.includes("DELETE FROM idempotency_records"));
+check("retention policy bindings",env.includes("AUDIT_RETENTION_DAYS")&&env.includes("OUTBOX_RETENTION_DAYS"));
 check("public CORS allowlist",worker.includes("env.CMS_ORIGIN")&&worker.includes("env.WORKSPACE_ORIGIN")&&worker.includes("env.PUBLIC_SITE_ORIGIN"));
 check("staff routes validate Access",worker.includes("verifyAccessAssertion"));
 check("staff routes dispatch durable query/command handlers",worker.includes("handleStaffQuery")&&worker.includes("handleStaffCommand")&&worker.includes("resolveStaffPrincipal"));

@@ -48,14 +48,14 @@ check("membership invitation expiry",membership.includes("invitationExpiresAt") 
 check("membership invitation resend",membership.includes("resendInvitation"));
 check("customer-side acceptance method",membership.includes("acceptInvitation") && membership.includes("does not belong to this NEXT F Account"));
 check("acceptance requires active workspace",membership.includes('workspace.status !== "active"'));
-check("staff UI has separate workspace view",page.includes('"Customer Workspaces"'));
-check("staff UI has memberships view",page.includes('"Memberships"'));
-check("staff UI has demo requests view",page.includes('"Demo Requests"'));
-check("staff UI has demo environments view",page.includes('"Demo Environments"'));
-check("staff UI has provisioning activity view",page.includes('"Provisioning Activity"'));
-check("staff UI explains registration does not activate workspace",page.includes("Registration never activates a workspace"));
-check("contract boundary remains fail closed",page.includes("Contract boundary remains fail-closed") && page.includes("Site Manifest"));
-check("package version keeps V0.14+ foundation",Number(pkg.version.split(".")[1])>=14);
+check("staff UI has separate workspace view",page.includes('key: "workspaces"') && page.includes('label: "Workspaces"'));
+check("staff UI has memberships view",page.includes('key: "memberships"') && page.includes('label: "Memberships"'));
+check("staff UI has demo requests view",page.includes('key: "demo-requests"') && page.includes('label: "Demo requests"'));
+check("staff UI has demo environments view",page.includes('key: "demo-environments"') && page.includes('label: "Demo environments"'));
+check("staff UI has provisioning activity view",page.includes('key: "activity"') && page.includes('Provisioning activity'));
+check("staff UI explains registration does not activate workspace",page.includes("A client profile is not itself the tenant") && page.includes("activation is allowed"));
+check("contract boundary remains fail closed",page.includes("Contracts stay fail-closed") && page.includes("Site Manifest"));
+check("package version keeps V0.14+ foundation",Number(pkg.version.split(".")[0])>0||Number(pkg.version.split(".")[1])>=14);
 check("V0.14 QA script wired",pkg.scripts?.["check:provisioning-demo"]==="node scripts/provisioning-demo-check.mjs");
 
 console.log("NEXT F CMS V0.14.0 Workspace Provisioning & Demo Governance check");

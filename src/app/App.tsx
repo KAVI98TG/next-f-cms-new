@@ -43,6 +43,8 @@ import { CustomersPage as GamingCustomersPage } from "../gaming-store/customers/
 import { FinancePage as GamingFinancePage } from "../gaming-store/finance/FinancePage";
 import { SupportPage as GamingSupportPage } from "../gaming-store/support/SupportPage";
 import { GamingSettingsPage } from "../gaming-store/settings/SettingsPage";
+import { CatalogVNextPage } from "../gaming-store/vnext/cms/CatalogVNextPage";
+import { PublicGamingStorefront } from "../gaming-store/vnext/public/PublicGamingStorefront";
 import { SoftwareDashboard } from "../software/dashboard/SoftwareDashboard";
 import { ProductsPage as SoftwareProductsPage } from "../software/products/ProductsPage";
 import { ReleasesPage as SoftwareReleasesPage } from "../software/releases/ReleasesPage";
@@ -106,6 +108,7 @@ const routes: Record<string, ReactNode> = {
   "/gaming-store/finance": <GamingFinancePage />,
   "/gaming-store/support": <GamingSupportPage />,
   "/gaming-store/settings": <GamingSettingsPage />,
+  "/gaming-store/catalog-vnext": <CatalogVNextPage />,
   "/software/dashboard": <SoftwareDashboard />,
   "/software/products": <SoftwareProductsPage />,
   "/software/releases": <SoftwareReleasesPage />,
@@ -123,6 +126,7 @@ const routes: Record<string, ReactNode> = {
 export function App() {
   const { pathname } = useRouter();
   const { can } = useSession();
+  if (pathname === "/gaming" || pathname.startsWith("/gaming/")) return <AppErrorBoundary scope="route" resetKey={pathname}><PublicGamingStorefront /></AppErrorBoundary>;
   const known = domains.some((domain) => domain.navigation.some((item) => pathname === item.path || pathname.startsWith(`${item.path}/`)));
   const permission = permissionForPath(pathname);
   const content = permission && !can(permission) ? <AccessDeniedPage permission={permission} /> : routes[pathname] ?? (known ? <ModuleOverviewPage /> : <NotFoundPage />);

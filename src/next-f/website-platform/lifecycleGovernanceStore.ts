@@ -43,7 +43,7 @@ export const PRODUCTION_ACCEPTANCE_GATES = [
   {id:"public_abuse",label:"nextf.lk rate limiting + Turnstile + idempotency verified in deployed environment",critical:true,defaultStatus:"pending_external" as const},
   {id:"contract_registry",label:"Authoritative Contracts Registry snapshot/API and real Site Manifest validation connected",critical:true,defaultStatus:"pending_external" as const},
   {id:"managed_site_adapter",label:"Real managed-site revision/apply/publish adapter credentials and receipts validated",critical:true,defaultStatus:"pending_external" as const},
-  {id:"offboarding_e2e",label:"Real-customer offboarding/export/revocation end-to-end acceptance",critical:true,defaultStatus:"pending_external" as const},
+  {id:"offboarding_e2e",label:"Production offboarding/export/revocation end-to-end acceptance",critical:true,defaultStatus:"pending_external" as const},
   {id:"demo_cleanup",label:"Demo expiry/reset/revocation scheduled cleanup acceptance",critical:true,defaultStatus:"source_passed" as const},
   {id:"audit_retention",label:"Audit/log retention and export/privacy review",critical:true,defaultStatus:"source_passed" as const},
 ] as const;
@@ -58,7 +58,7 @@ export const lifecycleGovernanceStore={
   getAssetOwnership:()=>read<AssetOwnershipRecord[]>(K.ownership,[]),
   getContractMigrations:()=>read<ContractMigrationPlanRecord[]>(K.migrations,[]),
   getProductionAcceptance:currentAcceptance,
-  getProductionAcceptanceSummary(){const rows=currentAcceptance();const criticalPending=rows.filter((row)=>PRODUCTION_ACCEPTANCE_GATES.find((gate)=>gate.id===row.gateId)?.critical&&row.status!=="passed");return{total:rows.length,passed:rows.filter((row)=>row.status==="passed").length,sourcePassed:rows.filter((row)=>row.status==="source_passed").length,pendingExternal:rows.filter((row)=>row.status==="pending_external").length,failed:rows.filter((row)=>row.status==="failed").length,productionReleaseAllowed:criticalPending.length===0,criticalPending:criticalPending.map((row)=>row.gateId)}} ,
+  getProductionAcceptanceSummary(){const rows=currentAcceptance();const criticalPending=rows.filter((row)=>PRODUCTION_ACCEPTANCE_GATES.find((gate)=>gate.id===row.gateId)?.critical&&!(["passed","not_applicable"] as AcceptanceGateStatus[]).includes(row.status));return{total:rows.length,passed:rows.filter((row)=>row.status==="passed").length,sourcePassed:rows.filter((row)=>row.status==="source_passed").length,pendingExternal:rows.filter((row)=>row.status==="pending_external").length,failed:rows.filter((row)=>row.status==="failed").length,productionReleaseAllowed:criticalPending.length===0,criticalPending:criticalPending.map((row)=>row.gateId)}} ,
 
   createOffboardingPlan(input:{workspaceId:string;reason:OffboardingReason;requestedBy:string;note:string;siteDisposition?:OffboardingPlanRecord["siteDisposition"];workspaceDisposition?:OffboardingPlanRecord["workspaceDisposition"]}){
     const workspace=websitePlatformStore.getWorkspaces().find((row)=>row.id===input.workspaceId); if(!workspace||workspace.status==="closed")throw new Error("An open Customer Workspace is required");

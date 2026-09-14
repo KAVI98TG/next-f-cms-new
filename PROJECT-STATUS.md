@@ -1,67 +1,48 @@
-# NEXT F CMS V0.25.0 — Project Status
+# NEXT F CMS — Project Status
 
-## Status
+**Release:** V1.0.0 final production package  
+**Production CMS:** `https://cms.nextf.lk`  
+**Production API:** `https://cms-api.nextf.lk`
 
-**Main internal CMS source roadmap and Production Go-Live P0–P2 source work are complete. P3 staging proof is complete through authenticated browser bootstrap; production deployment remains evidence-gated.**
+## Completed production foundation
 
-V0.25.0 preserves root deployment, global Light/Dark/System theming and the P1 D1 durable-state bridge, then replaces the production frontend local-development session with a verified Cloudflare Access-bound staff principal. Production startup now authenticates before durable state initialization and fails closed when Access verification or the exact active D1 staff binding fails.
+- Staging acceptance completed.
+- Production D1/R2/Queue/DLQ/Pages/Worker created and deployed.
+- Production Cloudflare Access configured for CMS + staff API; public `/v1/public/*` is path-scoped bypass only.
+- Production D1 migrations, Worker secrets, cron and custom domains configured.
+- Super Admin exact Access subject binding verified with 29 permissions.
+- Production browser smoke passed.
+- D1 Time Travel restore drill passed.
+- Tenant isolation runtime proof passed and disposable fixture was cleaned.
+- Anonymous public ingress and invalid Turnstile rejection passed.
 
-The separate Customer Workspace remains outside the main-CMS roadmap and will be built as a separate application at `workspace.nextf.lk` after the CMS production release is proven.
+## V1.0.0 final package
 
-## Completed main-CMS phases
+The final source adds:
 
-- Website Platform foundation.
-- NEXT F Account / customer organization / workspace / membership model.
-- Real customer provisioning and isolated Demo governance.
-- Contract Registry / Site Manifest resolver foundation.
-- Service entitlements and Customer Capability Access Policy.
-- Change requests, approvals, external revisions and publishing governance.
-- Shared backend/API trust boundary.
-- `nextf.lk` first-party projection/ingress boundary.
-- Runtime/release source hardening.
-- Cloudflare production infrastructure foundation.
-- Lifecycle/offboarding/portability and production acceptance ledger.
-- Production Go-Live P0 — root routing, global theming, SPA/deployment frontend cleanup.
-- Production Go-Live P1 — D1 durable operational-state bridge and connected staff query/command handlers.
-- Production Go-Live P2 — verified Cloudflare Access frontend identity and production impersonation removal.
+- fail-closed branded production login/bootstrap UI;
+- API `/auth/complete` login completion route;
+- durable exact public idempotency replay compatible with single-use Turnstile tokens;
+- shared scheduled/staff maintenance for demo expiry, retention and idempotency cleanup;
+- guarded production acceptance automation from the remaining 4D gates through release readiness;
+- stable Contracts Registry / Site Manifest 1.0.0 runtime validation;
+- managed-site evidence gate that fails closed when a real connection exists and records N/A only while no managed site exists;
+- V1 release hygiene and production/staging leakage checks;
+- Gaming integration handoff.
 
-## P2 production identity properties
+## Final operator gate
 
-- `staff.session.get` returns only a verified, D1-bound staff principal.
-- JWT signature, expiry, issued-at sanity, issuer and audience are checked at the Worker.
-- Active binding and exact Access `sub` matching are required.
-- Production frontend permissions come from the server principal, not a browser-selected user.
-- React renders only after production identity initialization succeeds.
-- Local staff switching is not exposed in production API mode and is hard-guarded if invoked.
-- Server-side authorization from P1 remains the actual security boundary.
+Run:
 
-## P3 deployment checkpoint
+```powershell
+npm ci
+npm run acceptance:source
+```
 
-Completed staging evidence:
-- Dependency-backed `npm ci` and `npm run build` passed on the deployment machine.
-- P0/P1/P2, production-infrastructure and lifecycle acceptance source checks passed.
-- Staging D1, R2, Queue and DLQ resources are provisioned and D1 migrations are applied.
-- `cms-staging.nextf.lk` and `cms-api-staging.nextf.lk` are live.
-- Cloudflare Access protects both staging hostnames; CORS `OPTIONS` bypass is enabled for the Worker origin.
-- Worker secrets are installed, the real Super Admin Access subject is bound in D1, and `staff.session.get` returns the verified principal.
-- Authenticated browser bootstrap into the staging CMS succeeds.
+Deploy the V1 Worker/frontend, then run `npm run acceptance:production:final`. The final runner must print `FINAL RESULT: READY FOR V1.0` before the release is declared complete. A fresh legitimate production Turnstile token is intentionally required to prove the public exact-replay path; the runner will not bypass or fake that control.
 
-Current UI refinement work:
-- Global card/surface elevation uses a subtle 1px surface shadow while true floating UI keeps elevated shadows.
-- Website Platform uses a SaaS-style Overview with grouped Operations, Customer controls and Platform governance navigation.
-- Website Platform nested-card artifacts are removed; table headers retain a single divider and Demo review uses a compact inline header stat.
-- Route-scoped error boundaries preserve the CMS shell when a single module fails.
-- Top-level cards use a consistent 14px vertical rhythm so adjacent borders never merge into double horizontal seams.
-- Identity/Sales mojibake artifacts in visible UI copy are cleaned up.
+After the V1 source is deployed, run `npm run acceptance:production:final` as the final production proof.
 
-## Still pending before production V1.0
+## Next stream
 
-Continue **P3 production deployment** after the staging UI pass: create/bind production resources, production Access policy/MFA, production D1 staff binding, deploy `cms.nextf.lk` + `cms-api.nextf.lk`, then collect production acceptance evidence.
-
-Production acceptance still includes browser/E2E/security/concurrency tests, backup/restore evidence, authoritative Contracts/Site Manifest deployment, real managed-site adapter receipts and the remaining lifecycle/public-ingress acceptance gates.
-
-V0.25.0 therefore remains a **production go-live source candidate**, not production V1.0.
-
-See `docs/V0.25.0-PRODUCTION-GO-LIVE-P2-PRODUCTION-IDENTITY.md`, `docs/QA-V0.25.0.md`, `docs/MAIN-CMS-COMPLETION-STATUS.md` and Website Platform → Lifecycle & Production Acceptance.
-
-- Step 2 source acceptance rerun on UI Pass 6: build, P0, P1, P2, infrastructure, Website Platform and final acceptance pass; lifecycle acceptance was corrected to validate the lifecycle route/section rather than an obsolete display label.
+Customer Workspace is already live. After CMS V1 acceptance, begin Gaming G0 contract/API design, then storefront implementation. Gaming should not consume staff state APIs directly.

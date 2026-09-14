@@ -132,8 +132,8 @@ check("public API handler routes demo through idempotent boundary",publicApi.inc
 check("public API handler routes conversions through idempotent boundary",publicApi.includes("trackPublicConversion") && publicApi.includes('operationName: "public.conversion.track"'));
 check("public API responses do not echo lead PII",publicApi.includes("data: { leadId: lead.id, received: true as const }") && !publicApi.includes("lead.email") && !publicApi.includes("lead.phone") && !publicApi.includes("lead.enquiryDetail"));
 
-check("staff UI has nextf.lk integration tab",page.includes('label: "nextf.lk Integration"'));
-check("staff UI says first party not customer tenant",page.includes("first-party public surface, not a customer tenant"));
+check("staff UI has nextf.lk integration tab",page.includes('key: "public-site"') && page.includes('label: "nextf.lk"'));
+check("staff UI says first party not customer tenant",page.includes("nextf.lk stays first-party public") && page.includes("never receive Customer Workspace tenancy"));
 check("staff UI says no direct DB reads",page.includes("No direct DB reads"));
 check("staff UI exposes route inventory blocker",page.includes("Exact live-site wiring intentionally blocked"));
 check("staff UI exposes public projection rules",page.includes("Public projection rules"));

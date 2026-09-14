@@ -135,9 +135,9 @@ check("local readiness says identity provider false",local.includes("productionI
 check("local readiness says adapter registry false",local.includes("managedSiteAdapterRegistryConnected: false"));
 check("local harness calls itself prototype",local.includes('runtimeMode: "local-prototype"'));
 
-check("staff UI exposes backend API boundary",page.includes('"backend-api"') && page.includes("Backend / API Boundary"));
-check("staff UI says shared backend authoritative",page.includes("Shared backend boundary is authoritative for both frontends"));
-check("staff UI says browser scope not enough",page.includes("authenticated membership principal"));
+check("staff UI exposes backend API boundary",page.includes('key: "backend-api"') && page.includes('label: "Backend / API"') && page.includes("Shared V1 operation registry"));
+check("staff UI says shared backend authoritative",page.includes("One authoritative backend") && page.includes("same governed API boundary"));
+check("staff UI says browser scope not enough",page.includes("Workspace scope comes from authenticated membership"));
 check("staff UI does not fake production server",page.includes("not a fake production server"));
 check("staff UI marks production adapters pending",page.includes("Pending adapter"));
 

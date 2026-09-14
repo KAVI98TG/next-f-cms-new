@@ -12,7 +12,9 @@
     "PUBLIC_SITE_ORIGIN": "https://nextf.lk",
     "ACCESS_TEAM_DOMAIN": "YOUR_TEAM.cloudflareaccess.com",
     "ACCESS_AUD": "SET_IN_ENVIRONMENT_SPECIFIC_CONFIG",
-    "CONTRACTS_BASE_URL": "https://contracts.nextf.lk"
+    "CONTRACTS_BASE_URL": "https://contracts.nextf.lk",
+    "AUDIT_RETENTION_DAYS": "365",
+    "OUTBOX_RETENTION_DAYS": "90"
   },
   "d1_databases": [{ "binding": "DB", "database_name": "nextf-cms-staging", "database_id": "REPLACE_ME", "migrations_dir": "migrations" }],
   "r2_buckets": [{ "binding": "FILES", "bucket_name": "nextf-cms-staging-files" }],

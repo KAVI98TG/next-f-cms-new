@@ -38,7 +38,7 @@ check("demo lifecycle is separate",store.includes('DemoAccessRequestRecord') && 
 check("legacy direct portal activation removed from Clients UI",!clientPage.includes('Portal access activated') && !clientPage.includes('Invite client'));
 check("Clients UI points to Website Platform",clientPage.includes('Customer Workspace') && clientPage.includes('/next-f/website-platform'));
 check("workspace searchable",search.includes('type: "Customer Workspace"'));
-check("package version keeps V0.12+ foundation",Number(pkg.version.split(".")[1])>=12);
+check("package version keeps V0.12+ foundation",Number(pkg.version.split(".")[0])>0||Number(pkg.version.split(".")[1])>=12);
 check("website platform QA script",pkg.scripts?.["check:website-platform"]==="node scripts/website-platform-check.mjs");
 
 console.log("NEXT F CMS V0.12.0 Website Platform Foundation check");

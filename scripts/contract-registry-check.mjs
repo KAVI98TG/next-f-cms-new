@@ -55,7 +55,7 @@ check("expanded site lifecycle",website.includes('"manifest_received"') && websi
 check("legacy pending migration",website.includes('row.status === "pending"') && website.includes('status: "registered" as const'));
 check("site lifecycle transition guard",website.includes("Invalid Site Connection lifecycle transition"));
 check("generic site patch cannot change status",website.includes('Partial<Pick<SiteConnectionRecord, "registrySnapshotId" | "validationEvidenceId" | "lastValidatedAt">>'));
-check("staff contracts view",page.includes('"Contracts & Manifests"') && page.includes("Registry source gate"));
+check("staff contracts view",page.includes('key: "contracts"') && page.includes('label: "Contracts"') && page.includes("Registry source gate"));
 check("no manual trust button",!page.includes("trustRegistrySnapshot("));
 check("staff can receive exact manifest evidence",page.includes(`Receive ${"${SITE_MANIFEST_FILENAME}"}`) && page.includes("Receive manifest"));
 check("UI warns JSON receipt is not validation",page.includes("JSON receipt is not validation"));

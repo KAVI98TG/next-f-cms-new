@@ -109,6 +109,8 @@ export async function initializeDurableStorage() {
     lastError = undefined;
     emitStatus();
   })().catch((error) => {
+    initializationPromise = undefined;
+    initialized = false;
     lastError = error instanceof Error ? error.message : "Durable state initialization failed";
     emitStatus();
     throw error;
@@ -174,4 +176,14 @@ export function getDurableStateStatus(): DurableStateStatus {
 export async function flushDurableWrites() {
   await Promise.allSettled([...pendingByKey.values()]);
   if (lastError) throw new Error(lastError);
+}
+
+export function resetDurableStorageInitialization() {
+  if (runtime.mode !== "production-api") return;
+  initialized = false;
+  initializationPromise = undefined;
+  lastError = undefined;
+  values.clear();
+  versions.clear();
+  emitStatus();
 }

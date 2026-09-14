@@ -38,8 +38,14 @@ export async function initializeProductionStaffSession() {
     const result = await client.execute<unknown>({ operation: "staff.session.get", kind: "query", input: {} });
     if (!result.ok) throw new Error(`${result.problem.code}: ${result.problem.detail}`);
     session = normalizeSession(result.data);
-  })();
+  })().catch((error) => { initializationPromise = undefined; throw error; });
   return initializationPromise;
+}
+
+export function resetProductionStaffSessionInitialization() {
+  if (runtime.mode !== "production-api") return;
+  session = undefined;
+  initializationPromise = undefined;
 }
 
 export function getProductionStaffSession(): ProductionStaffSession | undefined {

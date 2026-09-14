@@ -2,6 +2,7 @@ import type { D1DatabaseLike, WorkerEnv } from "./env";
 import { D1DocumentRepository } from "./repository";
 import { D1IdempotencyRepository } from "./idempotency";
 import { recordAudit } from "./audit";
+import { runMaintenance } from "./maintenance";
 
 export type StaffAccessIdentity = { subject:string; email:string; assurance:"cloudflare-access" };
 export type StaffPrincipal = { principalId:string; staffUserId:string; accountId:string; organizationId:string; permissions:string[]; email:string };
@@ -169,6 +170,16 @@ export async function handleStaffCommand(input:{operation:string;body:StaffReque
       const response={key,deleted:true as const};
       await idempotency.complete(input.idempotencyKey,JSON.stringify(response));
       await recordAudit(input.env.DB,{id:crypto.randomUUID(),action:input.operation,principalKind:"staff",principalId:input.principal.accountId,organizationId:input.principal.organizationId,targetType:"durable-state",targetId:key,outcome:"completed",requestId:input.requestId,correlationId:input.correlationId,detail:"Durable CMS state document soft-deleted."});
+      return response;
+    }
+    if(input.operation==="staff.system.maintenance.run"){
+      if(!hasPermission(input.principal,"platform.cleanup.manage")) throw new StaffApiError(403,"FORBIDDEN","Platform cleanup permission is required");
+      if(claim.outcome==="replay"){
+        try { return {...JSON.parse(claim.record.response_reference) as Record<string,unknown>,replayed:true}; }
+        catch { throw new StaffApiError(409,"IDEMPOTENCY_REPLAY_RESULT_UNAVAILABLE","The completed maintenance result cannot be replayed safely"); }
+      }
+      const response=await runMaintenance(input.env,"staff",{principalId:input.principal.accountId,requestId:input.requestId,correlationId:input.correlationId});
+      await idempotency.complete(input.idempotencyKey,JSON.stringify(response));
       return response;
     }
     throw new StaffApiError(404,"NOT_FOUND",`No staff command handler is registered for ${input.operation}`);

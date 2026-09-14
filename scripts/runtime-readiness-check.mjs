@@ -32,7 +32,11 @@ const walk=(dir)=>{for(const ent of fs.readdirSync(dir,{withFileTypes:true})){co
 walk("src");
 check("application source is non-trivial",sourceFiles.length>=180);
 const browserStores=sourceFiles.filter((p)=>read(p).includes("localStorage"));
-check("browser persistence is limited to local adapters/preferences",browserStores.length>0&&browserStores.every((p)=>p.includes("app/auth")||p.includes("app/theme")||p.includes("services/production")));
+const toPosixPath=(value)=>value.split(path.sep).join("/");
+check("browser persistence is limited to local adapters/preferences",browserStores.length>0&&browserStores.every((p)=>{
+  const normalized=toPosixPath(p);
+  return normalized.includes("app/auth")||normalized.includes("app/theme")||normalized.includes("services/production");
+}));
 console.log("NEXT F CMS V0.20.0 Runtime & Release Hardening check");
 for(const item of pass) console.log(`PASS  ${item}`);
 for(const item of fail) console.error(`FAIL  ${item}`);

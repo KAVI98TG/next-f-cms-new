@@ -1,7 +1,7 @@
 {
   "name": "@next-f/admin",
   "private": true,
-  "version": "0.25.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -32,7 +32,13 @@
     "check:go-live-p0": "node scripts/production-go-live-p0-check.mjs",
     "check:go-live-p1": "node scripts/production-go-live-p1-check.mjs",
     "check:go-live-p2": "node scripts/production-go-live-p2-check.mjs",
-    "staff:binding-sql": "node scripts/generate-staff-binding-sql.mjs"
+    "staff:binding-sql": "node scripts/generate-staff-binding-sql.mjs",
+    "check:release-hygiene": "node scripts/release-hygiene-check.mjs",
+    "acceptance:production": "node scripts/production-acceptance.mjs",
+    "acceptance:production:final": "node scripts/production-acceptance.mjs --final",
+    "acceptance:source": "node scripts/production-acceptance.mjs --source-only",
+    "check:gaming-vnext": "node scripts/gaming-vnext-check.mjs",
+    "check:gaming-vnext-integration": "node scripts/gaming-vnext-integration-check.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

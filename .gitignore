@@ -13,4 +13,7 @@ vite.config.js
 
 # Local Cloudflare deployment configs
 infrastructure/cloudflare/wrangler.staging.jsonc
-infrastructure/cloudflare/wrangler.production.jsonc
+!infrastructure/cloudflare/wrangler.production.jsonc
+
+# Generated production acceptance evidence
+artifacts/production-acceptance/

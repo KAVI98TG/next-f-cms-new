@@ -88,7 +88,7 @@ check("staff-only publish denied",policy.includes("Publishing remains NEXT F sta
 check("approval publish routes to request",policy.includes('executionPath: "publish_request"'));
 check("direct publish path distinct",policy.includes('executionPath: "direct_publish"'));
 check("future API must re-evaluate authorization",policy.includes("future API must still validate the same decision server-side") && policy.includes("future publishing API must re-evaluate authorization server-side"));
-check("staff entitlements policy view",page.includes('"access-policy"') && page.includes("Entitlements & Access Policy"));
+check("staff entitlements policy view",page.includes('key: "access-policy"') && page.includes('label: "Access policy"') && page.includes("Service capability entitlements"));
 check("staff shows canonical maximum",page.includes("Canonical maximum:"));
 check("staff shows field restrictions",page.includes("Field-level customer restrictions"));
 check("staff shows privacy security restrictions",page.includes("Privacy & security restrictions"));

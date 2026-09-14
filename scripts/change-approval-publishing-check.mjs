@@ -71,8 +71,8 @@ check("publishing receipt checks revision and hash",flow.includes("target revisi
 check("publishing receipt requires adapter evidence",flow.includes("Publishing adapter receipt and publication reference are required"));
 check("publishing receipt modeled",flow.includes("PublishingReceiptRecord"));
 check("publish audit records publication reference",flow.includes("Website revision published") && flow.includes("publicationReference"));
-check("staff approvals publishing view",page.includes('"approvals-publishing"') && page.includes("Approvals & Publishing"));
-check("staff UI states approval application publishing split",page.includes("Approval, application and publication are three different events"));
+check("staff approvals publishing view",page.includes('key: "approvals-publishing"') && page.includes('label: "Approvals & publishing"'));
+check("staff UI states approval application publishing split",page.includes("Approval is not publication") && page.includes("application and publication are separate auditable events"));
 check("staff UI shows concurrency rule",page.includes("Optimistic concurrency is mandatory"));
 check("staff UI has customer change queue",page.includes("Customer change requests"));
 check("staff UI has publication governance queue",page.includes("Publication governance"));
