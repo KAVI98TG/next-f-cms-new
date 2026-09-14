@@ -43,7 +43,7 @@ export function CleanupPage() {
       <SectionHeader
         eyebrow="Platform"
         title="Cleanup & Retention"
-        description="Control local operational retention without touching live business records."
+        description="Control operational retention without broad business-record deletion."
       />
       <div className="compact-metrics">
         <MetricCard
@@ -61,13 +61,13 @@ export function CleanupPage() {
         <MetricCard
           label="Backup retention"
           value={String(policy.backupCount)}
-          detail="Latest snapshots"
+          detail="Application snapshots"
           icon={Trash2}
         />
         <MetricCard
           label="Cleanup runs"
           value={String(runs.filter((r) => r.mode === "executed").length)}
-          detail="Executed locally"
+          detail="Executed"
           icon={Trash2}
         />
       </div>
@@ -151,7 +151,7 @@ export function CleanupPage() {
       <ConfirmDialog
         open={confirm}
         title="Run cleanup now?"
-        description="Only expired audit events, notifications, system logs and excess local backups will be removed. Business records are never included."
+        description="Only expired audit events, notifications, system logs and excess application snapshots will be removed. Business records are not included in this retention action."
         confirmLabel="Run cleanup"
         danger
         onClose={() => setConfirm(false)}

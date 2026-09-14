@@ -38,7 +38,10 @@
     "acceptance:production:final": "node scripts/production-acceptance.mjs --final",
     "acceptance:source": "node scripts/production-acceptance.mjs --source-only",
     "check:gaming-vnext": "node scripts/gaming-vnext-check.mjs",
-    "check:gaming-vnext-integration": "node scripts/gaming-vnext-integration-check.mjs"
+    "check:gaming-vnext-integration": "node scripts/gaming-vnext-integration-check.mjs",
+    "check:production-purity": "node scripts/production-purity-check.mjs",
+    "production:data-hygiene:scan": "node scripts/production-data-hygiene.mjs --scan",
+    "production:data-hygiene:cleanup": "node scripts/production-data-hygiene.mjs --cleanup"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

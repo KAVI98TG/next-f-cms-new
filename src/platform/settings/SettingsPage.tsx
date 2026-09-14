@@ -3,6 +3,9 @@ import { Building2, MonitorCog, RotateCcw, Save, ShieldCheck } from "lucide-reac
 import { Button, Card, FormField, SectionHeader, SelectInput, TextInput, Toggle } from "../../shared/components";
 import { platformStore } from "../services/platformStore";
 import { useTheme, type ThemeMode } from "../../app/theme/ThemeProvider";
+import { readProductionRuntimeConfig } from "../../services/production";
+
+const runtime = readProductionRuntimeConfig();
 
 export function SettingsPage() {
   const [settings, setSettings] = useState(() => platformStore.getSettings());
@@ -16,6 +19,7 @@ export function SettingsPage() {
   };
 
   const reset = () => {
+    if (!runtime.isLocal) return;
     platformStore.reset();
     window.location.reload();
   };
@@ -35,31 +39,19 @@ export function SettingsPage() {
       <Card>
         <div className="settings-section-title"><MonitorCog size={18}/><div><strong>Appearance</strong><small>Choose a theme for this browser. System follows your device preference automatically.</small></div></div>
         <div className="form-grid form-grid--two">
-          <FormField label="Theme">
-            <SelectInput value={themeMode} onChange={(event) => setThemeMode(event.target.value as ThemeMode)}>
-              <option value="system">System</option>
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-            </SelectInput>
-          </FormField>
-          <div className="theme-preview" aria-live="polite">
-            <span className={`theme-preview__swatch theme-preview__swatch--${resolvedTheme}`} aria-hidden="true"/>
-            <span><strong>{resolvedTheme === "dark" ? "Dark" : "Light"} active</strong><small>{themeMode === "system" ? "Following system preference" : "Explicit browser preference"}</small></span>
-          </div>
+          <FormField label="Theme"><SelectInput value={themeMode} onChange={(event) => setThemeMode(event.target.value as ThemeMode)}><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></SelectInput></FormField>
+          <div className="theme-preview" aria-live="polite"><span className={`theme-preview__swatch theme-preview__swatch--${resolvedTheme}`} aria-hidden="true"/><span><strong>{resolvedTheme === "dark" ? "Dark" : "Light"} active</strong><small>{themeMode === "system" ? "Following system preference" : "Explicit browser preference"}</small></span></div>
         </div>
       </Card>
       <Card>
-        <div className="settings-section-title"><ShieldCheck size={18}/><div><strong>Admin security defaults</strong><small>Product rules now; production enforcement connects later.</small></div></div>
+        <div className="settings-section-title"><ShieldCheck size={18}/><div><strong>Admin security defaults</strong><small>Cloudflare Access remains the production staff authentication boundary.</small></div></div>
         <div className="settings-rows">
-          <div className="settings-row"><span><strong>Require MFA for administrators</strong><small>Keep this requirement enabled when production authentication is connected.</small></span><Toggle checked={settings.requireMfaForAdmins} onChange={(value) => setSettings({ ...settings, requireMfaForAdmins: value })}/></div>
+          <div className="settings-row"><span><strong>Require MFA for administrators</strong><small>Keep this requirement enabled for Cloudflare Access protected staff accounts.</small></span><Toggle checked={settings.requireMfaForAdmins} onChange={(value) => setSettings({ ...settings, requireMfaForAdmins: value })}/></div>
           <div className="settings-row"><span><strong>Email operational notifications</strong><small>Send important platform alerts to configured administrators.</small></span><Toggle checked={settings.emailNotifications} onChange={(value) => setSettings({ ...settings, emailNotifications: value })}/></div>
           <FormField label="Session timeout (minutes)"><TextInput type="number" min={15} max={1440} value={settings.sessionTimeoutMinutes} onChange={(event) => setSettings({ ...settings, sessionTimeoutMinutes: Number(event.target.value) })}/></FormField>
         </div>
       </Card>
-      <Card className="danger-zone">
-        <div><strong>Reset local development data</strong><p>Clears Platform Core browser records and restores the local development seeds. This does not affect any remote system.</p></div>
-        <Button variant="ghost" onClick={reset}><RotateCcw size={16}/>Reset local data</Button>
-      </Card>
+      {runtime.isLocal&&<Card className="danger-zone"><div><strong>Reset preview data</strong><p>Clears browser preview records and restores seeded local values. This control is not rendered for production API mode.</p></div><Button variant="ghost" onClick={reset}><RotateCcw size={16}/>Reset preview</Button></Card>}
     </div>
   </div>;
 }

@@ -54,3 +54,19 @@ kbd { border: 1px solid var(--border); background: var(--surface-soft); padding:
 .route-error-boundary .state-panel {
   width: min(680px, 100%);
 }
+
+.account-menu { position: relative; }
+.account-menu .user-chip { appearance: none; border: 0; background: transparent; color: inherit; padding: 0; cursor: pointer; }
+.account-menu__panel { position: absolute; right: 0; top: calc(100% + 12px); width: min(320px, calc(100vw - 28px)); background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 14px; z-index: 80; }
+.account-menu__identity { display: grid; grid-template-columns: 36px 1fr; gap: 10px; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.account-menu__identity strong,.account-menu__identity small { display: block; }
+.account-menu__identity small { color: var(--text-muted); font-size: var(--text-xs); margin-top: 2px; overflow-wrap: anywhere; }
+.account-menu__details { display: grid; gap: 8px; margin: 12px 0; }
+.account-menu__details div { display: grid; grid-template-columns: 92px 1fr; gap: 10px; align-items: center; }
+.account-menu__details dt { color: var(--text-subtle); font-size: var(--text-xs); font-weight: var(--font-semibold); text-transform: uppercase; letter-spacing: .06em; }
+.account-menu__details dd { margin: 0; color: var(--text); font-size: var(--text-sm); display: flex; align-items: center; gap: 6px; min-width: 0; }
+.account-menu__details dd svg { color: var(--success); }
+.account-menu__signout { width: 100%; min-height: 40px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-strong); color: var(--text); display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: var(--font-semibold); cursor: pointer; }
+.account-menu__signout:hover { border-color: var(--accent-strong-tint); color: var(--accent); }
+.account-menu__assurance { display: grid; grid-template-columns: 18px 1fr; gap: 8px; color: var(--text-muted); font-size: var(--text-xs); line-height: var(--leading-normal); margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.account-menu__assurance svg { color: var(--success); margin-top: 1px; }

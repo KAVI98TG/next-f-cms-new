@@ -3,8 +3,13 @@ import type { GamingOrderVNext, NextFGamingOffer } from "../types";
 import { buildGamingQuote } from "./pricingEngine";
 import { chooseSupplierMapping } from "./supplierRouter";
 import { gamingVNextStore } from "./store";
+import { readProductionRuntimeConfig } from "../../../services/production";
 
 const quotes = new Map<string, ReturnType<typeof buildGamingQuote>>();
+const runtime = readProductionRuntimeConfig();
+const simulationEnabled = runtime.mode !== "production-api";
+
+export function isGamingPublicSimulationEnabled() { return simulationEnabled; }
 
 function publicProjection(): PublicGamingProductProjection[] {
   const products = gamingVNextStore.getProducts().filter((p) => p.enabled);
@@ -41,12 +46,14 @@ export const localGamingPublicService = {
     return { valid: !String(primary).endsWith("000"), displayName: String(primary).endsWith("000") ? undefined : `PLAYER-${String(primary).slice(-4)}`, region: "Asia", message: String(primary).endsWith("000") ? "Supplier could not validate this account." : "Account verified." };
   },
   async checkout(input: PublicGamingCheckoutRequest): Promise<PublicGamingCheckoutCreated> {
+    if (!simulationEnabled) throw new Error("Integration not connected: production checkout requires the NEXT F backend payment adapter.");
     const offer = offerOrThrow(input.offerId); const quote = quotes.get(input.quoteId); if (!quote || quote.offerId !== offer.id || Date.parse(quote.expiresAt) < Date.now()) throw new Error("Your quote expired. Refresh the price and try again.");
     const product = gamingVNextStore.getProducts().find((p) => p.id === offer.productId)!; const mapping = gamingVNextStore.getMappings().find((m) => m.id === quote.mappingId)!;
     const order: GamingOrderVNext = { id: `gvo_${crypto.randomUUID()}`, number: `NG-${String(Date.now()).slice(-7)}`, productId: product.id, offerId: offer.id, mappingId: mapping.id, supplierId: mapping.supplierId, status: "payment_pending", purchaseFields: input.fields, quantity: input.quantity ?? quote.quantity, requestedAmount: input.requestedAmount, quote, customerPaid: false, supplierCharged: false, deliverables: [], idempotencyKey: crypto.randomUUID(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
     gamingVNextStore.addOrder(order); return { orderId: order.id, orderNumber: order.number, status: "payment_pending", amountLkr: quote.sellingPriceLkr };
   },
-  async simulatePayment(orderId: string) {
+  async completeSandboxPayment(orderId: string) {
+    if (!simulationEnabled) throw new Error("Integration not connected: sandbox payment completion is disabled in production.");
     const orders = gamingVNextStore.getOrders(); const current = orders.find((o) => o.id === orderId); if (!current) throw new Error("Order not found"); const offer = offerOrThrow(current.offerId);
     const deliverables = offer.kind === "gift_card" || offer.kind === "game_key" ? [{ type: "code" as const, label: offer.kind === "gift_card" ? "Digital code" : "Activation key", value: `NEXTF-${crypto.randomUUID().slice(0,8).toUpperCase()}-${crypto.randomUUID().slice(0,8).toUpperCase()}` }] : [{ type: "topup_confirmation" as const, label: "Fulfillment", value: "Delivered successfully" }];
     const done: GamingOrderVNext = { ...current, status: "completed", customerPaid: true, supplierCharged: true, supplierOrderId: `demo-${crypto.randomUUID().slice(0,8)}`, deliverables, updatedAt: new Date().toISOString(), completedAt: new Date().toISOString() };

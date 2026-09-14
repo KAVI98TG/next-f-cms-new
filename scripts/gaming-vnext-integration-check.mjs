@@ -14,7 +14,7 @@ const files=[
 const failures=[];const passes=[];const check=(name,ok)=>(ok?passes:failures).push(name);
 for(const file of files)check(`file ${file}`,fs.existsSync(file));
 const source=files.filter((f)=>/\.(ts|tsx)$/.test(f)).map((f)=>fs.readFileSync(f,"utf8")).join("\n");
-for(const concept of ["chooseSupplierMapping","buildGamingQuote","FazerCardsServerAdapter","CatalogVNextPage","PublicGamingStorefront","simulatePayment","SupplierOfferMapping"])check(`concept ${concept}`,source.includes(concept));
+for(const concept of ["chooseSupplierMapping","buildGamingQuote","FazerCardsServerAdapter","CatalogVNextPage","PublicGamingStorefront","completeSandboxPayment","SupplierOfferMapping"])check(`concept ${concept}`,source.includes(concept));
 check("multi supplier route seed",source.includes("map_pubg_60_fz")&&source.includes("map_pubg_60_b"));
 check("topup flow",source.includes("player_id")&&source.includes("supplier_preflight"));
 check("gift card flow",source.includes("gift_card")&&source.includes("stock"));

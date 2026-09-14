@@ -12,14 +12,14 @@ export function IntegrationsPage() {
     <SectionHeader eyebrow="Platform" title="Integrations" description="Shared integration registry only. External providers remain intentionally unconfigured until the product is complete." />
     <div className="compact-metrics">
       <Card><span><Blocks size={17}/>Adapters</span><strong>{items.length}</strong></Card>
-      <Card><span><CheckCircle2 size={17}/>Ready locally</span><strong>{ready}</strong></Card>
-      <Card><span><CircleDashed size={17}/>Production pending</span><strong>{items.length - ready}</strong></Card>
+      <Card><span><CheckCircle2 size={17}/>Ready</span><strong>{ready}</strong></Card>
+      <Card><span><CircleDashed size={17}/>Needs adapter</span><strong>{items.length - ready}</strong></Card>
       <Card><span><PlugZap size={17}/>Provider lock-in</span><strong>0</strong></Card>
     </div>
     <div className="integration-grid">{items.map((item) => <Card key={item.id} className="integration-card">
       <header><span className={`integration-icon ${item.status === "ready" ? "is-ready" : ""}`}><PlugZap size={18}/></span><Badge tone={item.status === "ready" ? "success" : "neutral"}>{item.status === "ready" ? "Ready" : "Not configured"}</Badge></header>
       <h3>{item.name}</h3><p>{item.description}</p>
-      <footer><span>{item.category}</span><strong>{item.environment === "local" ? "Local development" : "Final deployment stage"}</strong></footer>
+      <footer><span>{item.category}</span><strong>{item.environment === "local" ? "Local preview" : "Integration not connected"}</strong></footer>
     </Card>)}</div>
   </div>;
 }
