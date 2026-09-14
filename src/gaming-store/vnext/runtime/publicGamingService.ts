@@ -3,13 +3,9 @@ import type { GamingOrderVNext, NextFGamingOffer } from "../types";
 import { buildGamingQuote } from "./pricingEngine";
 import { chooseSupplierMapping } from "./supplierRouter";
 import { gamingVNextStore } from "./store";
-import { readProductionRuntimeConfig } from "../../../services/production";
+import { assertLocalPrototype } from "../../../services/production/runtime";
 
 const quotes = new Map<string, ReturnType<typeof buildGamingQuote>>();
-const runtime = readProductionRuntimeConfig();
-const simulationEnabled = runtime.mode !== "production-api";
-
-export function isGamingPublicSimulationEnabled() { return simulationEnabled; }
 
 function publicProjection(): PublicGamingProductProjection[] {
   const products = gamingVNextStore.getProducts().filter((p) => p.enabled);
@@ -27,10 +23,11 @@ function publicProjection(): PublicGamingProductProjection[] {
 function offerOrThrow(offerId: string): NextFGamingOffer { const offer = gamingVNextStore.getOffers().find((row) => row.id === offerId && row.enabled); if (!offer) throw new Error("Offer is not available"); return offer; }
 
 export const localGamingPublicService = {
-  async bootstrap(): Promise<PublicGamingBootstrap> { const products = publicProjection(); return { storeName: "NEXT F GAMING", currency: "LKR", productKinds: [...new Set(products.map((p) => p.kind))], featuredProducts: products.filter((p) => p.featured) }; },
-  async products(): Promise<PublicGamingProductProjection[]> { return publicProjection(); },
-  async product(slug: string) { return publicProjection().find((row) => row.slug === slug); },
+  async bootstrap(): Promise<PublicGamingBootstrap> { assertLocalPrototype("Gaming public storefront simulation"); const products = publicProjection(); return { storeName: "NEXT F GAMING", currency: "LKR", productKinds: [...new Set(products.map((p) => p.kind))], featuredProducts: products.filter((p) => p.featured) }; },
+  async products(): Promise<PublicGamingProductProjection[]> { assertLocalPrototype("Gaming public storefront simulation"); return publicProjection(); },
+  async product(slug: string) { assertLocalPrototype("Gaming public storefront simulation"); return publicProjection().find((row) => row.slug === slug); },
   async quote(input: PublicGamingQuoteRequest): Promise<PublicGamingQuoteResponse> {
+    assertLocalPrototype("Gaming quote simulation");
     const offer = offerOrThrow(input.offerId); const mapping = chooseSupplierMapping(offer, gamingVNextStore.getMappings());
     if (!mapping) return { quoteId: "", offerId: offer.id, quantity: input.quantity ?? 1, sellingPriceLkr: 0, expiresAt: new Date().toISOString(), available: false, message: "This option is temporarily unavailable." };
     const quantity = Math.max(mapping.availability.minQuantity ?? 1, input.quantity ?? 1);
@@ -39,6 +36,7 @@ export const localGamingPublicService = {
     return { quoteId: quote.id, offerId: offer.id, quantity, sellingPriceLkr: quote.sellingPriceLkr, expiresAt: quote.expiresAt, available: true };
   },
   async validate(input: PublicGamingValidationRequest): Promise<PublicGamingValidationResponse> {
+    assertLocalPrototype("Gaming validation simulation");
     const offer = offerOrThrow(input.offerId); if (!offer.validation.supported) return { valid: true };
     const missing = offer.validation.fieldKeys.find((key) => !input.fields[key]?.trim()); if (missing) return { valid: false, message: "Complete all account fields before validation." };
     if (offer.kind === "steam_wallet") return { valid: !input.fields.steam_login.toLowerCase().includes("invalid"), displayName: input.fields.steam_login, message: input.fields.steam_login.toLowerCase().includes("invalid") ? "This Steam account is not eligible for wallet refill." : "Steam account can be refilled." };
@@ -46,18 +44,18 @@ export const localGamingPublicService = {
     return { valid: !String(primary).endsWith("000"), displayName: String(primary).endsWith("000") ? undefined : `PLAYER-${String(primary).slice(-4)}`, region: "Asia", message: String(primary).endsWith("000") ? "Supplier could not validate this account." : "Account verified." };
   },
   async checkout(input: PublicGamingCheckoutRequest): Promise<PublicGamingCheckoutCreated> {
-    if (!simulationEnabled) throw new Error("Integration not connected: production checkout requires the NEXT F backend payment adapter.");
+    assertLocalPrototype("Gaming checkout simulation");
     const offer = offerOrThrow(input.offerId); const quote = quotes.get(input.quoteId); if (!quote || quote.offerId !== offer.id || Date.parse(quote.expiresAt) < Date.now()) throw new Error("Your quote expired. Refresh the price and try again.");
     const product = gamingVNextStore.getProducts().find((p) => p.id === offer.productId)!; const mapping = gamingVNextStore.getMappings().find((m) => m.id === quote.mappingId)!;
     const order: GamingOrderVNext = { id: `gvo_${crypto.randomUUID()}`, number: `NG-${String(Date.now()).slice(-7)}`, productId: product.id, offerId: offer.id, mappingId: mapping.id, supplierId: mapping.supplierId, status: "payment_pending", purchaseFields: input.fields, quantity: input.quantity ?? quote.quantity, requestedAmount: input.requestedAmount, quote, customerPaid: false, supplierCharged: false, deliverables: [], idempotencyKey: crypto.randomUUID(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
     gamingVNextStore.addOrder(order); return { orderId: order.id, orderNumber: order.number, status: "payment_pending", amountLkr: quote.sellingPriceLkr };
   },
-  async completeSandboxPayment(orderId: string) {
-    if (!simulationEnabled) throw new Error("Integration not connected: sandbox payment completion is disabled in production.");
+  async simulatePayment(orderId: string) {
+    assertLocalPrototype("Gaming payment and supplier fulfillment simulation");
     const orders = gamingVNextStore.getOrders(); const current = orders.find((o) => o.id === orderId); if (!current) throw new Error("Order not found"); const offer = offerOrThrow(current.offerId);
     const deliverables = offer.kind === "gift_card" || offer.kind === "game_key" ? [{ type: "code" as const, label: offer.kind === "gift_card" ? "Digital code" : "Activation key", value: `NEXTF-${crypto.randomUUID().slice(0,8).toUpperCase()}-${crypto.randomUUID().slice(0,8).toUpperCase()}` }] : [{ type: "topup_confirmation" as const, label: "Fulfillment", value: "Delivered successfully" }];
     const done: GamingOrderVNext = { ...current, status: "completed", customerPaid: true, supplierCharged: true, supplierOrderId: `demo-${crypto.randomUUID().slice(0,8)}`, deliverables, updatedAt: new Date().toISOString(), completedAt: new Date().toISOString() };
     gamingVNextStore.upsertOrder(done); return done;
   },
-  async order(orderId: string): Promise<PublicGamingOrderProjection | undefined> { const row = gamingVNextStore.getOrders().find((o) => o.id === orderId); if (!row) return; const product = gamingVNextStore.getProducts().find((p)=>p.id===row.productId)!; const offer = gamingVNextStore.getOffers().find((o)=>o.id===row.offerId)!; return { orderId: row.id, orderNumber: row.number, productName: product.name, offerName: offer.name, status: row.status as PublicGamingOrderProjection["status"], amountLkr: row.quote.sellingPriceLkr, validationDisplayName: row.validation?.displayName, completedAt: row.completedAt, deliverables: row.deliverables, failureMessage: row.failureReason }; },
+  async order(orderId: string): Promise<PublicGamingOrderProjection | undefined> { assertLocalPrototype("Gaming order simulation"); const row = gamingVNextStore.getOrders().find((o) => o.id === orderId); if (!row) return; const product = gamingVNextStore.getProducts().find((p)=>p.id===row.productId)!; const offer = gamingVNextStore.getOffers().find((o)=>o.id===row.offerId)!; return { orderId: row.id, orderNumber: row.number, productName: product.name, offerName: offer.name, status: row.status as PublicGamingOrderProjection["status"], amountLkr: row.quote.sellingPriceLkr, validationDisplayName: row.validation?.displayName, completedAt: row.completedAt, deliverables: row.deliverables, failureMessage: row.failureReason }; },
 };

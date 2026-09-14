@@ -2,24 +2,29 @@ import { Blocks, CheckCircle2, CircleDashed, PlugZap } from "lucide-react";
 import { Badge, Card, SectionHeader } from "../../shared/components";
 import { platformStore } from "../services/platformStore";
 import { usePlatformStore } from "../shared/usePlatformStore";
+import { readRuntimeTruth } from "../../services/production";
+
+const runtime=readRuntimeTruth();
 
 export function IntegrationsPage() {
   const reader = () => platformStore.getIntegrations();
   const [items] = usePlatformStore(reader);
-  const ready = items.filter((item) => item.status === "ready").length;
+  const relevant=runtime.isLocal?items:items.filter((item)=>item.environment==="production");
+  const ready = relevant.filter((item) => item.status === "ready").length;
 
   return <div className="page">
-    <SectionHeader eyebrow="Platform" title="Integrations" description="Shared integration registry only. External providers remain intentionally unconfigured until the product is complete." />
+    <SectionHeader eyebrow="Platform" title="Integrations" description="Shared integration registry. Production actions stay unavailable until their real provider adapter reports ready." />
     <div className="compact-metrics">
-      <Card><span><Blocks size={17}/>Adapters</span><strong>{items.length}</strong></Card>
+      <Card><span><Blocks size={17}/>Adapters</span><strong>{relevant.length}</strong></Card>
       <Card><span><CheckCircle2 size={17}/>Ready</span><strong>{ready}</strong></Card>
-      <Card><span><CircleDashed size={17}/>Needs adapter</span><strong>{items.length - ready}</strong></Card>
-      <Card><span><PlugZap size={17}/>Provider lock-in</span><strong>0</strong></Card>
+      <Card><span><CircleDashed size={17}/>Not connected</span><strong>{relevant.length - ready}</strong></Card>
+      <Card><span><PlugZap size={17}/>Environment</span><strong>{runtime.environmentLabel}</strong></Card>
     </div>
-    <div className="integration-grid">{items.map((item) => <Card key={item.id} className="integration-card">
-      <header><span className={`integration-icon ${item.status === "ready" ? "is-ready" : ""}`}><PlugZap size={18}/></span><Badge tone={item.status === "ready" ? "success" : "neutral"}>{item.status === "ready" ? "Ready" : "Not configured"}</Badge></header>
+    <div className="integration-grid">{relevant.map((item) => <Card key={item.id} className="integration-card">
+      <header><span className={`integration-icon ${item.status === "ready" ? "is-ready" : ""}`}><PlugZap size={18}/></span><Badge tone={item.status === "ready" ? "success" : "neutral"}>{item.status === "ready" ? "Ready" : "Not connected"}</Badge></header>
       <h3>{item.name}</h3><p>{item.description}</p>
-      <footer><span>{item.category}</span><strong>{item.environment === "local" ? "Local preview" : "Integration not connected"}</strong></footer>
+      <footer><span>{item.category}</span><strong>{item.environment === "local" ? "Local sandbox" : "Production adapter"}</strong></footer>
     </Card>)}</div>
+    {!relevant.length&&<Card><p className="empty-copy">No production integration records are configured. External operations will remain gated until a real adapter is connected.</p></Card>}
   </div>;
 }

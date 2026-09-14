@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Building2, MonitorCog, RotateCcw, Save, ShieldCheck } from "lucide-react";
-import { Button, Card, FormField, SectionHeader, SelectInput, TextInput, Toggle } from "../../shared/components";
+import { Badge, Button, Card, FormField, SectionHeader, SelectInput, TextInput, Toggle } from "../../shared/components";
 import { platformStore } from "../services/platformStore";
 import { useTheme, type ThemeMode } from "../../app/theme/ThemeProvider";
-import { readProductionRuntimeConfig } from "../../services/production";
+import { readRuntimeTruth } from "../../services/production";
 
-const runtime = readProductionRuntimeConfig();
+const runtime=readRuntimeTruth();
 
 export function SettingsPage() {
   const [settings, setSettings] = useState(() => platformStore.getSettings());
@@ -19,7 +19,7 @@ export function SettingsPage() {
   };
 
   const reset = () => {
-    if (!runtime.isLocal) return;
+    if(!runtime.isLocal) return;
     platformStore.reset();
     window.location.reload();
   };
@@ -44,14 +44,10 @@ export function SettingsPage() {
         </div>
       </Card>
       <Card>
-        <div className="settings-section-title"><ShieldCheck size={18}/><div><strong>Admin security defaults</strong><small>Cloudflare Access remains the production staff authentication boundary.</small></div></div>
-        <div className="settings-rows">
-          <div className="settings-row"><span><strong>Require MFA for administrators</strong><small>Keep this requirement enabled for Cloudflare Access protected staff accounts.</small></span><Toggle checked={settings.requireMfaForAdmins} onChange={(value) => setSettings({ ...settings, requireMfaForAdmins: value })}/></div>
-          <div className="settings-row"><span><strong>Email operational notifications</strong><small>Send important platform alerts to configured administrators.</small></span><Toggle checked={settings.emailNotifications} onChange={(value) => setSettings({ ...settings, emailNotifications: value })}/></div>
-          <FormField label="Session timeout (minutes)"><TextInput type="number" min={15} max={1440} value={settings.sessionTimeoutMinutes} onChange={(event) => setSettings({ ...settings, sessionTimeoutMinutes: Number(event.target.value) })}/></FormField>
-        </div>
+        <div className="settings-section-title"><ShieldCheck size={18}/><div><strong>Administrative security</strong><small>{runtime.mode==="production-api"?"Cloudflare Access is the authoritative staff authentication and session control plane.":"Local prototype security defaults for development."}</small></div></div>
+        {runtime.mode==="production-api"?<div className="settings-rows"><div className="settings-row"><span><strong>Authentication authority</strong><small>MFA, Access policies and session duration are managed in Cloudflare Zero Trust, not by this CMS form.</small></span><Badge tone="success">Cloudflare Access</Badge></div><div className="settings-row"><span><strong>Email operational notifications</strong><small>CMS-owned notification preference; this does not change Access policy.</small></span><Toggle checked={settings.emailNotifications} onChange={(value) => setSettings({ ...settings, emailNotifications: value })}/></div></div>:<div className="settings-rows"><div className="settings-row"><span><strong>Require MFA for administrators</strong><small>Prototype policy only. Production MFA is enforced by Cloudflare Access.</small></span><Toggle checked={settings.requireMfaForAdmins} onChange={(value) => setSettings({ ...settings, requireMfaForAdmins: value })}/></div><div className="settings-row"><span><strong>Email operational notifications</strong><small>Send important platform alerts to configured administrators.</small></span><Toggle checked={settings.emailNotifications} onChange={(value) => setSettings({ ...settings, emailNotifications: value })}/></div><FormField label="Prototype session timeout (minutes)"><TextInput type="number" min={15} max={1440} value={settings.sessionTimeoutMinutes} onChange={(event) => setSettings({ ...settings, sessionTimeoutMinutes: Number(event.target.value) })}/></FormField></div>}
       </Card>
-      {runtime.isLocal&&<Card className="danger-zone"><div><strong>Reset preview data</strong><p>Clears browser preview records and restores seeded local values. This control is not rendered for production API mode.</p></div><Button variant="ghost" onClick={reset}><RotateCcw size={16}/>Reset preview</Button></Card>}
+      {runtime.isLocal&&<Card className="danger-zone"><div><strong>Reset local prototype data</strong><p>Clears browser-backed local prototype records and restores local seeds. This control is never rendered in staging or production.</p></div><Button variant="ghost" onClick={reset}><RotateCcw size={16}/>Reset local data</Button></Card>}
     </div>
   </div>;
 }

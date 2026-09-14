@@ -86,3 +86,7 @@
   .key-value-list>div { grid-template-columns:1fr; gap:4px; }
 }
 @media (max-width:680px){.acceptance-banner{padding:15px}.acceptance-row{grid-template-columns:auto minmax(0,1fr)}.acceptance-row>.badge{grid-column:2;justify-self:start;margin-top:2px}}
+@media (max-width: 680px) {
+  .account-menu-wrap .user-chip { display:flex; }
+  .account-menu-wrap .user-chip__identity,.account-menu-wrap .user-chip__chevron { display:none; }
+}

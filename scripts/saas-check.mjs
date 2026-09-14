@@ -18,8 +18,8 @@ check("global entity search",palette.includes("searchGlobal")&&read("src/service
 check("shared account normalization",read("src/services/shared/commerceCenter.ts").includes("getSharedAccounts")&&read("src/services/shared/commerceCenter.ts").includes("normalizeEmail"));
 check("unified payment shape",read("src/services/shared/commerceCenter.ts").includes("SharedPayment")&&read("src/services/shared/commerceCenter.ts").includes("getSharedPayments"));
 check("cross-business operations notifications",notifications.includes("useOperationsCenter")&&read("src/services/shared/operationsCenter.ts").includes("getSuppliers")&&read("src/services/shared/operationsCenter.ts").includes("getLicenses"));
-check("durable export utility",data.includes("Export backup")&&data.includes("nextf-cms-durable-backup"));
-check("durable import utility",data.includes("Import backup")&&data.includes("file.text")&&data.includes("importDurableStorageRecords"));
+check("durable export utility",data.includes("exportDurableStorageRecords")&&data.includes("Export data")&&data.includes("nextf-cms-durable-backup"));
+check("durable import utility",data.includes("file.text")&&data.includes("importDurableStorageRecords")&&data.includes("Import disabled")&&data.includes("Production application-data import is intentionally unavailable"));
 check("global error boundary",read("src/main.tsx").includes("AppErrorBoundary"));
 check("consistent empty state",read("src/shared/components/DataTable.tsx").includes("table-empty-state")&&read("src/shared/components/StatePanel.tsx").includes('state: "empty" | "loading" | "error"'));
 check("skip navigation",shell.includes('href="#main-content"')&&shell.includes('id="main-content"'));

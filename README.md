@@ -55,7 +55,7 @@ npx wrangler@latest pages deploy dist --project-name nextf-cms --branch main
 npm run acceptance:production:final
 ```
 
-`infrastructure/cloudflare/wrangler.production.jsonc` contains non-secret production identifiers only. `TURNSTILE_SECRET_KEY` and `SERVICE_CREDENTIAL_SECRET` remain Cloudflare Worker Secrets and must never be committed.
+`infrastructure/cloudflare/wrangler.production.jsonc` contains non-secret production identifiers only. `TURNSTILE_SECRET_KEY`, `SERVICE_CREDENTIAL_SECRET` and `NEXTF_MAIN_SITE_INGEST_TOKEN` remain Cloudflare Worker Secrets and must never be committed.
 
 ## Authentication
 
@@ -64,5 +64,7 @@ Production is fail closed. The login/bootstrap UI verifies Cloudflare Access and
 ## Release documentation
 
 - `docs/V1.0.0-PRODUCTION-RELEASE.md`
+- `docs/V1.0.0-FINAL-DEPLOYMENT.md`
 - `docs/GAMING-INTEGRATION-HANDOFF.md`
+- `docs/V1.0.0-NEXTF-MAIN-SITE-PROJECT-REQUEST-INGESTION.md`
 - `PROJECT-STATUS.md`

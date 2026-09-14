@@ -1,4 +1,6 @@
 import { readDurableValue, writeDurableValue, removeDurableValue } from "../../services/production/durableStorage";
+import { readRuntimeTruth } from "../../services/production/runtime";
+const runtime = readRuntimeTruth();
 export type UserStatus = "active" | "invited" | "suspended";
 export type AuditTone = "neutral" | "info" | "warning" | "danger";
 export type NotificationTone = "info" | "warning" | "danger" | "success";
@@ -98,16 +100,16 @@ const seedRoles: PlatformRole[] = [
 ];
 
 const seedAudit: AuditEvent[] = [
-  { id: "audit_1", actor: "Admin", action: "Foundation upgraded", target: "Platform Core V0.2.0", domain: "Platform", detail: "New platform control layer initialized.", tone: "info", timestamp: ago(8) },
+  { id: "audit_1", actor: "Admin", action: "Foundation upgraded", target: "Platform Core V0.2.0", domain: "Platform", detail: "New platform control layer initialized locally.", tone: "info", timestamp: ago(8) },
   { id: "audit_2", actor: "Admin", action: "Role reviewed", target: "Gaming Operator", domain: "Platform", detail: "Gaming domain permissions reviewed.", tone: "neutral", timestamp: ago(75) },
-  { id: "audit_3", actor: "System", action: "Health check", target: "Durable repository", domain: "Platform", detail: "Shared durable repository boundary responded successfully.", tone: "neutral", timestamp: ago(130) },
-  { id: "audit_4", actor: "Admin", action: "Integration deferred", target: "Production data adapter", domain: "Platform", detail: "Production infrastructure status should be verified before release.", tone: "warning", timestamp: ago(240) },
+  { id: "audit_3", actor: "System", action: "Health check", target: "Local repository", domain: "Platform", detail: "Shared durable repository boundary responded successfully.", tone: "neutral", timestamp: ago(130) },
+  { id: "audit_4", actor: "Admin", action: "Integration deferred", target: "Production data adapter", domain: "Platform", detail: "Production infrastructure remains intentionally disconnected.", tone: "warning", timestamp: ago(240) },
 ];
 
 const seedNotifications: PlatformNotification[] = [
-  { id: "note_1", title: "Platform Core initialized", detail: "Users, access, audit, notifications, health and settings are now available.", domain: "Platform", tone: "success", read: false, createdAt: ago(6) },
-  { id: "note_2", title: "Cloudflare Access configured", detail: "Staff access is verified through Cloudflare Access when production API mode is active.", domain: "Security", tone: "info", read: false, createdAt: ago(90) },
-  { id: "note_3", title: "Durable backend status requires review", detail: "Production API mode uses the durable backend; local preview uses browser storage only.", domain: "Platform", tone: "warning", read: true, createdAt: ago(300) },
+  { id: "note_1", title: "Platform Core initialized", detail: "Users, access, audit, notifications, health and settings are now active locally.", domain: "Platform", tone: "success", read: false, createdAt: ago(6) },
+  { id: "note_2", title: "Production authentication deferred", detail: "Local development session remains active until final infrastructure setup.", domain: "Security", tone: "info", read: false, createdAt: ago(90) },
+  { id: "note_3", title: "Production database not connected", detail: "This is expected. Browser-persistent repositories are being used during product development.", domain: "Platform", tone: "warning", read: true, createdAt: ago(300) },
 ];
 
 const seedIntegrations: IntegrationRecord[] = [
@@ -115,7 +117,7 @@ const seedIntegrations: IntegrationRecord[] = [
   { id: "int_payment", name: "Payment Gateway", category: "Finance", description: "Shared payment abstraction for Digital, Gaming and Software.", status: "not_configured", environment: "production" },
   { id: "int_supplier", name: "Gaming Supplier API", category: "Gaming Store", description: "Provider-independent supplier connection layer.", status: "not_configured", environment: "production" },
   { id: "int_update", name: "Software Update Service", category: "NEXT F Software", description: "License-aware product update and download service.", status: "not_configured", environment: "production" },
-  { id: "int_local", name: "Browser Preview Repository", category: "Development", description: "Browser-persistent adapter used only outside production API mode.", status: "ready", environment: "local" },
+  { id: "int_local", name: "Local Browser Repository", category: "Development", description: "Browser-persistent adapter for fully developing the CMS before backend wiring.", status: "ready", environment: "local" },
 ];
 
 const seedSettings: PlatformSettings = {
@@ -216,11 +218,12 @@ export const platformStore = {
   getSettings: () => read(KEYS.settings, seedSettings),
   saveSettings: (settings: PlatformSettings) => {
     write(KEYS.settings, settings);
-    platformStore.addAudit("Admin", "Settings updated", "Organization settings", "Platform", "Platform settings changed.", "info");
+    platformStore.addAudit("Admin", "Settings updated", "Organization settings", "Platform", `Platform settings changed in ${runtime.environmentLabel}.`, "info");
     return settings;
   },
 
   reset() {
+    if (!runtime.isLocal) throw new Error("Platform reset is disabled outside local prototype mode");
     Object.values(KEYS).forEach((key) => removeDurableValue(key));
     window.dispatchEvent(new CustomEvent("nextf:platform-store", { detail: "reset" }));
   }

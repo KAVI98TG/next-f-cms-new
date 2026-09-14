@@ -165,7 +165,7 @@ export const domains: DomainDefinition[] = [
         label: "Backup",
         path: "/platform/backup",
         icon: ArchiveRestore,
-        description: "Local snapshots and restore management.",
+        description: "Production recovery guidance and local-only snapshot tooling.",
       },
       {
         label: "Cleanup",
@@ -177,7 +177,7 @@ export const domains: DomainDefinition[] = [
         label: "Data Management",
         path: "/platform/data",
         icon: DatabaseBackup,
-        description: "Export and restore local development data.",
+        description: "Controlled application-data export and maintenance safeguards.",
       },
       {
         label: "Settings",

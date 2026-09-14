@@ -84,6 +84,11 @@ async function staff(operation,kind,input={},extra={}){
 async function publicPost(route,payload,{token="deliberately-invalid-token",key=`acceptance:${runId}:${crypto.randomUUID()}`}={}){
   return fetchJson(`${API}${route}`,{method:"POST",headers:{"origin":"https://nextf.lk","content-type":"application/json","idempotency-key":key,"x-turnstile-token":token},body:JSON.stringify(payload),redirect:"manual"});
 }
+async function mainSiteIngestPost(payload,{token,key,includeAuth=true}={}){
+  const headers={"content-type":"application/json","x-nextf-contract-version":"1.0.0","x-nextf-event":"nextf.forms.projectRequest.accepted","x-nextf-site-id":"nextf-main-website","idempotency-key":key};
+  if(includeAuth&&token) headers.authorization=`Bearer ${token}`;
+  return fetchJson(`${API}/v1/integrations/nextf/project-requests`,{method:"POST",headers,body:JSON.stringify(payload),redirect:"manual"});
+}
 async function getState(key){return await staff("staff.state.document.get","query",{key})}
 async function putState(key,value,expectedVersion){
   const input={key,value}; if(expectedVersion!==undefined&&expectedVersion!==null) input.expectedVersion=expectedVersion;
@@ -113,7 +118,7 @@ async function removeFixtureRow(key,id,deleteEmptyIfOriginallyMissing=false){
 }
 
 const sourceScripts=[
-  "check:architecture","check:platform","check:digital","check:digital-operations","check:gaming","check:gaming-vnext","check:gaming-vnext-integration","check:software","check:saas","check:product","check:acceptance","check:architecture-completion","check:help-center","check:website-platform","check:identity-membership","check:provisioning-demo","check:contract-registry","check:capability-policy","check:change-approvals","check:backend-api","check:public-site","check:runtime-readiness","check:production-infrastructure","check:lifecycle-acceptance","check:go-live-p0","check:go-live-p1","check:go-live-p2","check:release-hygiene"
+  "check:architecture","check:platform","check:digital","check:digital-operations","check:gaming","check:gaming-vnext","check:gaming-vnext-integration","check:software","check:saas","check:product","check:acceptance","check:architecture-completion","check:help-center","check:website-platform","check:identity-membership","check:provisioning-demo","check:contract-registry","check:capability-policy","check:change-approvals","check:backend-api","check:public-site","check:main-site-ingest","check:runtime-readiness","check:production-purity","check:production-infrastructure","check:lifecycle-acceptance","check:go-live-p0","check:go-live-p1","check:go-live-p2","check:release-hygiene"
 ];
 
 async function sourceAcceptance(){
@@ -160,6 +165,52 @@ async function checkPublicAbuse(){
     wranglerD1(`DELETE FROM idempotency_records WHERE key=${sqlQuote(key)}; DELETE FROM outbox_events WHERE idempotency_key=${sqlQuote(key)};`);
     await sleep(1500);
     wranglerD1(`DELETE FROM outbox_events WHERE idempotency_key=${sqlQuote(key)};`);
+  }
+}
+
+async function checkMainSiteIngest(){
+  const token=process.env.NEXTF_MAIN_SITE_INGEST_TOKEN?.trim();
+  if(!token){
+    add("main_site_ingest","deferred","CMS receiver source checks passed; deployed server-to-server website ingestion still requires its dedicated integration token for runtime proof","Set NEXTF_MAIN_SITE_INGEST_TOKEN to the same secret configured on the CMS Worker and website Worker, then rerun");
+    return {status:"deferred"};
+  }
+  const submissionId=`sub_acceptance_${runId.toLowerCase()}`;
+  const leadId=`lead_acceptance_${runId.toLowerCase()}`;
+  const now=new Date().toISOString();
+  const payload={type:"nextf.forms.projectRequest.accepted",contractVersion:"1.0.0",siteId:"nextf-main-website",submittedAt:now,records:{submission:{contractId:"forms.submission",contractVersion:"0.9.0",id:submissionId,siteId:"nextf-main-website",formId:"nextf-project-request",formVersion:"2026-09-14",status:"accepted",values:[{fieldKey:"name",labelSnapshot:"Name",primitiveIdSnapshot:"fields.text",value:"NEXT F V1 Acceptance",sensitive:false,redacted:false},{fieldKey:"company",labelSnapshot:"Company",primitiveIdSnapshot:"fields.text",value:"NEXT F acceptance fixture",sensitive:false,redacted:false},{fieldKey:"email",labelSnapshot:"Email",primitiveIdSnapshot:"fields.email",value:"v1-acceptance@invalid.nextf.lk",sensitive:true,redacted:false},{fieldKey:"message",labelSnapshot:"Message",primitiveIdSnapshot:"fields.textarea",value:`Disposable CMS main-site ingestion acceptance ${runId}`,sensitive:true,redacted:false}],files:[],consents:[],spamDecision:{provider:"cloudflare-turnstile",outcome:"passed",decidedAt:now},requestContext:{sourceUrl:"https://nextf.lk/start-project"},submittedAt:now,acceptedAt:now,completedAt:null,idempotencyKey:submissionId,leadId},lead:{contractId:"forms.lead",contractVersion:"0.9.0",id:leadId,siteId:"nextf-main-website",displayName:"NEXT F V1 Acceptance",organizationName:"NEXT F acceptance fixture",contactPoints:[],source:{kind:"form",formId:"nextf-project-request",submissionId,label:"NEXT F website project request"},statusKey:"new",assignedTo:null,tags:["website","project-request","acceptance"],submissionIds:[submissionId],createdAt:now,updatedAt:now,lastActivityAt:now}}};
+  const leadsKey="nextf.v0.4.digital.leads"; const before=await getState(leadsKey); const wasMissing=!before;
+  try{
+    const missing=await mainSiteIngestPost(payload,{key:submissionId,includeAuth:false});
+    assert(missing.response.status===401&&missing.body?.problem?.code==="INTEGRATION_UNAUTHORIZED",`Missing bearer token should return 401 INTEGRATION_UNAUTHORIZED, got ${missing.response.status}/${missing.body?.problem?.code||"non-JSON"}`);
+    const wrong=await mainSiteIngestPost(payload,{token:`wrong-${crypto.randomUUID()}`,key:submissionId});
+    assert(wrong.response.status===401&&wrong.body?.problem?.code==="INTEGRATION_UNAUTHORIZED",`Wrong bearer token should return 401 INTEGRATION_UNAUTHORIZED, got ${wrong.response.status}/${wrong.body?.problem?.code||"non-JSON"}`);
+    const first=await mainSiteIngestPost(payload,{token,key:submissionId});
+    assert(first.response.status===202&&first.body?.ok===true,`Main-site ingestion expected 202, got ${first.response.status}: ${first.text}`);
+    assert(first.body.data?.submissionId===submissionId&&first.body.data?.leadId===leadId&&first.body.data?.replayed===false,"Main-site ingestion returned an invalid first receipt");
+    const replay=await mainSiteIngestPost(payload,{token,key:submissionId});
+    assert(replay.response.status===202&&replay.body?.data?.replayed===true,"Main-site exact replay did not return replayed=true");
+    assert(replay.body.data?.receiptId===first.body.data?.receiptId,"Main-site exact replay returned a different receipt");
+    const changed=structuredClone(payload); changed.records.submission.values.push({fieldKey:"goal",labelSnapshot:"Goal",primitiveIdSnapshot:"fields.text",value:"changed payload",sensitive:false,redacted:false});
+    const conflict=await mainSiteIngestPost(changed,{token,key:submissionId});
+    assert(conflict.response.status===409&&conflict.body?.problem?.code==="IDEMPOTENCY_CONFLICT",`Changed main-site payload should conflict, got ${conflict.response.status}/${conflict.body?.problem?.code}`);
+    const sales=await getState(leadsKey); const leads=Array.isArray(sales?.value)?sales.value:[]; const projected=leads.find((row)=>row?.id===leadId);
+    assert(projected?.source==="nextf.lk"&&projected?.email==="v1-acceptance@invalid.nextf.lk","Accepted website lead was not projected into Digital Sales");
+    const privateEvidence=wranglerD1(`SELECT namespace,id FROM app_documents WHERE (namespace='forms.submission' AND id=${sqlQuote(submissionId)}) OR (namespace='forms.lead' AND id=${sqlQuote(leadId)}); SELECT action,outcome,target_id FROM audit_events WHERE action='integration.nextf.project-request.accept' AND target_id=${sqlQuote(submissionId)} ORDER BY created_at DESC LIMIT 1;`,{capture:true});
+    assert(privateEvidence.includes("forms.submission")&&privateEvidence.includes("forms.lead")&&privateEvidence.includes("completed"),"Private forms.submission/forms.lead or ingestion audit evidence was not found in production D1");
+    add("main_site_ingest","passed","Authenticated nextf.lk server-to-server project request accepted against live Contracts authority; private submission + lead stored, Digital Sales projection created, exact replay deduped, changed replay conflicted, and missing/wrong bearer rejected");
+    return {status:"passed"};
+  } finally {
+    try{
+      const current=await getState(leadsKey);
+      if(current&&Array.isArray(current.value)){
+        const filtered=current.value.filter((row)=>row?.id!==leadId);
+        if(filtered.length!==current.value.length) await putState(leadsKey,filtered,current.version);
+        if(wasMissing){const after=await getState(leadsKey);if(after&&Array.isArray(after.value)&&after.value.length===0)wranglerD1(`DELETE FROM app_documents WHERE namespace='cms.staff-state' AND id=${sqlQuote(leadsKey)} AND version=${Number(after.version)} AND payload_json='[]';`)}
+      }
+    }catch{}
+    wranglerD1(`DELETE FROM app_documents WHERE namespace='forms.submission' AND id=${sqlQuote(submissionId)}; DELETE FROM app_documents WHERE namespace='forms.lead' AND id=${sqlQuote(leadId)}; DELETE FROM audit_events WHERE target_id=${sqlQuote(submissionId)} AND principal_id='nextf-main-website'; DELETE FROM idempotency_records WHERE key=${sqlQuote(submissionId)}; DELETE FROM outbox_events WHERE idempotency_key=${sqlQuote(`integration:${submissionId}`)};`);
+    await sleep(2000);
+    wranglerD1(`DELETE FROM outbox_events WHERE idempotency_key=${sqlQuote(`integration:${submissionId}`)};`);
   }
 }
 
@@ -280,7 +331,7 @@ const baselineEvidence={
   tenant_isolation:"Production valid workspace scope returned 200; wrong organization returned 403 WORKSPACE_SCOPE_MISMATCH; denial audit verified; fixture cleaned.",
 };
 async function recordLedger(){
-  const gateIds=["dependency_build","browser_smoke","cloudflare_bindings","access_auth","d1_migrations","restore_drill","tenant_isolation","public_abuse","contract_registry","managed_site_adapter","offboarding_e2e","demo_cleanup","audit_retention"];
+  const gateIds=["dependency_build","browser_smoke","cloudflare_bindings","access_auth","d1_migrations","restore_drill","tenant_isolation","public_abuse","main_site_ingest","contract_registry","managed_site_adapter","offboarding_e2e","demo_cleanup","audit_retention"];
   const current=await getState("nextf.v0.22.website-platform.production-acceptance");
   const rows=Array.isArray(current?.value)?current.value:[];
   const by=new Map(rows.map((r)=>[r.gateId,r]));
@@ -318,8 +369,9 @@ async function main(){
     assert(session?.assurance==="cloudflare-access","Production staff session assurance is not cloudflare-access");
     add("access_runtime","passed",`Production staff session verified for ${session.email||session.staffUserId}`);
 
-    let publicResult;
+    let publicResult; let ingestResult;
     try{publicResult=await checkPublicAbuse()}catch(error){add("public_abuse","failed",error.message)}
+    try{ingestResult=await checkMainSiteIngest()}catch(error){add("main_site_ingest","failed",error.message)}
     try{await checkContractsAndManagedSite()}catch(error){add("contract_registry","failed",error.message); if(!results.some((r)=>r.id==="managed_site_adapter"))add("managed_site_adapter","failed","Managed-site evidence could not be evaluated because the contract/connection check failed")}
     try{await checkOffboarding()}catch(error){add("offboarding_e2e","failed",error.message)}
     try{await checkDemoAndRetention()}catch(error){if(!results.some((r)=>r.id==="demo_cleanup"))add("demo_cleanup","failed",error.message);if(!results.some((r)=>r.id==="audit_retention"))add("audit_retention","failed",error.message)}
@@ -328,7 +380,7 @@ async function main(){
     const finalResult=blocking.length===0?"READY FOR V1.0":"NOT READY FOR V1.0";
     writeReport(finalResult,ledger);
     console.log(`\nFINAL RESULT: ${finalResult}`);
-    if(blocking.length){console.error(`Blocking gates: ${blocking.map((r)=>r.gateId).join(", ")}`);if(publicResult?.status==="deferred")console.error("For public idempotency: set NEXTF_TURNSTILE_TOKEN to one fresh production Turnstile token and rerun immediately.");process.exitCode=1}
+    if(blocking.length){console.error(`Blocking gates: ${blocking.map((r)=>r.gateId).join(", ")}`);if(publicResult?.status==="deferred")console.error("For public idempotency: set NEXTF_TURNSTILE_TOKEN to one fresh production Turnstile token and rerun immediately.");if(ingestResult?.status==="deferred")console.error("For nextf.lk CMS ingestion: set NEXTF_MAIN_SITE_INGEST_TOKEN locally to the same dedicated secret configured on the CMS Worker and website Worker, then rerun.");process.exitCode=1}
   } catch(error){
     add("acceptance_runner","failed",error instanceof Error?error.message:String(error));
     writeReport("NOT READY FOR V1.0");

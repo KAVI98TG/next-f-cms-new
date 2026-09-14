@@ -5,6 +5,7 @@ import { D1IdempotencyRepository } from "./idempotency";
 import { runMaintenance } from "./maintenance";
 import { json, originAllowed, problem, requestId } from "./http";
 import { handleStaffCommand, handleStaffQuery, resolveStaffPrincipal, StaffApiError, type StaffRequestBody } from "./staff";
+import { handleNextfProjectRequest } from "./mainSiteIngest";
 
 const corsHeaders=(origin:string|null,env:WorkerEnv):Record<string,string>=>{
   const allowed=[env.CMS_ORIGIN,env.WORKSPACE_ORIGIN,env.PUBLIC_SITE_ORIGIN];
@@ -103,6 +104,7 @@ export default {
         response=new Response(null,{status:302,headers:{location:env.CMS_ORIGIN,"cache-control":"no-store"}});
       }
       else if(url.pathname==="/health"&&request.method==="GET") response=json({ok:true,requestId:id,data:await health(env)});
+      else if(url.pathname==="/v1/integrations/nextf/project-requests") response=await handleNextfProjectRequest(request,env,id);
       else if(url.pathname==="/v1/public/leads"&&request.method==="POST") response=await publicCommand(request,env,"public.lead.submit",id);
       else if(url.pathname==="/v1/public/demo-access"&&request.method==="POST") response=await publicCommand(request,env,"public.demo-access.request",id);
       else if(url.pathname==="/v1/public/conversions"&&request.method==="POST") response=await publicCommand(request,env,"public.conversion.track",id);

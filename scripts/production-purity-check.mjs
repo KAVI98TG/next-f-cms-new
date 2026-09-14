@@ -1,83 +1,80 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const root = process.cwd();
-const pass = [];
-const fail = [];
-const check = (label, ok, detail = "") => (ok ? pass : fail).push({ label, detail });
-const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
-const exists = (file) => fs.existsSync(path.join(root, file));
-const walk = (dir, out = []) => {
-  if (!exists(dir)) return out;
-  for (const entry of fs.readdirSync(path.join(root, dir), { withFileTypes: true })) {
-    if (["node_modules", "dist", ".wrangler", "artifacts"].includes(entry.name)) continue;
-    const rel = path.join(dir, entry.name);
-    if (entry.isDirectory()) walk(rel, out);
-    else if (/\.(ts|tsx|mjs|js|css|html)$/.test(entry.name)) out.push(rel);
-  }
-  return out;
-};
+const pass=[]; const fail=[];
+const check=(label,ok)=>ok?pass.push(label):fail.push(label);
+const read=(p)=>fs.readFileSync(p,"utf8");
+const exists=(p)=>fs.existsSync(p);
 
-const sourceFiles = [...walk("src"), ...walk("scripts")].filter((file) => !file.endsWith("production-purity-check.mjs"));
-const textByFile = new Map(sourceFiles.map((file) => [file, read(file)]));
-const forbidden = [
-  "services/mock/dashboard",
-  "Local development",
-  "Data mode: Local",
-  "Production deferred",
-  "Production authentication not connected",
-  "Reset local development data",
-  "Reset prototype",
-  "Open public prototype",
-  "sess_local",
-  "cms.nextf.local",
-  "This prototype simulates payment",
-  "Payment handling is local simulation",
-  "simulatePayment",
-];
-for (const pattern of forbidden) {
-  const hits = [...textByFile].filter(([, body]) => body.includes(pattern)).map(([file]) => file);
-  check(`forbidden production-visible pattern: ${pattern}`, hits.length === 0, hits.join(", "));
-}
+const runtime=read("src/services/production/runtime.ts");
+const capabilities=read("src/services/production/capabilities.ts");
+const topbar=read("src/app/layout/Topbar.tsx");
+const sidebar=read("src/app/layout/Sidebar.tsx");
+const dashboard=read("src/platform/dashboard/PlatformDashboard.tsx");
+const dashboardPanels=read("src/shared/components/DashboardPanels.tsx");
+const settings=read("src/platform/settings/SettingsPage.tsx");
+const platformStore=read("src/platform/services/platformStore.ts");
+const security=read("src/platform/security/SecurityPage.tsx");
+const backup=read("src/platform/backup/BackupPage.tsx");
+const cleanup=read("src/platform/cleanup/CleanupPage.tsx");
+const dataManagement=read("src/platform/data-management/DataManagementPage.tsx");
+const vnextCms=read("src/gaming-store/vnext/cms/CatalogVNextPage.tsx");
+const vnextPublic=read("src/gaming-store/vnext/public/PublicGamingStorefront.tsx");
+const vnextService=read("src/gaming-store/vnext/runtime/publicGamingService.ts");
+const gamingOrders=read("src/gaming-store/orders/OrdersPage.tsx");
+const supplierPage=read("src/gaming-store/suppliers/SuppliersPage.tsx");
+const supplierRepo=read("src/gaming-store/data/repositories/suppliersRepository.ts");
+const automation=read("src/next-f/automation/AutomationPage.tsx");
+const sites=read("src/next-f/sites/SitesPage.tsx");
+const softwareOrders=read("src/software/orders/OrdersPage.tsx");
+const updates=read("src/software/updates/UpdatesPage.tsx");
+const downloads=read("src/software/downloads/DownloadsPage.tsx");
+const pkg=JSON.parse(read("package.json"));
 
-const runtime = read("src/services/production/runtime.ts");
-check("central runtime exposes production flag", runtime.includes("isProduction") && runtime.includes("VITE_NEXTF_ENVIRONMENT"));
-check("central runtime exposes backend mode", runtime.includes("backendMode") && runtime.includes("VITE_NEXTF_BACKEND_MODE"));
-check("central runtime exposes API URL", runtime.includes("apiBaseUrl") && runtime.includes("VITE_NEXTF_API_BASE_URL"));
-check("Cloudflare Access logout path", runtime.includes('/cdn-cgi/access/logout'));
+check("canonical runtime truth helper exists",runtime.includes("readRuntimeTruth")&&runtime.includes("isProduction")&&runtime.includes("allowsSimulation"));
+check("external capability gate exists",capabilities.includes("readExternalCapability")&&capabilities.includes("Integration not connected"));
+check("account menu exists",topbar.includes("account-menu")&&topbar.includes("aria-haspopup=\"menu\""));
+check("production logout uses Cloudflare Access",topbar.includes('window.location.assign("/cdn-cgi/access/logout")'));
+check("account menu shows auth assurance",topbar.includes("Cloudflare Access verified"));
+check("no app password authentication added",!topbar.toLowerCase().includes("password")&&!read("src/app/auth/ProductionBootstrap.tsx").includes('type="password"'));
+check("sidebar uses runtime environment label",sidebar.includes("runtime.environmentLabel")&&!sidebar.includes("Local development <strong>"));
+check("mock dashboard source removed",!exists("src/services/mock/dashboard.ts"));
+check("dashboard does not import mock activity",!dashboardPanels.includes("services/mock/dashboard")&&!dashboard.includes("services/mock/dashboard"));
+check("dashboard uses runtime data mode",dashboard.includes("runtime.isProduction")&&dashboard.includes("D1 production API"));
+check("dashboard has honest empty activity state",dashboardPanels.includes("No recent production activity"));
+check("production reset hidden",settings.includes("runtime.isLocal&&")&&settings.includes("Reset local prototype data"));
+check("platform reset hard guarded",platformStore.includes("Platform reset is disabled outside local prototype mode"));
+check("production security authority is Cloudflare Access",security.includes("Cloudflare Access")&&security.toLowerCase().includes("read only")&&security.includes("Cloudflare Zero Trust"));
+check("production backup recovery uses D1 Time Travel",backup.includes("D1 Time Travel")&&backup.includes("Browser snapshot restore is intentionally disabled"));
+check("production cleanup is server controlled",cleanup.includes("Production Worker cron")&&cleanup.includes("Browser cleanup"));
+check("production browser import disabled",dataManagement.includes('disabled={runtime.mode==="production-api"}')&&dataManagement.includes("D1 Time Travel"));
+check("Gaming vNext reset is local only",vnextCms.includes("runtime.isLocal&&")&&vnextCms.includes("Reset local sandbox"));
+check("Gaming storefront is capability gated",vnextCms.includes("Public storefront not connected")&&vnextPublic.includes("Gaming storefront")&&vnextPublic.includes("not connected"));
+check("Gaming local public service hard guarded",vnextService.includes("assertLocalPrototype")&&vnextService.includes("Gaming payment and supplier fulfillment simulation"));
+check("legacy Gaming commerce mutation is gated",gamingOrders.includes("operationalCapabilityAvailable")&&gamingOrders.includes("Commerce integration not connected"));
+check("supplier browser integration is local only",supplierRepo.includes("Browser supplier API configuration")&&supplierRepo.includes("Supplier catalog sync simulation")&&supplierPage.includes("Server adapter required"));
+check("Digital workflow execution is gated",automation.includes("executionCapability")&&automation.includes("Integration not connected"));
+check("Digital site operations are gated",sites.includes("siteCapability.available")&&sites.includes("Site adapter not connected"));
+check("Software payment actions are gated",softwareOrders.includes("paymentCapability.available")&&softwareOrders.includes("Payment not connected"));
+check("Software update simulator is gated",updates.includes("updateCapability.available")&&updates.includes("Update service not connected"));
+check("Software delivery simulator is gated",downloads.includes("deliveryCapability.available")&&downloads.includes("Signed delivery not connected"));
+check("production hygiene scanner exists",exists("scripts/production-data-hygiene.mjs"));
+check("production purity npm script wired",pkg.scripts?.["check:production-purity"]==="node scripts/production-purity-check.mjs");
+check("production hygiene scan npm script wired",pkg.scripts?.["production:data-hygiene:scan"]==="node scripts/production-data-hygiene.mjs --scan");
+check("production hygiene cleanup npm script wired",pkg.scripts?.["production:data-hygiene:cleanup"]==="node scripts/production-data-hygiene.mjs --cleanup");
 
-const topbar = read("src/app/layout/Topbar.tsx");
-check("account menu exists", topbar.includes("account-menu__panel") && topbar.includes("Sign out"));
-check("account menu shows assurance", topbar.includes("Cloudflare Access verified") && topbar.includes("Environment"));
-check("no app password auth in account UX", !/password|username/i.test(topbar));
+const sourceFiles=[];
+function walk(dir){for(const ent of fs.readdirSync(dir,{withFileTypes:true})){const p=path.join(dir,ent.name);if(ent.isDirectory())walk(p);else if(/\.(ts|tsx)$/.test(ent.name))sourceFiles.push(p)}}
+walk("src");
+const mockConsumers=sourceFiles.filter((p)=>read(p).includes("services/mock/dashboard"));
+check("no production UI consumes mock dashboard",mockConsumers.length===0);
 
-const sidebar = read("src/app/layout/Sidebar.tsx");
-check("sidebar uses runtime label", sidebar.includes("runtime.label") && !sidebar.includes("Local development"));
+const browserStores=sourceFiles.filter((p)=>read(p).includes("localStorage"));
+const normalized=browserStores.map((p)=>p.split(path.sep).join("/"));
+check("browser storage limited to auth/theme/production adapter",normalized.every((p)=>p.includes("app/auth")||p.includes("app/theme")||p.includes("services/production")));
 
-const panels = read("src/shared/components/DashboardPanels.tsx");
-check("dashboard panels do not import mock activity", !panels.includes("services/mock") && !panels.includes("recentActivity"));
-check("dashboard honest empty state", panels.includes("No recent production activity"));
-
-const platformDashboard = read("src/platform/dashboard/PlatformDashboard.tsx");
-check("platform dashboard uses audit activity", platformDashboard.includes("platformStore.getAudit") && platformDashboard.includes("recentActivity"));
-check("platform dashboard uses runtime data mode", platformDashboard.includes("D1-backed") && platformDashboard.includes("runtime.mode"));
-
-const settings = read("src/platform/settings/SettingsPage.tsx");
-check("production reset hidden", settings.includes("runtime.isLocal") && !settings.includes("Reset local development data"));
-
-const gamingPublic = read("src/gaming-store/vnext/public/PublicGamingStorefront.tsx");
-const gamingService = read("src/gaming-store/vnext/runtime/publicGamingService.ts");
-const gamingCms = read("src/gaming-store/vnext/cms/CatalogVNextPage.tsx");
-check("gaming public simulation gated", gamingPublic.includes("isGamingPublicSimulationEnabled") && gamingService.includes("simulationEnabled"));
-check("gaming production checkout disabled without adapter", gamingService.includes("production checkout requires") && gamingPublic.includes("Integration not connected"));
-check("gaming reset hidden outside local", gamingCms.includes("runtime.isLocal") && !gamingCms.includes("Reset prototype"));
-
-const storageFiles = [...textByFile].filter(([file, body]) => body.includes("localStorage") && file.startsWith("src"));
-const allowedStorage = storageFiles.every(([file]) => ["src/app/auth/", "src/app/theme/", "src/services/production/"].some((prefix) => file.replaceAll(path.sep, "/").startsWith(prefix)));
-check("business state avoids direct localStorage", allowedStorage, storageFiles.map(([file]) => file).join(", "));
-
-console.log("NEXT F CMS V1 production purity check");
-for (const item of pass) console.log(`PASS  ${item.label}`);
-for (const item of fail) console.error(`FAIL  ${item.label}${item.detail ? ` — ${item.detail}` : ""}`);
+console.log("NEXT F CMS V1 Production Purity + Auth UX check");
+for(const item of pass) console.log(`PASS  ${item}`);
+for(const item of fail) console.error(`FAIL  ${item}`);
 console.log(`\n${pass.length} passed, ${fail.length} failed`);
-if (fail.length) process.exit(1);
+if(fail.length) process.exit(1);

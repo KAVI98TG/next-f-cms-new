@@ -36,6 +36,7 @@ export type WorkerEnv = {
   CONTRACTS_BASE_URL: string;
   TURNSTILE_SECRET_KEY: string;
   SERVICE_CREDENTIAL_SECRET: string;
+  NEXTF_MAIN_SITE_INGEST_TOKEN: string;
   AUDIT_RETENTION_DAYS?: string;
   OUTBOX_RETENTION_DAYS?: string;
 };

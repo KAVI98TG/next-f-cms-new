@@ -1,13 +1,13 @@
 import { Activity, BellRing, KeyRound, LifeBuoy, ShieldCheck } from "lucide-react";
-import { ActivityPanel, AttentionPanel, type DashboardActivityItem } from "../../shared/components/DashboardPanels";
+import { ActivityPanel, AttentionPanel } from "../../shared/components/DashboardPanels";
 import { Badge, Card, MetricCard, SectionHeader } from "../../shared/components";
 import { platformStore } from "../services/platformStore";
 import { usePlatformStore } from "../shared/usePlatformStore";
 import { helpCenterStore } from "../help-center/data/helpCenterStore";
 import { useHelpCenter } from "../help-center/shared/useHelpCenter";
-import { readProductionRuntimeConfig } from "../../services/production";
+import { readRuntimeTruth } from "../../services/production";
 
-const runtime = readProductionRuntimeConfig();
+const runtime=readRuntimeTruth();
 
 export function PlatformDashboard() {
   const usersReader = () => platformStore.getUsers();
@@ -22,9 +22,10 @@ export function PlatformDashboard() {
   const [audit] = usePlatformStore(auditReader);
   const helpRequests = useHelpCenter(helpCenterStore.getRequests);
   const unread = notifications.filter((item) => !item.read).length;
-  const readyAdapters = integrations.filter((item) => item.status === "ready").length;
-  const unconfiguredIntegrations = integrations.filter((item) => item.environment === "production" && item.status !== "ready");
-  const recentActivity: DashboardActivityItem[] = audit.slice(0, 6).map((item) => ({ id: item.id, domain: item.domain, title: item.action, detail: `${item.target} · ${new Date(item.timestamp).toLocaleString("en-LK")}`, tone: item.tone === "neutral" ? "info" : item.tone }));
+  const readyAdapters = integrations.filter((item) => item.status === "ready" && (runtime.isLocal || item.environment === "production")).length;
+  const pendingAdapters = integrations.filter((item)=>item.environment==="production"&&item.status!=="ready");
+  const attention = pendingAdapters.length ? [{ title: "External integrations not connected", detail: `${pendingAdapters.length} production adapter${pendingAdapters.length===1?"":"s"} remain unavailable. Operational actions stay gated until a real integration is connected.`, tone: "warning" as const }] : [];
+  const activity = audit.slice(0,8).map((event)=>({id:event.id,domain:event.domain,title:event.action,detail:`${event.target} — ${event.detail}`,meta:new Date(event.timestamp).toLocaleString("en-LK"),tone:event.tone}));
 
   return <div className="page">
     <SectionHeader eyebrow="Platform" title="Control center" description="Shared identity, access, audit and product-level operational controls across NEXT F." />
@@ -33,25 +34,25 @@ export function PlatformDashboard() {
       <MetricCard label="Permission groups" value={String(roles.length)} detail="Domain-scoped access" icon={KeyRound} />
       <MetricCard label="Unread alerts" value={String(unread)} detail={`${notifications.length} total notifications`} icon={BellRing} />
       <MetricCard label="Help requests" value={String(helpRequests.filter((item) => !["resolved", "closed"].includes(item.status)).length)} detail="Shared customer queue" icon={LifeBuoy} />
-      <MetricCard label="Data mode" value={runtime.mode === "production-api" ? "D1-backed" : "Local preview"} detail={`${readyAdapters} adapter ready`} icon={Activity} />
+      <MetricCard label="Data mode" value={runtime.isProduction?"Production":runtime.isStaging?"Staging":"Local"} detail={runtime.mode==="production-api"?"D1 production API":"Local prototype adapter"} icon={Activity} />
     </div>
     <div className="dashboard-grid">
-      <AttentionPanel items={unconfiguredIntegrations.slice(0, 3).map((item) => ({ title: `${item.name} integration not connected`, detail: "Production action is disabled until the real adapter is configured.", tone: "warning" as const }))} />
+      <AttentionPanel items={attention} />
       <Card>
-        <SectionHeader title="Platform Core" description="Shared identity, access, audit and control surfaces are available across the production product layer." />
+        <SectionHeader title="Platform Core" description="Shared identity, access, audit and control surfaces for the active runtime." />
         <div className="platform-capability-list">
           {[
             ["Users", `${users.length} staff records`, "Ready"],
-            ["Access control", `${roles.length} roles`, "Ready"],
-            ["Audit", `${audit.length} events`, "Ready"],
+            ["Access control", runtime.mode==="production-api"?"Cloudflare Access":"Local prototype identity", runtime.mode==="production-api"?"Verified":"Local"],
+            ["Audit", `${audit.length} application events`, "Ready"],
             ["Notifications", `${unread} unread`, "Ready"],
             ["Customer Help Center", `${helpRequests.length} requests`, "Ready"],
-            ["Integrations", `${integrations.length} adapters`, unconfiguredIntegrations.length ? "Review" : "Ready"],
-            ["Durable state", runtime.mode === "production-api" ? "Production API" : "Browser preview", runtime.mode === "production-api" ? "Ready" : "Preview"],
-          ].map(([label, detail, state]) => <div key={label}><span><strong>{label}</strong><small>{detail}</small></span><Badge tone={state === "Ready" ? "success" : state === "Review" ? "warning" : "info"}>{state}</Badge></div>)}
+            ["Integrations", `${readyAdapters} production-ready adapters`, pendingAdapters.length?"Attention":"Ready"],
+            ["Infrastructure", runtime.mode==="production-api"?"D1 / R2 / Queue backend":"Local prototype adapter", runtime.mode==="production-api"?"Connected":"Local"],
+          ].map(([label, detail, state]) => <div key={label}><span><strong>{label}</strong><small>{detail}</small></span><Badge tone={state === "Ready" || state === "Verified" || state === "Connected" ? "success" : state === "Attention" ? "warning" : "info"}>{state}</Badge></div>)}
         </div>
       </Card>
     </div>
-    <ActivityPanel items={recentActivity} />
+    <ActivityPanel items={activity} />
   </div>;
 }

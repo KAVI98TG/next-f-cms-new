@@ -41,6 +41,7 @@ export const PRODUCTION_ACCEPTANCE_GATES = [
   {id:"restore_drill",label:"D1 Time Travel/backup restore drill completed",critical:true,defaultStatus:"pending_external" as const},
   {id:"tenant_isolation",label:"Cross-organization/workspace authorization and tenancy penetration tests",critical:true,defaultStatus:"source_passed" as const},
   {id:"public_abuse",label:"nextf.lk rate limiting + Turnstile + idempotency verified in deployed environment",critical:true,defaultStatus:"pending_external" as const},
+  {id:"main_site_ingest",label:"nextf.lk authenticated project-request ingestion + private forms records + Digital Sales projection",critical:true,defaultStatus:"pending_external" as const},
   {id:"contract_registry",label:"Authoritative Contracts Registry snapshot/API and real Site Manifest validation connected",critical:true,defaultStatus:"pending_external" as const},
   {id:"managed_site_adapter",label:"Real managed-site revision/apply/publish adapter credentials and receipts validated",critical:true,defaultStatus:"pending_external" as const},
   {id:"offboarding_e2e",label:"Production offboarding/export/revocation end-to-end acceptance",critical:true,defaultStatus:"pending_external" as const},

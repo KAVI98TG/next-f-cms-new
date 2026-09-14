@@ -26,6 +26,7 @@
     "check:change-approvals": "node scripts/change-approval-publishing-check.mjs",
     "check:backend-api": "node scripts/backend-api-boundary-check.mjs",
     "check:public-site": "node scripts/public-site-integration-check.mjs",
+    "check:main-site-ingest": "node scripts/main-site-ingest-check.mjs",
     "check:runtime-readiness": "node scripts/runtime-readiness-check.mjs",
     "check:production-infrastructure": "node scripts/production-infrastructure-check.mjs",
     "check:lifecycle-acceptance": "node scripts/lifecycle-production-acceptance-check.mjs",

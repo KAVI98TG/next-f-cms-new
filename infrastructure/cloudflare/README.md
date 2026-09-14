@@ -19,6 +19,7 @@ Set using Wrangler/Cloudflare secret management, never commit values:
 
 - `TURNSTILE_SECRET_KEY`
 - `SERVICE_CREDENTIAL_SECRET`
+- `NEXTF_MAIN_SITE_INGEST_TOKEN` — dedicated bearer credential for the `nextf.lk` server-to-server project-request receiver. Do not reuse the service credential or Turnstile secret.
 
 Additional provider credentials should use separate least-privilege secrets.
 
@@ -29,3 +30,7 @@ Use D1 Time Travel for short-horizon point-in-time recovery. For retention beyon
 ## Staff identity boundary
 
 Staff routes verify the Cloudflare Access JWT and then require an active exact-subject `staff_identity_bindings` row. `staff.session.get` provides the frontend with the bound server principal and permissions. Production frontend bootstrap fails closed before rendering when identity verification/binding fails. Configure the deployed Access policy (including the required MFA policy) separately; source code does not claim that the Access JWT proves a specific MFA factor.
+
+## Main website project-request integration
+
+The canonical production project form uses `nextf.lk` server-side Turnstile verification and then calls `POST /v1/integrations/nextf/project-requests` with a dedicated bearer token. Cloudflare Access must bypass only that exact path; the Worker still enforces the dedicated token, live Contracts authority, payload relationships and D1 idempotency. See `docs/V1.0.0-NEXTF-MAIN-SITE-PROJECT-REQUEST-INGESTION.md`.
