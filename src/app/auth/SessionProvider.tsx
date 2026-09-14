@@ -25,6 +25,15 @@ const fallback: SessionUser = {
 
 const SessionContext = createContext<SessionContextValue | null>(null);
 
+function titleCaseName(value: string) {
+  return value.split(" ").filter(Boolean).map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()).join(" ");
+}
+
+function displayNameFromEmail(email: string) {
+  const localPart = email.split("@")[0] ?? "";
+  const cleaned = localPart.replace(/[0-9]+$/g, "").replace(/[._-]+/g, " ").trim();
+  return cleaned ? titleCaseName(cleaned) : "Verified Staff";
+}
 function readLocalSessionUser(): SessionUser {
   const users = platformStore.getUsers();
   const roles = platformStore.getRoles();
@@ -41,7 +50,7 @@ function readProductionSessionUser(): SessionUser {
   const staffUser = platformStore.getUsers().find((item) => item.id === principal.staffUserId && item.status === "active");
   return {
     id: principal.staffUserId,
-    name: staffUser?.name ?? principal.email,
+    name: staffUser?.name ?? displayNameFromEmail(principal.email),
     email: principal.email,
     roleId: staffUser?.roleId ?? "access-bound",
     role: "Verified Staff",
