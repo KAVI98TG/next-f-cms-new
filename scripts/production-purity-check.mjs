@@ -24,6 +24,7 @@ const vnextService=read("src/gaming-store/vnext/runtime/publicGamingService.ts")
 const gamingOrders=read("src/gaming-store/orders/OrdersPage.tsx");
 const supplierPage=read("src/gaming-store/suppliers/SuppliersPage.tsx");
 const supplierRepo=read("src/gaming-store/data/repositories/suppliersRepository.ts");
+const supplierControl=read("src/gaming-store/live/fazercardsControl.ts");
 const automation=read("src/next-f/automation/AutomationPage.tsx");
 const sites=read("src/next-f/sites/SitesPage.tsx");
 const softwareOrders=read("src/software/orders/OrdersPage.tsx");
@@ -52,7 +53,7 @@ check("Gaming vNext reset is local only",vnextCms.includes("runtime.isLocal&&")&
 check("Gaming storefront is capability gated",vnextCms.includes("Public storefront not connected")&&vnextPublic.includes("Gaming storefront")&&vnextPublic.includes("not connected"));
 check("Gaming local public service hard guarded",vnextService.includes("assertLocalPrototype")&&vnextService.includes("Gaming payment and supplier fulfillment simulation"));
 check("legacy Gaming commerce mutation is gated",gamingOrders.includes("operationalCapabilityAvailable")&&gamingOrders.includes("Commerce integration not connected"));
-check("supplier browser integration is local only",supplierRepo.includes("Browser supplier API configuration")&&supplierRepo.includes("Supplier catalog sync simulation")&&supplierPage.includes("Server adapter required"));
+check("supplier browser integration is server controlled",supplierRepo.includes("Browser supplier API configuration")&&supplierRepo.includes("Supplier catalog sync simulation")&&supplierControl.includes("nextf.vnext.gaming.supplier-command.fazercards")&&supplierPage.includes("FAZERCARDS_API_KEY")&&!supplierPage.includes("apiSecret"));
 check("Digital workflow execution is gated",automation.includes("executionCapability")&&automation.includes("Integration not connected"));
 check("Digital site operations are gated",sites.includes("siteCapability.available")&&sites.includes("Site adapter not connected"));
 check("Software payment actions are gated",softwareOrders.includes("paymentCapability.available")&&softwareOrders.includes("Payment not connected"));

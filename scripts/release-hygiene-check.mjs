@@ -16,10 +16,10 @@ const maintenance=read("infrastructure/cloudflare/src/maintenance.ts");
 const bootstrap=read("src/app/auth/ProductionBootstrap.tsx");
 const gitignore=read(".gitignore");
 
-check("package version is 1.0.0",pkg.version==="1.0.0");
-check("lockfile version is 1.0.0",lock.version==="1.0.0"&&lock.packages?.[""]?.version==="1.0.0");
-check("VERSION is 1.0.0",version==="1.0.0");
-check("runtime version is 1.0.0",appVersion.includes('APP_VERSION = "1.0.0"'));
+check("package version is semantic",/^\d+\.\d+\.\d+$/.test(pkg.version));
+check("lockfile version matches package",lock.version===pkg.version&&lock.packages?.[""]?.version===pkg.version);
+check("VERSION matches package",version===pkg.version);
+check("runtime version matches package",appVersion.includes(`APP_VERSION = "${pkg.version}"`));
 for(const script of ["acceptance:production","acceptance:production:final","acceptance:source","check:release-hygiene"]) check(`script ${script}`,Boolean(pkg.scripts?.[script]));
 for(const file of ["infrastructure/cloudflare/wrangler.production.jsonc","infrastructure/cloudflare/src/maintenance.ts","src/app/auth/ProductionBootstrap.tsx","scripts/production-acceptance.mjs","docs/V1.0.0-PRODUCTION-RELEASE.md","docs/GAMING-INTEGRATION-HANDOFF.md"]) check(`file ${file}`,exists(file));
 
@@ -66,7 +66,7 @@ let secretHit="";
 outer: for(const file of scan){const text=read(file);for(const re of forbiddenSecretPatterns){re.lastIndex=0;if(re.test(text)){secretHit=file;break outer}}}
 check("no embedded production secret material",!secretHit,secretHit);
 
-console.log("NEXT F CMS V1.0.0 release hygiene check");
+console.log(`NEXT F CMS V${pkg.version} release hygiene check`);
 for(const x of pass) console.log(`PASS  ${x}`);
 for(const x of fail) console.error(`FAIL  ${x}`);
 console.log(`\n${pass.length} passed, ${fail.length} failed`);

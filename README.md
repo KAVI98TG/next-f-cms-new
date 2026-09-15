@@ -68,3 +68,7 @@ Production is fail closed. The login/bootstrap UI verifies Cloudflare Access and
 - `docs/GAMING-INTEGRATION-HANDOFF.md`
 - `docs/V1.0.0-NEXTF-MAIN-SITE-PROJECT-REQUEST-INGESTION.md`
 - `PROJECT-STATUS.md`
+
+## V1.0.1 Gaming control plane
+
+Production Gaming pricing and FazerCards non-secret supplier controls now live in the CMS. `Gaming Store → Pricing & Safeguards` controls the live retail policy; `Gaming Store → Suppliers` controls catalog families, publishing, health, preview and sync. Supplier API keys remain encrypted Worker secrets and are never exposed to the CMS browser.

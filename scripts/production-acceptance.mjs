@@ -118,7 +118,7 @@ async function removeFixtureRow(key,id,deleteEmptyIfOriginallyMissing=false){
 }
 
 const sourceScripts=[
-  "check:architecture","check:platform","check:digital","check:digital-operations","check:gaming","check:gaming-vnext","check:gaming-vnext-integration","check:software","check:saas","check:product","check:acceptance","check:architecture-completion","check:help-center","check:website-platform","check:identity-membership","check:provisioning-demo","check:contract-registry","check:capability-policy","check:change-approvals","check:backend-api","check:public-site","check:main-site-ingest","check:runtime-readiness","check:production-purity","check:production-infrastructure","check:lifecycle-acceptance","check:go-live-p0","check:go-live-p1","check:go-live-p2","check:release-hygiene"
+  "check:architecture","check:platform","check:digital","check:digital-operations","check:gaming","check:gaming-vnext","check:gaming-vnext-integration","check:gaming-live-control","check:software","check:saas","check:product","check:acceptance","check:architecture-completion","check:help-center","check:website-platform","check:identity-membership","check:provisioning-demo","check:contract-registry","check:capability-policy","check:change-approvals","check:backend-api","check:public-site","check:main-site-ingest","check:runtime-readiness","check:production-purity","check:production-infrastructure","check:lifecycle-acceptance","check:go-live-p0","check:go-live-p1","check:go-live-p2","check:release-hygiene"
 ];
 
 async function sourceAcceptance(){

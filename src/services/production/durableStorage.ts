@@ -118,6 +118,28 @@ export async function initializeDurableStorage() {
   return initializationPromise;
 }
 
+
+export async function refreshDurableValue<T>(key: string, seed: T): Promise<T> {
+  if (runtime.mode === "local-prototype") return localRead(key, seed);
+  if (!client) throw new Error("Production API client is unavailable");
+  const result = await client.execute<DurableStateDocument | null>({
+    operation: "staff.state.document.get",
+    kind: "query",
+    input: { key },
+  });
+  if (!result.ok) throw new Error(`${result.problem.code}: ${result.problem.detail}`);
+  if (!result.data) {
+    values.delete(key);
+    versions.delete(key);
+    emitStatus();
+    return productionDefault(seed);
+  }
+  values.set(key, result.data.value);
+  versions.set(key, result.data.version);
+  emitStatus();
+  return result.data.value as T;
+}
+
 export function readDurableValue<T>(key: string, seed: T): T {
   if (runtime.mode === "local-prototype") return localRead(key, seed);
   if (!initialized) throw new Error("Production durable state was read before initialization");

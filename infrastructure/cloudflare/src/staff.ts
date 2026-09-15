@@ -41,7 +41,7 @@ const PLATFORM_MANAGE_PERMISSIONS=["platform.users.manage","platform.access.mana
 
 function stateReadAllowed(principal:StaffPrincipal,key:string){
   if(key.startsWith("nextf.v0.4.digital.")||key.startsWith("nextf.v0.10.digital.")||key.startsWith("nextf.v0.12.digital.")||key.startsWith("nextf.v0.13.digital.")||key.startsWith("nextf.v0.14.digital.")||key.startsWith("nextf.v0.19.digital.")||key.includes("website-platform")||key.includes("contract-registry")) return hasPermission(principal,"digital.read")||hasPermission(principal,"digital.website-platform.manage");
-  if(key.startsWith("nextf.v0.5.gaming.")) return hasPermission(principal,"gaming.read");
+  if(key.startsWith("nextf.v0.5.gaming.")||key.startsWith("nextf.vnext.gaming.")) return hasPermission(principal,"gaming.read");
   if(key.startsWith("nextf.v0.6.software.")) return hasPermission(principal,"software.read");
   if(key.startsWith("nextf.v0.11.help.")) return hasPermission(principal,"platform.read")||hasPermission(principal,"platform.help.manage");
   return hasPermission(principal,"platform.read");
@@ -56,6 +56,12 @@ function stateWriteAllowed(principal:StaffPrincipal,key:string){
   if(key.startsWith("nextf.v0.4.digital.activity")) return hasAny(principal,DIGITAL_MANAGE_PERMISSIONS);
   if(key.includes("website-platform")||key.includes("contract-registry")||key.startsWith("nextf.v0.12.digital.")||key.startsWith("nextf.v0.13.digital.")||key.startsWith("nextf.v0.14.digital.")||key.startsWith("nextf.v0.19.digital.")||key.startsWith("nextf.v0.10.digital.portal-access")) return hasPermission(principal,"digital.website-platform.manage");
   if(key.startsWith("nextf.v0.5.gaming.orders")||key.startsWith("nextf.v0.5.gaming.customers")||key.startsWith("nextf.v0.5.gaming.support")) return hasPermission(principal,"gaming.orders.manage");
+  if(key.startsWith("nextf.vnext.gaming.supplier-status.")) return false;
+  if(key.startsWith("nextf.vnext.gaming.supplier-config.")||key.startsWith("nextf.vnext.gaming.supplier-command.")) return hasPermission(principal,"gaming.suppliers.manage");
+  if(key.startsWith("nextf.vnext.gaming.pricing.")) return hasPermission(principal,"gaming.products.manage");
+  if(key.startsWith("nextf.vnext.gaming.products")||key.startsWith("nextf.vnext.gaming.offers")||key.startsWith("nextf.vnext.gaming.mappings")) return hasPermission(principal,"gaming.products.manage");
+  if(key.startsWith("nextf.vnext.gaming.orders")) return hasPermission(principal,"gaming.orders.manage");
+  if(key.startsWith("nextf.vnext.gaming.")) return hasAny(principal,["gaming.products.manage","gaming.orders.manage","gaming.suppliers.manage","gaming.finance.manage"]);
   if(key.startsWith("nextf.v0.5.gaming.products")||key.startsWith("nextf.v0.5.gaming.settings")) return hasPermission(principal,"gaming.products.manage");
   if(key.startsWith("nextf.v0.5.gaming.suppliers")||key.startsWith("nextf.v0.5.gaming.supplier-products")) return hasPermission(principal,"gaming.suppliers.manage");
   if(key.startsWith("nextf.v0.5.gaming.")) return hasAny(principal,["gaming.finance.manage","gaming.products.manage","gaming.orders.manage","gaming.suppliers.manage"]);

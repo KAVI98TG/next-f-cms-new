@@ -62,8 +62,12 @@ Customer Workspace is already live. After CMS V1 acceptance, begin Gaming G0 con
 - Contracts acceptance follows the current live registry metadata and its referenced stable production release/schema rather than assuming the registry index version itself is `1.0.0`.
 - Secure `nextf.lk` server-to-server project-request ingestion is implemented at `/v1/integrations/nextf/project-requests`: dedicated bearer auth, live Contracts authority, durable idempotency, private `forms.submission`/`forms.lead`, Digital Sales projection, audit and identifier-only queue receipt.
 
-### Remaining external proof before declaring V1 complete
+### V1 production acceptance complete
 
-Run the final deployed production acceptance. A fresh legitimate production Turnstile token is still required for the direct public-ingress idempotency success/replay/conflict proof. The main-site server-to-server ingestion gate additionally requires the dedicated integration token in the operator shell for deployed runtime proof. Managed-site adapter evidence is N/A while there is no non-revoked managed Site Connection; it becomes mandatory before the first managed Gaming/site activation.
+The deployed final production acceptance completed with `PASS public_abuse` and `FINAL RESULT: READY FOR V1.0`. CMS V1 is therefore release-ready. Managed-site adapter evidence remains N/A while there is no non-revoked managed Site Connection and becomes mandatory before the first managed Gaming/site activation.
 
-See `docs/V1.0.0-FINAL-DEPLOYMENT.md`.
+See `docs/V1.0.0-FINAL-DEPLOYMENT.md` for the retained deployment procedure and evidence expectations.
+
+## V1.0.1 Gaming control-plane extension
+
+Gaming pricing and FazerCards non-secret supplier configuration are now CMS-managed production state. Supplier health, preview and sync actions are queued from the CMS and executed server-side by `nextf-gaming-api`; supplier API credentials remain Worker secrets.

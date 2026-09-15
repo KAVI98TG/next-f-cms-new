@@ -1,7 +1,7 @@
 {
   "name": "@next-f/admin",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -42,7 +42,8 @@
     "check:gaming-vnext-integration": "node scripts/gaming-vnext-integration-check.mjs",
     "check:production-purity": "node scripts/production-purity-check.mjs",
     "production:data-hygiene:scan": "node scripts/production-data-hygiene.mjs --scan",
-    "production:data-hygiene:cleanup": "node scripts/production-data-hygiene.mjs --cleanup"
+    "production:data-hygiene:cleanup": "node scripts/production-data-hygiene.mjs --cleanup",
+    "check:gaming-live-control": "node scripts/gaming-live-control-check.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
