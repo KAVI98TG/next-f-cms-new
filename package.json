@@ -1,7 +1,7 @@
 {
   "name": "@next-f/admin",
   "private": true,
-  "version": "1.0.3",
+  "version": "1.0.4",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -45,7 +45,10 @@
     "production:data-hygiene:cleanup": "node scripts/production-data-hygiene.mjs --cleanup",
     "check:gaming-live-control": "node scripts/gaming-live-control-check.mjs",
     "check:gaming-artwork": "node scripts/gaming-artwork-check.mjs",
-    "deploy": "npm run build && npx wrangler@latest pages deploy dist --project-name nextf-cms --branch main"
+    "deploy": "npm run build && npx wrangler@latest pages deploy dist --project-name nextf-cms --branch main",
+    "check:gaming-storefront-merchandising": "node scripts/gaming-storefront-merchandising-check.mjs",
+    "deploy:api:production": "npx wrangler@latest deploy --config infrastructure/cloudflare/wrangler.production.jsonc",
+    "deploy:all:production": "npm run deploy:api:production && npm run deploy"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

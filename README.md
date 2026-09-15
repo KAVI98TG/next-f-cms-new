@@ -72,3 +72,7 @@ Production is fail closed. The login/bootstrap UI verifies Cloudflare Access and
 ## V1.0.1 Gaming control plane
 
 Production Gaming pricing and FazerCards non-secret supplier controls now live in the CMS. `Gaming Store → Pricing & Safeguards` controls the live retail policy; `Gaming Store → Suppliers` controls catalog families, publishing, health, preview and sync. Supplier API keys remain encrypted Worker secrets and are never exposed to the CMS browser.
+
+## v1.0.4 Gaming Storefront Merchandising
+
+Gaming Store now includes a dedicated Storefront area for homepage hero, merchandising rails, game-family artwork and CMS-controlled product-family presentation. See `docs/GAMING-STOREFRONT-MERCHANDISING-v1.0.4.md`.

@@ -69,6 +69,45 @@ export type SupplierCapabilities = {
   idempotentOrders: boolean;
 };
 
+
+export type NextFGamingGameFamily = {
+  id: string;
+  name: string;
+  slug: string;
+  artworkUrl?: string;
+  heroArtworkUrl?: string;
+  enabled: boolean;
+  updatedAt: string;
+};
+
+export type NextFGamingHomeSection = {
+  id: string;
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  source: "featured" | "category" | "manual";
+  category?: DigitalProductKind | "steam" | "telegram" | "other";
+  productIds?: string[];
+  limit: number;
+  enabled: boolean;
+  sortOrder: number;
+};
+
+export type NextFGamingStorefrontConfig = {
+  hero: {
+    enabled: boolean;
+    productId?: string;
+    eyebrow: string;
+    title?: string;
+    description?: string;
+    backgroundArtworkUrl?: string;
+    primaryCtaLabel: string;
+    secondaryCtaLabel: string;
+  };
+  sections: NextFGamingHomeSection[];
+  updatedAt: string;
+};
+
 export type NextFGamingProduct = {
   id: string;
   slug: string;

@@ -44,6 +44,7 @@ import { FinancePage as GamingFinancePage } from "../gaming-store/finance/Financ
 import { SupportPage as GamingSupportPage } from "../gaming-store/support/SupportPage";
 import { GamingSettingsPage } from "../gaming-store/settings/SettingsPage";
 import { CatalogVNextPage } from "../gaming-store/vnext/cms/CatalogVNextPage";
+import { StorefrontVNextPage } from "../gaming-store/vnext/cms/StorefrontVNextPage";
 import { PublicGamingStorefront } from "../gaming-store/vnext/public/PublicGamingStorefront";
 import { SoftwareDashboard } from "../software/dashboard/SoftwareDashboard";
 import { ProductsPage as SoftwareProductsPage } from "../software/products/ProductsPage";
@@ -109,6 +110,7 @@ const routes: Record<string, ReactNode> = {
   "/gaming-store/support": <GamingSupportPage />,
   "/gaming-store/settings": <GamingSettingsPage />,
   "/gaming-store/catalog-vnext": <CatalogVNextPage />,
+  "/gaming-store/storefront": <StorefrontVNextPage />,
   "/software/dashboard": <SoftwareDashboard />,
   "/software/products": <SoftwareProductsPage />,
   "/software/releases": <SoftwareReleasesPage />,

@@ -1,11 +1,13 @@
 import { readDurableValue, removeDurableValue, writeDurableValue } from "../../../services/production/durableStorage";
-import type { GamingOrderVNext, NextFGamingOffer, NextFGamingProduct, SupplierOfferMapping } from "../types";
+import type { GamingOrderVNext, NextFGamingGameFamily, NextFGamingOffer, NextFGamingProduct, NextFGamingStorefrontConfig, SupplierOfferMapping } from "../types";
 
 const KEYS = {
   products: "nextf.vnext.gaming.products",
   offers: "nextf.vnext.gaming.offers",
   mappings: "nextf.vnext.gaming.mappings",
   orders: "nextf.vnext.gaming.orders",
+  gameFamilies: "nextf.vnext.gaming.game-families",
+  storefront: "nextf.vnext.gaming.storefront",
 };
 
 const now = new Date().toISOString();
@@ -19,6 +21,25 @@ export const seedVNextProducts: NextFGamingProduct[] = [
   { id: "nfp_telegram", slug: "telegram-stars", name: "Telegram Stars", brand: "Telegram", kind: "telegram_stars", shortDescription: "Buy Telegram Stars for any supported username.", artworkUrl: "https://images.unsplash.com/photo-1614680376593-902f74cf0d41?auto=format&fit=crop&w=1000&q=80", enabled: true, featured: false, createdAt: now, updatedAt: now },
   { id: "nfp_key", slug: "pc-game-key", name: "PC Game Keys", brand: "Steam", kind: "game_key", shortDescription: "Region-aware activation keys delivered digitally after payment.", artworkUrl: "https://images.unsplash.com/photo-1603481546238-487240415921?auto=format&fit=crop&w=1000&q=80", enabled: true, featured: false, createdAt: now, updatedAt: now },
 ];
+
+
+export const seedVNextGameFamilies: NextFGamingGameFamily[] = [
+  { id: "family-pubg-mobile", name: "PUBG Mobile", slug: "pubg-mobile", enabled: true, updatedAt: now },
+  { id: "family-free-fire", name: "Free Fire", slug: "free-fire", enabled: true, updatedAt: now },
+  { id: "family-mobile-legends", name: "Mobile Legends", slug: "mobile-legends", enabled: true, updatedAt: now },
+  { id: "family-call-of-duty-mobile", name: "Call of Duty Mobile", slug: "call-of-duty-mobile", enabled: true, updatedAt: now },
+];
+
+export const seedVNextStorefront: NextFGamingStorefrontConfig = {
+  hero: { enabled: true, eyebrow: "FEATURED NOW", primaryCtaLabel: "View product", secondaryCtaLabel: "Browse shop" },
+  sections: [
+    { id: "home-popular", eyebrow: "TRENDING", title: "Popular right now", source: "featured", limit: 8, enabled: true, sortOrder: 10 },
+    { id: "home-topups", eyebrow: "TOP UPS", title: "Game Top-Ups", source: "category", category: "topup", limit: 8, enabled: true, sortOrder: 20 },
+    { id: "home-giftcards", eyebrow: "DIGITAL CODES", title: "Gift Cards", source: "category", category: "gift_card", limit: 8, enabled: true, sortOrder: 30 },
+    { id: "home-keys", eyebrow: "GAME KEYS", title: "Game Keys", source: "category", category: "game_key", limit: 8, enabled: true, sortOrder: 40 },
+  ],
+  updatedAt: now,
+};
 
 export const seedVNextOffers: NextFGamingOffer[] = [
   { id: "nfo_pubg_60", productId: "nfp_pubg", name: "60 UC", kind: "topup", purchaseFields: [{ key: "player_id", label: "Player ID", type: "text", required: true, placeholder: "Enter PUBG Player ID", helpText: "Check your in-game profile before continuing." }], validation: { supported: true, mode: "supplier_preflight", fieldKeys: ["player_id"] }, regionRule: { mode: "global", label: "Global" }, sellingPriceLkr: 390, pricingMode: "fixed", enabled: true, sortOrder: 10, createdAt: now, updatedAt: now },
@@ -49,9 +70,14 @@ export const gamingVNextStore = {
   getOffers: () => read(KEYS.offers, seedVNextOffers),
   getMappings: () => read(KEYS.mappings, seedVNextMappings),
   getOrders: () => read<GamingOrderVNext[]>(KEYS.orders, []),
+  getGameFamilies: () => read(KEYS.gameFamilies, seedVNextGameFamilies),
+  getStorefront: () => read(KEYS.storefront, seedVNextStorefront),
   updateProduct(id: string, patch: Partial<NextFGamingProduct>) { const rows = this.getProducts().map((row) => row.id === id ? { ...row, ...patch, updatedAt: new Date().toISOString() } : row); return write(KEYS.products, rows); },
   updateOffer(id: string, patch: Partial<NextFGamingOffer>) { const rows = this.getOffers().map((row) => row.id === id ? { ...row, ...patch, updatedAt: new Date().toISOString() } : row); return write(KEYS.offers, rows); },
   updateMapping(id: string, patch: Partial<SupplierOfferMapping>) { const rows = this.getMappings().map((row) => row.id === id ? { ...row, ...patch } : row); return write(KEYS.mappings, rows); },
+  updateGameFamily(id: string, patch: Partial<NextFGamingGameFamily>) { const rows = this.getGameFamilies().map((row) => row.id === id ? { ...row, ...patch, updatedAt: new Date().toISOString() } : row); return write(KEYS.gameFamilies, rows); },
+  setGameFamilies(rows: NextFGamingGameFamily[]) { return write(KEYS.gameFamilies, rows); },
+  updateStorefront(patch: NextFGamingStorefrontConfig) { return write(KEYS.storefront, { ...patch, updatedAt: new Date().toISOString() }); },
   addOrder(order: GamingOrderVNext) { return write(KEYS.orders, [order, ...this.getOrders()].slice(0, 200)); },
   upsertOrder(order: GamingOrderVNext) { const rows = this.getOrders(); const exists = rows.some((row) => row.id === order.id); return write(KEYS.orders, (exists ? rows.map((row) => row.id === order.id ? order : row) : [order, ...rows]).slice(0, 200)); },
   reset() { Object.values(KEYS).forEach(removeDurableValue); if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("nextf:gaming-vnext", { detail: "reset" })); },

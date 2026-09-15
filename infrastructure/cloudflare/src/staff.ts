@@ -59,6 +59,7 @@ function stateWriteAllowed(principal:StaffPrincipal,key:string){
   if(key.startsWith("nextf.vnext.gaming.supplier-status.")) return false;
   if(key.startsWith("nextf.vnext.gaming.supplier-config.")||key.startsWith("nextf.vnext.gaming.supplier-command.")) return hasPermission(principal,"gaming.suppliers.manage");
   if(key.startsWith("nextf.vnext.gaming.pricing.")) return hasPermission(principal,"gaming.products.manage");
+  if(key.startsWith("nextf.vnext.gaming.storefront")||key.startsWith("nextf.vnext.gaming.game-families")) return hasPermission(principal,"gaming.products.manage");
   if(key.startsWith("nextf.vnext.gaming.products")||key.startsWith("nextf.vnext.gaming.offers")||key.startsWith("nextf.vnext.gaming.mappings")) return hasPermission(principal,"gaming.products.manage");
   if(key.startsWith("nextf.vnext.gaming.orders")) return hasPermission(principal,"gaming.orders.manage");
   if(key.startsWith("nextf.vnext.gaming.")) return hasAny(principal,["gaming.products.manage","gaming.orders.manage","gaming.suppliers.manage","gaming.finance.manage"]);

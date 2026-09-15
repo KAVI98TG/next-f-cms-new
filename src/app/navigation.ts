@@ -303,6 +303,12 @@ export const domains: DomainDefinition[] = [
         description: "NEXT F products, retail offers and multi-supplier routing.",
       },
       {
+        label: "Storefront",
+        path: "/gaming-store/storefront",
+        icon: Store,
+        description: "Homepage merchandising, game-family artwork and visual presentation.",
+      },
+      {
         label: "Pricing",
         path: "/gaming-store/pricing",
         icon: Tags,
