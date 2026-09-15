@@ -14,6 +14,8 @@ check('CMS uses canonical supplier config key',control.includes('nextf.vnext.gam
 check('CMS uses canonical pricing key',control.includes('nextf.vnext.gaming.pricing.fazercards'));
 check('CMS uses command/status control documents',control.includes('nextf.vnext.gaming.supplier-command.fazercards')&&control.includes('nextf.vnext.gaming.supplier-status.fazercards'));
 check('pricing page edits live FazerCards policy',pricing.includes('saveFazerPricing')&&pricing.includes('gatewayFeePercent')&&pricing.includes('minimumProfitLkr'));
+check('pricing UI no longer requires supplier resync after normal changes',pricing.includes('do not require another supplier catalog sync')&&pricing.includes('Save & refresh catalog pricing'));
+check('pricing UI requires FX and markup for sellable supplier quotes',pricing.includes('policyReady')&&pricing.includes('USD → LKR and Default markup % are required'));
 check('pricing page does not ask for supplier secret',!pricing.match(/api.?key|apiSecret/i));
 check('supplier page can save live supplier settings',suppliers.includes('saveFazerConfig')&&suppliers.includes('maxCategoriesPerSync'));
 check('supplier page queues health preview and sync',suppliers.includes('run("health")')&&suppliers.includes('run("preview")')&&suppliers.includes('run("sync")'));

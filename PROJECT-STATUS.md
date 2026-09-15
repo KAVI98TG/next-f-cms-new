@@ -71,3 +71,9 @@ See `docs/V1.0.0-FINAL-DEPLOYMENT.md` for the retained deployment procedure and 
 ## V1.0.1 Gaming control-plane extension
 
 Gaming pricing and FazerCards non-secret supplier configuration are now CMS-managed production state. Supplier health, preview and sync actions are queued from the CMS and executed server-side by `nextf-gaming-api`; supplier API credentials remain Worker secrets.
+
+## V1.0.2 Gaming retail-price projection
+
+The CMS pricing policy now drives customer-facing Gaming catalog prices directly through `gaming-api.nextf.lk`. Markup mode shows LKR catalog prices using already-synced private supplier-cost mappings; Supplier quote mode intentionally shows a checkout price action. Normal FX/margin changes no longer require another FazerCards catalog sync.
+
+Pricing display validation: CMS 31/31 `check:*` suites pass after the V1.0.2 pricing projection change.
