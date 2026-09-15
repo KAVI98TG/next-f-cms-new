@@ -5,6 +5,8 @@ const durable=read('src/services/production/durableStorage.ts');
 const control=read('src/gaming-store/live/fazercardsControl.ts');
 const pricing=read('src/gaming-store/pricing/PricingPage.tsx');
 const suppliers=read('src/gaming-store/suppliers/SuppliersPage.tsx');
+const components=read('src/css/components.css');
+const responsive=read('src/css/responsive.css');
 check('vNext Gaming reads require gaming permission',staff.includes('key.startsWith("nextf.vnext.gaming.")')&&staff.includes('gaming.read'));
 check('supplier config commands require supplier manage permission',staff.includes('nextf.vnext.gaming.supplier-config.')&&staff.includes('gaming.suppliers.manage'));
 check('live pricing requires product manage permission',staff.includes('nextf.vnext.gaming.pricing.')&&staff.includes('gaming.products.manage'));
@@ -21,5 +23,7 @@ check('supplier page can save live supplier settings',suppliers.includes('saveFa
 check('supplier page queues health preview and sync',suppliers.includes('run("health")')&&suppliers.includes('run("preview")')&&suppliers.includes('run("sync")'));
 check('supplier page automatically polls Worker status',suppliers.includes('waitForCommand')&&suppliers.includes('lastProcessedCommandId'));
 check('supplier page explicitly keeps API key server-side',suppliers.includes('FAZERCARDS_API_KEY')&&suppliers.includes('Server-side only'));
+check('supplier settings labels use shared stacked row styles',components.includes('.settings-stack')&&components.includes('.setting-row > div')&&components.includes('flex-direction:column'));
+check('supplier settings rows preserve toggle space responsively',components.includes('.setting-row > :last-child')&&responsive.includes('.setting-row { align-items:flex-start; }'));
 check('no admin token is embedded in CMS frontend',!control.includes('GAMING_SUPPLIER_ADMIN_TOKEN')&&!suppliers.includes('GAMING_SUPPLIER_ADMIN_TOKEN'));
 const failed=checks.filter(x=>!x.o); for(const x of checks) console.log(`${x.o?'PASS':'FAIL'}  ${x.n}`); console.log(`\n${checks.length-failed.length}/${checks.length} Gaming live-control checks passed.`); if(failed.length) process.exit(1);

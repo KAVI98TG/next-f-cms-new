@@ -49,6 +49,7 @@
 }
 @media (max-width: 520px) {
   .role-list { grid-template-columns:1fr; }
+  .setting-row { align-items:flex-start; }
 }
 
 @media (max-width: 1180px) {
