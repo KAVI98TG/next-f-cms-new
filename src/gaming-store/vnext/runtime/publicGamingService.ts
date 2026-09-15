@@ -12,7 +12,7 @@ function publicProjection(): PublicGamingProductProjection[] {
   const offers = gamingVNextStore.getOffers();
   const mappings = gamingVNextStore.getMappings();
   return products.map((product) => ({
-    id: product.id, slug: product.slug, name: product.name, brand: product.brand, kind: product.kind, shortDescription: product.shortDescription, artworkUrl: product.artworkUrl, featured: product.featured,
+    id: product.id, slug: product.slug, name: product.name, displayName: product.displayName, gameFamily: product.gameFamily, brand: product.brand, kind: product.kind, shortDescription: product.shortDescription, merchandisingDescription: product.merchandisingDescription, artworkUrl: product.artworkUrl, featured: product.featured,
     offers: offers.filter((o) => o.productId === product.id && o.enabled).sort((a,b)=>a.sortOrder-b.sortOrder).map((offer) => {
       const mapping = chooseSupplierMapping(offer, mappings);
       return { id: offer.id, name: offer.name, kind: offer.kind, purchaseFields: offer.purchaseFields, regionRule: offer.regionRule, validationSupported: offer.validation.supported, availability: mapping ? "available" : "unavailable", sellingPriceLkr: offer.sellingPriceLkr, pricingMode: offer.pricingMode, minAmount: offer.minAmount, maxAmount: offer.maxAmount, amountStep: offer.amountStep, minQuantity: mapping?.availability.minQuantity, maxQuantity: mapping?.availability.maxQuantity };

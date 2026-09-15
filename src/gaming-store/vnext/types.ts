@@ -72,11 +72,19 @@ export type SupplierCapabilities = {
 export type NextFGamingProduct = {
   id: string;
   slug: string;
+  /** Supplier-synced/fallback product name. Public merchandising may override it with displayName. */
   name: string;
+  sourceName?: string;
+  /** NEXT F-owned customer-facing name. Supplier sync must never overwrite this field. */
+  displayName?: string;
+  gameFamily?: string;
   brand?: string;
   kind: DigitalProductKind;
   shortDescription?: string;
+  /** NEXT F-owned customer-facing description. Supplier sync must never overwrite this field. */
+  merchandisingDescription?: string;
   description?: string;
+  /** NEXT F-owned HTTPS artwork URL. Supplier sync must never overwrite this field. */
   artworkUrl?: string;
   enabled: boolean;
   featured: boolean;

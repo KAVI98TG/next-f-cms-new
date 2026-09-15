@@ -1,7 +1,7 @@
 {
   "name": "@next-f/admin",
   "private": true,
-  "version": "1.0.2",
+  "version": "1.0.3",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -43,7 +43,9 @@
     "check:production-purity": "node scripts/production-purity-check.mjs",
     "production:data-hygiene:scan": "node scripts/production-data-hygiene.mjs --scan",
     "production:data-hygiene:cleanup": "node scripts/production-data-hygiene.mjs --cleanup",
-    "check:gaming-live-control": "node scripts/gaming-live-control-check.mjs"
+    "check:gaming-live-control": "node scripts/gaming-live-control-check.mjs",
+    "check:gaming-artwork": "node scripts/gaming-artwork-check.mjs",
+    "deploy": "npm run build && npx wrangler@latest pages deploy dist --project-name nextf-cms --branch main"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

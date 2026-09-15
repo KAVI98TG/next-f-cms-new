@@ -1,0 +1,13 @@
+import fs from 'node:fs';
+const read=(p)=>fs.readFileSync(p,'utf8'); const checks=[]; const check=(n,v)=>checks.push([n,Boolean(v)]);
+const types=read('src/gaming-store/vnext/types.ts'); const page=read('src/gaming-store/vnext/cms/CatalogVNextPage.tsx'); const service=read('src/gaming-store/vnext/runtime/publicGamingService.ts'); const contract=read('src/gaming-store/vnext/publicContract.ts');
+check('CMS product type has artwork URL',types.includes('artworkUrl?: string'));
+check('CMS product separates supplier and public names',types.includes('sourceName?: string')&&types.includes('displayName?: string'));
+check('CMS product has merchandising description override',types.includes('merchandisingDescription?: string'));
+check('Artwork editor accepts HTTPS only',page.includes('url.protocol === "https:"'));
+check('Artwork editor renders preview',page.includes('gaming-artwork-preview')&&page.includes('<img'));
+check('Artwork editor explains supplier-sync protection',page.includes('Supplier sync keeps supply facts current without replacing these merchandising fields'));
+check('Product save flushes durable D1 write',page.includes('await flushDurableWrites()'));
+check('Public projection includes artwork',service.includes('artworkUrl: product.artworkUrl'));
+check('Public contract exposes artwork',contract.includes('artworkUrl?: string'));
+const failed=checks.filter(([,v])=>!v); for(const [n,v] of checks) console.log(`${v?'PASS':'FAIL'}  ${n}`); console.log(`\n${checks.length-failed.length}/${checks.length} gaming artwork CMS checks passed.`); if(failed.length)process.exit(1);

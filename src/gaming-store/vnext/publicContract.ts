@@ -5,9 +5,12 @@ export type PublicGamingProductProjection = {
   id: string;
   slug: string;
   name: string;
+  displayName?: string;
+  gameFamily?: string;
   brand?: string;
   kind: DigitalProductKind;
   shortDescription?: string;
+  merchandisingDescription?: string;
   artworkUrl?: string;
   featured: boolean;
   offers: PublicGamingOfferProjection[];
