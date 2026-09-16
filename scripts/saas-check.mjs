@@ -17,7 +17,7 @@ check("sidebar permissions hardened",read("src/app/layout/Sidebar.tsx").includes
 check("global entity search",palette.includes("searchGlobal")&&read("src/services/shared/searchIndex.ts").includes("getLicenses")&&read("src/services/shared/searchIndex.ts").includes("getSites"));
 check("shared account normalization",read("src/services/shared/commerceCenter.ts").includes("getSharedAccounts")&&read("src/services/shared/commerceCenter.ts").includes("normalizeEmail"));
 check("unified payment shape",read("src/services/shared/commerceCenter.ts").includes("SharedPayment")&&read("src/services/shared/commerceCenter.ts").includes("getSharedPayments"));
-check("cross-business operations notifications",notifications.includes("useOperationsCenter")&&read("src/services/shared/operationsCenter.ts").includes("getSuppliers")&&read("src/services/shared/operationsCenter.ts").includes("getLicenses"));
+check("cross-business operations notifications",notifications.includes("useOperationsCenter")&&read("src/services/shared/operationsCenter.ts").includes("digitalStore.getSites")&&read("src/services/shared/operationsCenter.ts").includes("softwareStore.getLicenses")&&!read("src/services/shared/operationsCenter.ts").includes("gamingStore"));
 check("durable export utility",data.includes("exportDurableStorageRecords")&&data.includes("Export data")&&data.includes("nextf-cms-durable-backup"));
 check("durable import utility",data.includes("file.text")&&data.includes("importDurableStorageRecords")&&data.includes("Import disabled")&&data.includes("Production application-data import is intentionally unavailable"));
 check("global error boundary",read("src/main.tsx").includes("AppErrorBoundary"));

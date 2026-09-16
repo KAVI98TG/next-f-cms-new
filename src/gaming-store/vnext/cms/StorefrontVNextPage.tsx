@@ -1,14 +1,21 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Eye, Image, LayoutTemplate, Plus, Sparkles } from "lucide-react";
-import { Badge, Button, Card, DataTable, FormField, Modal, SectionHeader, SelectInput, TextInput, Toggle, type DataTableColumn } from "../../../shared/components";
+import { Badge, Button, Card, DataTable, FormField, Modal, PageToolbar, SectionHeader, SearchSelectInput, SelectInput, TextInput, Toggle, type DataTableColumn } from "../../../shared/components";
 import { flushDurableWrites, readExternalCapability } from "../../../services/production";
 import { MediaUploadButton } from "../../media/MediaUploadButton";
 import { gamingVNextStore } from "../runtime/store";
 import { useVNextStore } from "../runtime/useVNextStore";
-import type { NextFGamingGameFamily, NextFGamingHomeSection, NextFGamingStorefrontConfig } from "../types";
+import type { NextFGamingGameFamily, NextFGamingHomeSection, NextFGamingProduct, NextFGamingStorefrontConfig } from "../types";
 
 const storefrontCapability=readExternalCapability("gaming.public-storefront");
 const kinds = ["topup","gift_card","game_key","steam","telegram","subscription","other"] as const;
+
+function merchandisingKind(kind:NextFGamingProduct["kind"]):typeof kinds[number]{
+  if(kind==="steam_wallet"||kind==="steam_gift") return "steam";
+  if(kind==="telegram_stars"||kind==="telegram_premium") return "telegram";
+  if(kind==="manual_service") return "other";
+  return kind;
+}
 
 function safeHttps(value?: string) {
   const raw=value?.trim(); if(!raw) return undefined;
@@ -31,6 +38,29 @@ export function StorefrontVNextPage(){
   const [editingSection,setEditingSection]=useState<NextFGamingHomeSection>();
   const [manualProductChoice,setManualProductChoice]=useState("");
   const [error,setError]=useState("");
+  const [saving,setSaving]=useState(false);
+  const [familyQuery,setFamilyQuery]=useState("");
+  const [familyKind,setFamilyKind]=useState<"all" | typeof kinds[number]>("all");
+  const [familyArtwork,setFamilyArtwork]=useState<"all" | "configured" | "missing">("all");
+  const [familyVisibility,setFamilyVisibility]=useState<"all" | "enabled" | "disabled">("all");
+
+  const storefrontDirty=useMemo(()=>JSON.stringify(draft)!==JSON.stringify(current),[draft,current]);
+  const heroProductOptions=useMemo(()=>[
+    {value:"",label:"Automatic featured product",meta:"Uses the current featured product",keywords:"automatic featured"},
+    ...products.filter((product)=>product.enabled).map((product)=>({
+      value:product.id,
+      label:product.displayName??product.name,
+      meta:[product.gameFamily,merchandisingKind(product.kind),product.id].filter(Boolean).join(" · "),
+      keywords:[product.name,product.displayName,product.gameFamily,merchandisingKind(product.kind),product.kind,product.id].filter(Boolean).join(" "),
+    })),
+  ],[products]);
+
+  useEffect(()=>{
+    if(!storefrontDirty)return;
+    const warn=(event:BeforeUnloadEvent)=>{event.preventDefault();event.returnValue="";};
+    window.addEventListener("beforeunload",warn);
+    return()=>window.removeEventListener("beforeunload",warn);
+  },[storefrontDirty]);
 
   const catalogFamilies=useMemo(()=>{
     const map=new Map(storedFamilies.map((row)=>[row.name.toLowerCase(),row]));
@@ -42,16 +72,56 @@ export function StorefrontVNextPage(){
     return [...map.values()].sort((a,b)=>a.name.localeCompare(b.name));
   },[products,storedFamilies]);
 
+  const familyKindsByName=useMemo(()=>{
+    const map=new Map<string,Set<typeof kinds[number]>>();
+    for(const product of products){
+      const name=(product.gameFamily?.trim()||familyFromName(product.displayName??product.name)).trim();
+      if(!name) continue;
+      const key=name.toLowerCase();
+      const values=map.get(key)??new Set<typeof kinds[number]>();
+      values.add(merchandisingKind(product.kind));
+      map.set(key,values);
+    }
+    return map;
+  },[products]);
+
+  const familyKindCounts=useMemo(()=>{
+    const counts=new Map<typeof kinds[number],number>();
+    for(const family of catalogFamilies){
+      for(const kind of familyKindsByName.get(family.name.toLowerCase())??[]) counts.set(kind,(counts.get(kind)??0)+1);
+    }
+    return counts;
+  },[catalogFamilies,familyKindsByName]);
+
+  const filteredFamilies=useMemo(()=>{
+    const query=familyQuery.trim().toLowerCase();
+    return catalogFamilies.filter((family)=>{
+      const familyKinds=[...(familyKindsByName.get(family.name.toLowerCase())??[])];
+      const searchable=`${family.name} ${family.slug} ${familyKinds.join(" ")}`.toLowerCase();
+      if(query&&!searchable.includes(query)) return false;
+      if(familyKind!=="all"&&!familyKinds.includes(familyKind)) return false;
+      if(familyArtwork==="configured"&&!family.artworkUrl) return false;
+      if(familyArtwork==="missing"&&family.artworkUrl) return false;
+      if(familyVisibility==="enabled"&&!family.enabled) return false;
+      if(familyVisibility==="disabled"&&family.enabled) return false;
+      return true;
+    });
+  },[catalogFamilies,familyArtwork,familyKind,familyKindsByName,familyQuery,familyVisibility]);
+
   const saveStorefront=async()=>{
     const heroUrl=draft.hero.backgroundArtworkUrl?.trim();
     if(heroUrl&&!safeHttps(heroUrl)){setError("Hero background must be a valid HTTPS URL.");return;}
     setError("");
-    gamingVNextStore.updateStorefront({...draft,hero:{...draft.hero,backgroundArtworkUrl:safeHttps(heroUrl)}});
+    setSaving(true);
+    const next={...draft,hero:{...draft.hero,backgroundArtworkUrl:safeHttps(heroUrl)}};
+    gamingVNextStore.updateStorefront(next);
+    setDraft(next);
     try{await flushDurableWrites();}catch(e){setError(e instanceof Error?e.message:"Could not save storefront merchandising.");}
+    finally{setSaving(false);}
   };
 
   const familyColumns:DataTableColumn<NextFGamingGameFamily>[]=[
-    {key:"family",header:"Game family",render:(row)=><div className="entity-cell"><strong>{row.name}</strong><small>/{row.slug}</small></div>},
+    {key:"family",header:"Game family",render:(row)=>{const categories=[...(familyKindsByName.get(row.name.toLowerCase())??[])];return <div className="entity-cell"><strong>{row.name}</strong><small>/{row.slug}{categories.length?` · ${categories.map((kind)=>kind.replaceAll("_"," ")).join(", ")}`:""}</small></div>}},
     {key:"art",header:"Card artwork",render:(row)=><Badge tone={row.artworkUrl?"success":"neutral"}>{row.artworkUrl?"Configured":"Inherited fallback"}</Badge>},
     {key:"hero",header:"Hero artwork",render:(row)=><Badge tone={row.heroArtworkUrl?"info":"neutral"}>{row.heroArtworkUrl?"Configured":"Use card art"}</Badge>},
     {key:"enabled",header:"Enabled",render:(row)=><Toggle checked={row.enabled} onChange={(enabled)=>{const rows=catalogFamilies.map((item)=>item.id===row.id?{...item,enabled,updatedAt:new Date().toISOString()}:item);gamingVNextStore.setGameFamilies(rows);}}/>},
@@ -67,11 +137,11 @@ export function StorefrontVNextPage(){
   return <div className="page"><SectionHeader eyebrow="Gaming Store" title="Storefront Merchandising" description="Control the Gaming home page, game-family artwork and merchandising rails from the CMS. Supplier sync continues to own supply facts, never these presentation settings." action={<Button variant="primary" disabled={!storefrontCapability.available} onClick={()=>storefrontCapability.available&&window.open("https://gaming.nextf.lk","_blank")}><Eye size={15}/> Open storefront</Button>}/>
     <div className="compact-metrics"><Card className="gaming-merch-metric"><Sparkles size={18}/><div><strong>{draft.sections.filter((row)=>row.enabled).length}</strong><span>live homepage rails</span></div></Card><Card className="gaming-merch-metric"><Image size={18}/><div><strong>{catalogFamilies.filter((row)=>row.artworkUrl).length}</strong><span>family artworks</span></div></Card><Card className="gaming-merch-metric"><LayoutTemplate size={18}/><div><strong>{products.filter((row)=>row.featured).length}</strong><span>featured products</span></div></Card></div>
 
-    <Card className="gaming-storefront-editor"><div className="card-section-head"><div><span>Homepage hero</span><strong>Primary merchandising banner</strong></div><Toggle checked={draft.hero.enabled} onChange={(enabled)=>setDraft({...draft,hero:{...draft.hero,enabled}})}/></div><div className="form-grid form-grid--two gaming-storefront-hero-form"><FormField label="Hero product"><SelectInput value={draft.hero.productId??""} onChange={(e)=>setDraft({...draft,hero:{...draft.hero,productId:e.target.value||undefined}})}><option value="">Automatic featured product</option>{products.filter((p)=>p.enabled).map((p)=><option key={p.id} value={p.id}>{p.displayName??p.name}</option>)}</SelectInput></FormField><FormField label="Eyebrow"><TextInput value={draft.hero.eyebrow} onChange={(e)=>setDraft({...draft,hero:{...draft.hero,eyebrow:e.target.value}})}/></FormField><FormField label="Headline override"><TextInput value={draft.hero.title??""} placeholder="Use product name" onChange={(e)=>setDraft({...draft,hero:{...draft.hero,title:e.target.value||undefined}})}/></FormField><FormField label="Description override"><TextInput value={draft.hero.description??""} placeholder="Use product description" onChange={(e)=>setDraft({...draft,hero:{...draft.hero,description:e.target.value||undefined}})}/></FormField><FormField label="Hero background artwork URL"><TextInput value={draft.hero.backgroundArtworkUrl??""} placeholder="https://media.nextf.lk/a/..." onChange={(e)=>setDraft({...draft,hero:{...draft.hero,backgroundArtworkUrl:e.target.value}})}/><div className="table-actions"><MediaUploadButton purpose="gaming_storefront_hero" owner={{ownerId:"gaming-home"}} label="Upload hero" onUploaded={(asset)=>setDraft((current)=>({...current,hero:{...current.hero,backgroundArtworkUrl:asset.publicUrl}}))} onError={setError}/></div><small className="form-note">Optional HTTPS image. NEXT F Media is preferred. If empty, game-family hero artwork then product artwork are used.</small></FormField><FormField label="Primary CTA"><TextInput value={draft.hero.primaryCtaLabel} onChange={(e)=>setDraft({...draft,hero:{...draft.hero,primaryCtaLabel:e.target.value}})}/></FormField><FormField label="Secondary CTA"><TextInput value={draft.hero.secondaryCtaLabel} onChange={(e)=>setDraft({...draft,hero:{...draft.hero,secondaryCtaLabel:e.target.value}})}/></FormField></div>{draft.hero.backgroundArtworkUrl&&safeHttps(draft.hero.backgroundArtworkUrl)?<div className="gaming-storefront-hero-preview" style={{backgroundImage:`linear-gradient(90deg,rgba(4,10,18,.92),rgba(4,10,18,.26)),url(${safeHttps(draft.hero.backgroundArtworkUrl)})`}}><span>{draft.hero.eyebrow}</span><strong>{draft.hero.title||products.find((p)=>p.id===draft.hero.productId)?.displayName||products.find((p)=>p.id===draft.hero.productId)?.name||"Featured game"}</strong></div>:null}<div className="modal-actions">{error&&<div className="form-error">{error}</div>}<Button variant="primary" onClick={saveStorefront}>Save storefront</Button></div></Card>
+    <Card className="gaming-storefront-editor"><div className="card-section-head"><div><span>Homepage hero</span><strong>Primary merchandising banner</strong></div><Toggle checked={draft.hero.enabled} onChange={(enabled)=>setDraft({...draft,hero:{...draft.hero,enabled}})}/></div><div className="form-grid form-grid--two gaming-storefront-hero-form"><FormField label="Hero product"><SearchSelectInput value={draft.hero.productId??""} options={heroProductOptions} searchPlaceholder="Search products…" emptyText="No matching products." onValueChange={(value)=>setDraft({...draft,hero:{...draft.hero,productId:value||undefined}})}/></FormField><FormField label="Eyebrow"><TextInput value={draft.hero.eyebrow} onChange={(e)=>setDraft({...draft,hero:{...draft.hero,eyebrow:e.target.value}})}/></FormField><FormField label="Headline override"><TextInput value={draft.hero.title??""} placeholder="Use product name" onChange={(e)=>setDraft({...draft,hero:{...draft.hero,title:e.target.value||undefined}})}/></FormField><FormField label="Description override"><TextInput value={draft.hero.description??""} placeholder="Use product description" onChange={(e)=>setDraft({...draft,hero:{...draft.hero,description:e.target.value||undefined}})}/></FormField><FormField label="Hero background artwork URL"><TextInput value={draft.hero.backgroundArtworkUrl??""} placeholder="https://media.nextf.lk/a/..." onChange={(e)=>setDraft({...draft,hero:{...draft.hero,backgroundArtworkUrl:e.target.value}})}/><div className="table-actions"><MediaUploadButton purpose="gaming_storefront_hero" owner={{ownerId:"gaming-home"}} label="Upload hero" onUploaded={(asset)=>setDraft((current)=>({...current,hero:{...current.hero,backgroundArtworkUrl:asset.publicUrl}}))} onError={setError}/></div><small className="form-note">Optional HTTPS image. NEXT F Media is preferred. If empty, game-family hero artwork then product artwork are used.</small></FormField><FormField label="Primary CTA"><TextInput value={draft.hero.primaryCtaLabel} onChange={(e)=>setDraft({...draft,hero:{...draft.hero,primaryCtaLabel:e.target.value}})}/></FormField><FormField label="Secondary CTA"><TextInput value={draft.hero.secondaryCtaLabel} onChange={(e)=>setDraft({...draft,hero:{...draft.hero,secondaryCtaLabel:e.target.value}})}/></FormField></div>{draft.hero.backgroundArtworkUrl&&safeHttps(draft.hero.backgroundArtworkUrl)?<div className="gaming-storefront-hero-preview" style={{backgroundImage:`linear-gradient(90deg,rgba(4,10,18,.92),rgba(4,10,18,.26)),url(${safeHttps(draft.hero.backgroundArtworkUrl)})`}}><span>{draft.hero.eyebrow}</span><strong>{draft.hero.title||products.find((p)=>p.id===draft.hero.productId)?.displayName||products.find((p)=>p.id===draft.hero.productId)?.name||"Featured game"}</strong></div>:null}<div className="modal-actions gaming-storefront-savebar"><div>{error?<div className="form-error">{error}</div>:<span className={`gaming-storefront-save-state ${storefrontDirty?"is-dirty":"is-saved"}`}>{storefrontDirty?"Unsaved changes":"All storefront changes saved"}</span>}</div><Button variant="primary" disabled={!storefrontDirty||saving} onClick={saveStorefront}>{saving?"Saving…":"Save changes"}</Button></div></Card>
 
     <SectionHeader title="Homepage sections" description="Build horizontal gaming-store rails. Featured and category sections update automatically; manual sections let you pin exact products." action={<Button onClick={()=>{setManualProductChoice("");setEditingSection({id:`section-${crypto.randomUUID().slice(0,8)}`,eyebrow:"FEATURED",title:"New section",source:"manual",productIds:[],limit:8,enabled:true,sortOrder:(Math.max(0,...draft.sections.map((row)=>row.sortOrder))+10)});}}><Plus size={14}/> Add section</Button>}/><Card><DataTable rows={[...draft.sections].sort((a,b)=>a.sortOrder-b.sortOrder)} columns={sectionColumns} getKey={(row)=>row.id}/></Card>
 
-    <SectionHeader title="Game-family artwork" description="One image can power every regional or supplier variation of a game. Product artwork overrides family artwork; hero artwork overrides family card artwork." action={<Button onClick={async()=>{setError("");gamingVNextStore.setGameFamilies(catalogFamilies);try{await flushDurableWrites();}catch(e){setError(e instanceof Error?e.message:"Could not save game families.");}}}>Save discovered families</Button>}/><Card><DataTable rows={catalogFamilies} columns={familyColumns} getKey={(row)=>row.id}/></Card>
+    <SectionHeader title="Game-family artwork" description="One image can power every regional or supplier variation of a game. Product artwork overrides family artwork; hero artwork overrides family card artwork." action={<Button onClick={async()=>{setError("");gamingVNextStore.setGameFamilies(catalogFamilies);try{await flushDurableWrites();}catch(e){setError(e instanceof Error?e.message:"Could not save game families.");}}}>Save discovered families</Button>}/><Card><PageToolbar query={familyQuery} onQueryChange={setFamilyQuery} placeholder="Search game families…"><SelectInput aria-label="Filter game families by category" value={familyKind} onChange={(event)=>setFamilyKind(event.target.value as "all" | typeof kinds[number])}><option value="all">All categories ({catalogFamilies.length})</option>{kinds.map((kind)=><option key={kind} value={kind}>{kind.replaceAll("_"," ")} ({familyKindCounts.get(kind)??0})</option>)}</SelectInput><SelectInput aria-label="Filter game families by artwork" value={familyArtwork} onChange={(event)=>setFamilyArtwork(event.target.value as "all" | "configured" | "missing")}><option value="all">All artwork</option><option value="configured">Card art configured</option><option value="missing">Card art missing</option></SelectInput><SelectInput aria-label="Filter game families by enabled status" value={familyVisibility} onChange={(event)=>setFamilyVisibility(event.target.value as "all" | "enabled" | "disabled")}><option value="all">All statuses</option><option value="enabled">Enabled</option><option value="disabled">Disabled</option></SelectInput><Badge tone="neutral">{filteredFamilies.length} / {catalogFamilies.length}</Badge></PageToolbar><DataTable rows={filteredFamilies} columns={familyColumns} getKey={(row)=>row.id} empty="No game families match these filters."/></Card>
 
     <Modal open={!!editingFamily} onClose={()=>setEditingFamily(undefined)} title="Edit game-family artwork" description="Use one visual identity across product variants without duplicating artwork on every product.">{editingFamily&&<><div className="form-grid form-grid--two"><FormField label="Family name"><TextInput value={editingFamily.name} onChange={(e)=>setEditingFamily({...editingFamily,name:e.target.value,slug:slugify(e.target.value)})}/></FormField><FormField label="Slug"><TextInput value={editingFamily.slug} onChange={(e)=>setEditingFamily({...editingFamily,slug:slugify(e.target.value)})}/></FormField><FormField label="Card artwork URL"><TextInput value={editingFamily.artworkUrl??""} placeholder="https://media.nextf.lk/a/..." onChange={(e)=>setEditingFamily({...editingFamily,artworkUrl:e.target.value})}/><MediaUploadButton purpose="gaming_family_artwork" owner={{ownerId:editingFamily.id}} label="Upload card artwork" onUploaded={(asset)=>setEditingFamily((current)=>current?{...current,artworkUrl:asset.publicUrl}:current)} onError={setError}/></FormField><FormField label="Hero artwork URL"><TextInput value={editingFamily.heroArtworkUrl??""} placeholder="https://media.nextf.lk/a/..." onChange={(e)=>setEditingFamily({...editingFamily,heroArtworkUrl:e.target.value})}/><MediaUploadButton purpose="gaming_family_hero" owner={{ownerId:editingFamily.id}} label="Upload hero artwork" onUploaded={(asset)=>setEditingFamily((current)=>current?{...current,heroArtworkUrl:asset.publicUrl}:current)} onError={setError}/></FormField></div><div className="modal-actions"><Button onClick={()=>setEditingFamily(undefined)}>Cancel</Button><Button variant="primary" onClick={async()=>{const artwork=editingFamily.artworkUrl?.trim(),hero=editingFamily.heroArtworkUrl?.trim();if((artwork&&!safeHttps(artwork))||(hero&&!safeHttps(hero))){setError("Family artwork URLs must use HTTPS.");return;}const row={...editingFamily,artworkUrl:safeHttps(artwork),heroArtworkUrl:safeHttps(hero),updatedAt:new Date().toISOString()};gamingVNextStore.setGameFamilies([...catalogFamilies.filter((item)=>item.id!==row.id),row]);try{await flushDurableWrites();setEditingFamily(undefined);}catch(e){setError(e instanceof Error?e.message:"Could not save family artwork.");}}}>Save family</Button></div></>}</Modal>
 

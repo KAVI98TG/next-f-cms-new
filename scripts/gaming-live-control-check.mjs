@@ -20,7 +20,7 @@ check('pricing UI no longer requires supplier resync after normal changes',prici
 check('pricing UI requires FX and markup for sellable supplier quotes',pricing.includes('policyReady')&&pricing.includes('USD → LKR and Default markup % are required'));
 check('pricing page does not ask for supplier secret',!pricing.match(/api.?key|apiSecret/i));
 check('supplier page can save live supplier settings',suppliers.includes('saveFazerConfig')&&suppliers.includes('maxCategoriesPerSync'));
-check('supplier page queues health preview and sync',suppliers.includes('run("health")')&&suppliers.includes('run("preview")')&&suppliers.includes('run("sync")'));
+check('supplier page queues health preview and sync',suppliers.includes("run('health')")&&suppliers.includes("run('preview')")&&suppliers.includes("run('sync')"));
 check('supplier page automatically polls Worker status',suppliers.includes('waitForCommand')&&suppliers.includes('lastProcessedCommandId'));
 check('supplier page explicitly keeps API key server-side',suppliers.includes('FAZERCARDS_API_KEY')&&suppliers.includes('Server-side only'));
 check('supplier settings labels use shared stacked row styles',components.includes('.settings-stack')&&components.includes('.setting-row > div')&&components.includes('flex-direction:column'));

@@ -1,7 +1,7 @@
 import { allNavigation } from "../../app/navigation";
 import { platformStore } from "../../platform/services/platformStore";
 import { digitalStore } from "../../next-f/data/digitalStore";
-import { gamingStore } from "../../gaming-store/data/gamingStore";
+import { gamingVNextStore } from "../../gaming-store/vnext/runtime/store";
 import { softwareStore } from "../../software/data/softwareStore";
 import { helpCenterStore } from "../../platform/help-center/data/helpCenterStore";
 import { websitePlatformStore } from "../../next-f/website-platform/websitePlatformStore";
@@ -20,9 +20,7 @@ export function buildGlobalSearchIndex(): GlobalSearchResult[] {
   digitalStore.getProjects().forEach((project) => results.push({ id: `dp:${project.id}`, label: project.name, detail: `${project.status} · ${project.progress}%`, domain: "Digital", type: "Project", path: "/next-f/projects", keywords: `${project.name} ${project.status}` }));
   digitalStore.getSites().forEach((site) => results.push({ id: `ds:${site.id}`, label: site.domain, detail: `${site.name} · ${site.status}`, domain: "Digital", type: "Site", path: "/next-f/sites", keywords: `${site.domain} ${site.name} ${site.status}` }));
   websitePlatformStore.getWorkspaces().forEach((workspace) => results.push({ id: `cws:${workspace.id}`, label: workspace.name, detail: `${workspace.status} · ${workspace.key}`, domain: "Digital", type: "Customer Workspace", path: "/next-f/website-platform", keywords: `${workspace.name} ${workspace.key} ${workspace.status}` }));
-  gamingStore.getCustomers().forEach((customer) => results.push({ id: `gc:${customer.id}`, label: customer.name, detail: customer.email, domain: "Gaming", type: "Customer", path: "/gaming-store/customers", keywords: `${customer.name} ${customer.email} ${customer.phone}` }));
-  gamingStore.getOrders().forEach((order) => results.push({ id: `go:${order.id}`, label: order.number, detail: `${order.status} · LKR ${Math.round(order.sellingPrice).toLocaleString("en-LK")}`, domain: "Gaming", type: "Order", path: "/gaming-store/orders", keywords: `${order.number} ${order.status} ${order.validationName ?? ""}` }));
-  gamingStore.getProducts().forEach((product) => results.push({ id: `gp:${product.id}`, label: product.name, detail: `${product.game} · LKR ${Math.round(product.sellingPrice).toLocaleString("en-LK")}`, domain: "Gaming", type: "Product", path: "/gaming-store/products", keywords: `${product.name} ${product.game} ${product.slug}` }));
+  gamingVNextStore.getProducts().forEach((product) => results.push({ id: `gp:${product.id}`, label: product.displayName || product.name, detail: `${product.gameFamily || product.brand || product.kind} · ${product.enabled ? "Public" : "Disabled"}`, domain: "Gaming", type: "Product", path: "/gaming-store/catalog", keywords: `${product.displayName || ""} ${product.name} ${product.gameFamily || ""} ${product.brand || ""} ${product.slug} ${product.kind}` }));
   softwareStore.getCustomers().forEach((customer) => results.push({ id: `sc:${customer.id}`, label: customer.name, detail: customer.email, domain: "Software", type: "Customer", path: "/software/customers", keywords: `${customer.name} ${customer.email} ${customer.company}` }));
   softwareStore.getOrders().forEach((order) => results.push({ id: `so:${order.id}`, label: order.number, detail: `${order.status} · $${order.amount}`, domain: "Software", type: "Order", path: "/software/orders", keywords: `${order.number} ${order.status}` }));
   softwareStore.getLicenses().forEach((license) => results.push({ id: `sl:${license.id}`, label: license.key, detail: `${license.status} · ${license.activationLimit} activations`, domain: "Software", type: "License", path: "/software/licenses", keywords: `${license.key} ${license.status}` }));

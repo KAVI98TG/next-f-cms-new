@@ -1,7 +1,7 @@
 {
   "name": "@next-f/admin",
   "private": true,
-  "version": "1.0.14",
+  "version": "1.0.18",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -12,6 +12,7 @@
     "check:digital": "node scripts/digital-check.mjs",
     "check:digital-operations": "node scripts/digital-operations-check.mjs",
     "check:gaming": "node scripts/gaming-check.mjs",
+    "check:gaming-canonical-cleanup": "node scripts/gaming-canonical-cleanup-check.mjs",
     "check:software": "node scripts/software-check.mjs",
     "check:saas": "node scripts/saas-check.mjs",
     "check:product": "node scripts/product-completion-check.mjs",

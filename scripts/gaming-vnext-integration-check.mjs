@@ -23,6 +23,6 @@ check("telegram flow",source.includes("telegram_username")&&source.includes("tel
 check("digital delivery",source.includes("Digital delivery")&&source.includes("topup_confirmation"));
 check("trusted server warning",source.includes("DO NOT import this module from browser UI"));
 const app=fs.readFileSync("src/app/App.tsx","utf8");const nav=fs.readFileSync("src/app/navigation.ts","utf8");
-check("CMS route wired",app.includes('/gaming-store/catalog-vnext')&&nav.includes('/gaming-store/catalog-vnext'));
+check("CMS route wired",app.includes('/gaming-store/catalog')&&nav.includes('/gaming-store/catalog'));
 check("public route wired",app.includes('pathname === "/gaming"'));
 console.log("NEXT F Gaming Store vNext integrated P2/P3/P4 check");for(const p of passes)console.log(`PASS  ${p}`);for(const f of failures)console.error(`FAIL  ${f}`);console.log(`\n${passes.length} passed, ${failures.length} failed`);if(failures.length)process.exit(1);

@@ -1,36 +1,44 @@
-import { AlertTriangle, CircleDollarSign, PackageCheck, ShoppingBag, WalletCards } from "lucide-react";
-import { Card, MetricCard, SectionHeader } from "../../shared/components";
-import { gamingStore, orderReconciliation } from "../data/gamingStore";
-import { gamingLkr, gamingMoney } from "../shared/format";
-import { GamingStatus } from "../shared/GamingStatus";
-import { useGamingStore } from "../shared/useGamingStore";
+import { useEffect, useState } from 'react';
+import { Activity, AlertTriangle, CircleDollarSign, PackageCheck, RefreshCw, ShieldAlert, ShoppingBag, WalletCards } from 'lucide-react';
+import { Badge, Button, Card, MetricCard, SectionHeader, StatePanel } from '../../shared/components';
+import { readRuntimeTruth } from '../../services/production';
+import { gamingStore, orderReconciliation } from '../data/gamingStore';
+import { loadGamingAnalyticsSnapshot, type GamingAnalyticsSnapshot } from '../analytics/analytics';
+import { getFazerStatus } from '../live/fazercardsControl';
+import { loadGamingOperationsSnapshot, type LiveGamingOperationsSnapshot } from '../live-operations/operations';
+import { gamingDate, gamingLkr, gamingMoney } from '../shared/format';
+import { GamingStatus } from '../shared/GamingStatus';
+import { useGamingStore } from '../shared/useGamingStore';
 
-export function GamingDashboard() {
-  const orders = useGamingStore(gamingStore.getOrders);
-  const suppliers = useGamingStore(gamingStore.getSuppliers);
-  const products = useGamingStore(gamingStore.getProducts);
-  const activity = useGamingStore(gamingStore.getActivity);
-  const settings = useGamingStore(gamingStore.getSettings);
-  const gross = orders.filter((o) => o.customerPaid && o.status !== "refunded").reduce((sum, o) => sum + o.sellingPrice, 0);
-  const profit = orders.filter((o) => o.customerPaid && o.status !== "refunded").reduce((sum, o) => sum + o.profit, 0);
-  const completed = orders.filter((o) => o.status === "completed").length;
-  const primary = suppliers.find((s) => s.enabled) ?? suppliers[0];
-  const attention = [
-    ...orders.filter((o) => ["failed","refund_pending"].includes(o.status) || orderReconciliation(o) === "payment_only").map((o) => ({ title: o.number, detail: o.failureReason || `Order is ${o.status.replace(/_/g," ")}`, status: o.status })),
-    ...suppliers.filter((s) => s.currency === "USD" && s.balance < settings.lowSupplierBalanceUsd).map((s) => ({ title: `${s.name} balance low`, detail: gamingMoney(s.balance, s.currency), status: "degraded" })),
-  ].slice(0, 5);
+const runtime=readRuntimeTruth();
+
+function LiveGamingDashboard(){
+  const supplier=useGamingStore(getFazerStatus);const [operations,setOperations]=useState<LiveGamingOperationsSnapshot>();const [analytics,setAnalytics]=useState<GamingAnalyticsSnapshot>();const [loading,setLoading]=useState(true);const [error,setError]=useState('');
+  const load=async()=>{setLoading(true);setError('');try{const [ops,stats]=await Promise.all([loadGamingOperationsSnapshot(),loadGamingAnalyticsSnapshot(30)]);setOperations(ops);setAnalytics(stats);}catch(err){setError(err instanceof Error?err.message:'Gaming dashboard could not be loaded.');}finally{setLoading(false);}};
+  useEffect(()=>{void load();},[]);
+  if(loading&&!operations)return <div className="page"><SectionHeader eyebrow="Gaming Store" title="Commerce dashboard" description="Loading canonical production commerce state."/><StatePanel state="loading" title="Loading Gaming Store" description="Reading live orders, analytics and supplier health."/></div>;
+  if(error&&!operations)return <div className="page"><SectionHeader eyebrow="Gaming Store" title="Commerce dashboard" description="Canonical production overview."/><StatePanel state="error" title="Dashboard unavailable" description={error} action={<Button onClick={()=>void load()}>Retry</Button>}/></div>;
+  const ops=operations!;const summary=ops.summary;const stats=analytics?.business;
+  const attention=[
+    ...ops.paymentProofs.filter((row)=>row.status==='pending').map((row)=>({title:`${row.orderNumber} payment review`,detail:`${row.paymentMethodLabel} · ${row.reference}`,tone:'warning' as const})),
+    ...ops.fulfillmentJobs.filter((row)=>['retry','blocked','failed'].includes(row.state)).map((row)=>({title:`Fulfillment ${row.state}`,detail:`${row.orderId}${row.lastError?` · ${row.lastError}`:''}`,tone:row.state==='failed'?'danger' as const:'warning' as const})),
+    ...ops.riskAssessments.filter((row)=>row.state==='held'||row.requiresReview).map((row)=>({title:`${row.orderNumber} risk ${row.level}`,detail:`${row.score}/100 · ${row.state}`,tone:row.level==='critical'?'danger' as const:'warning' as const})),
+    ...ops.notifications.filter((row)=>['retry','blocked','failed'].includes(row.state)).map((row)=>({title:`Notification ${row.state}`,detail:`${row.orderNumber} · ${row.templateKey}`,tone:row.state==='failed'?'danger' as const:'warning' as const})),
+  ].slice(0,6);
   return <div className="page">
-    <SectionHeader eyebrow="Gaming Store" title="Reseller operations" description="Supplier-powered top-ups and digital goods with pricing safeguards, fulfillment tracking and reconciliation." />
-    <div className="metric-grid">
-      <MetricCard label="Orders" value={String(orders.length)} detail={`${completed} completed`} icon={ShoppingBag} />
-      <MetricCard label="Gross sales" value={gamingLkr(gross)} detail="Paid local orders" icon={CircleDollarSign} />
-      <MetricCard label="Gross profit" value={gamingLkr(profit)} detail="After supplier + gateway cost" icon={PackageCheck} />
-      <MetricCard label="Supplier balance" value={primary ? gamingMoney(primary.balance, primary.currency) : "-"} detail={primary?.name ?? "No supplier"} icon={WalletCards} />
-    </div>
-    <div className="gaming-dashboard-grid">
-      <Card><div className="operation-section__head"><div><span>Attention</span><h3>Operational exceptions</h3></div><AlertTriangle size={18}/></div>{attention.length ? <div className="gaming-attention">{attention.map((item)=><div key={item.title}><span><strong>{item.title}</strong><small>{item.detail}</small></span><GamingStatus value={item.status}/></div>)}</div> : <p className="empty-copy">No order or supplier exceptions need attention.</p>}</Card>
-      <Card><div className="operation-section__head"><div><span>Live state</span><h3>Store readiness</h3></div><PackageCheck size={18}/></div><div className="gaming-readiness"><div><span>Mapped products</span><strong>{products.length}</strong></div><div><span>Sellable now</span><strong>{products.filter((p)=>p.enabled&&p.availability==="available").length}</strong></div><div><span>Connected suppliers</span><strong>{suppliers.filter((s)=>s.status==="connected"&&s.enabled).length}</strong></div><div><span>Reconciled orders</span><strong>{orders.filter((o)=>orderReconciliation(o)==="reconciled").length}</strong></div></div></Card>
-    </div>
-    <Card><div className="operation-section__head"><div><span>Recent activity</span><h3>Gaming Store events</h3></div></div><div className="gaming-activity">{activity.slice(0,8).map((item)=><div key={item.id}><GamingStatus value={item.tone === "success" ? "completed" : item.tone === "warning" ? "degraded" : "processing"}/><span><strong>{item.title}</strong><small>{item.detail}</small></span></div>)}</div></Card>
+    <SectionHeader eyebrow="Gaming Store · Production" title="Commerce dashboard" description="Canonical orders, customer funnel, supplier health and operational attention from the live Gaming platform." action={<Button onClick={()=>void load()} disabled={loading}><RefreshCw size={14}/>Refresh</Button>}/>
+    <div className="metric-grid"><MetricCard label="Orders" value={String(summary.totalOrders)} detail={`${summary.completed} completed · ${summary.failed} failed`} icon={ShoppingBag}/><MetricCard label={ops.capabilities.finance?'Net sales':'Verified orders'} value={ops.capabilities.finance?gamingLkr(summary.netSalesLkr??0):String(stats?.verifiedOrders??ops.orders.filter((row)=>row.payment.state==='verified').length)} detail={ops.capabilities.finance?`${gamingLkr(summary.completedRefundsLkr??0)} refunded`:'Production payment state'} icon={CircleDollarSign}/><MetricCard label="Fulfilled" value={String(stats?.fulfilledOrders??summary.completed)} detail={`${summary.fulfillmentAttention} need attention`} icon={PackageCheck}/><MetricCard label="Supplier" value={supplier.connected?'Connected':'Needs check'} detail={supplier.balance?`${supplier.balance.amount} ${supplier.balance.currency}`:(supplier.lastHealthAt?`Checked ${gamingDate(supplier.lastHealthAt)}`:'FazerCards')} icon={WalletCards}/></div>
+    <div className="gaming-dashboard-grid"><Card><div className="operation-section__head"><div><span>Attention</span><h3>Operational exceptions</h3></div><AlertTriangle size={18}/></div>{attention.length?<div className="gaming-attention">{attention.map((item,index)=><div key={`${item.title}-${index}`}><span><strong>{item.title}</strong><small>{item.detail}</small></span><Badge tone={item.tone}>Attention</Badge></div>)}</div>:<p className="empty-copy">No payment, fulfillment, risk or notification exceptions need attention.</p>}</Card>
+      <Card><div className="operation-section__head"><div><span>Live state</span><h3>Commerce readiness</h3></div><Activity size={18}/></div><div className="gaming-readiness"><div><span>Payment review</span><strong>{summary.paymentReview}</strong></div><div><span>Risk held</span><strong>{summary.riskHeld??0}</strong></div><div><span>Refund pending</span><strong>{summary.refundPending}</strong></div><div><span>Notifications</span><strong>{summary.notificationAttention}</strong></div></div>{supplier.lastError?<p className="security-note"><ShieldAlert size={14}/> Supplier: {supplier.lastError}</p>:null}</Card></div>
+    <Card><div className="operation-section__head"><div><span>Recent activity</span><h3>Canonical commerce events</h3></div></div><div className="gaming-activity">{ops.events.slice(0,10).map((event)=><div key={event.id}><GamingStatus value={event.outcome}/><span><strong>{event.eventType.replaceAll('_',' ')}</strong><small>{event.orderId||event.targetId} · {gamingDate(event.createdAt)}</small></span></div>)}</div>{!ops.events.length?<p className="empty-copy">No commerce events recorded yet.</p>:null}</Card>
   </div>;
 }
+
+function LocalGamingDashboard(){
+  const orders=useGamingStore(gamingStore.getOrders);const suppliers=useGamingStore(gamingStore.getSuppliers);const products=useGamingStore(gamingStore.getProducts);const activity=useGamingStore(gamingStore.getActivity);const settings=useGamingStore(gamingStore.getSettings);
+  const gross=orders.filter((o)=>o.customerPaid&&o.status!=='refunded').reduce((sum,o)=>sum+o.sellingPrice,0);const profit=orders.filter((o)=>o.customerPaid&&o.status!=='refunded').reduce((sum,o)=>sum+o.profit,0);const completed=orders.filter((o)=>o.status==='completed').length;const primary=suppliers.find((s)=>s.enabled)??suppliers[0];
+  const attention=[...orders.filter((o)=>['failed','refund_pending'].includes(o.status)||orderReconciliation(o)==='payment_only').map((o)=>({title:o.number,detail:o.failureReason||`Order is ${o.status.replace(/_/g,' ')}`,status:o.status})),...suppliers.filter((s)=>s.currency==='USD'&&s.balance<settings.lowSupplierBalanceUsd).map((s)=>({title:`${s.name} balance low`,detail:gamingMoney(s.balance,s.currency),status:'degraded'}))].slice(0,5);
+  return <div className="page"><SectionHeader eyebrow="Gaming Store · Local" title="Reseller operations" description="Local development sandbox."/><div className="metric-grid"><MetricCard label="Orders" value={String(orders.length)} detail={`${completed} completed`} icon={ShoppingBag}/><MetricCard label="Gross sales" value={gamingLkr(gross)} detail="Paid local orders" icon={CircleDollarSign}/><MetricCard label="Gross profit" value={gamingLkr(profit)} detail="After supplier + gateway cost" icon={PackageCheck}/><MetricCard label="Supplier balance" value={primary?gamingMoney(primary.balance,primary.currency):'-'} detail={primary?.name??'No supplier'} icon={WalletCards}/></div><div className="gaming-dashboard-grid"><Card><div className="operation-section__head"><div><span>Attention</span><h3>Operational exceptions</h3></div><AlertTriangle size={18}/></div>{attention.length?<div className="gaming-attention">{attention.map((item)=><div key={item.title}><span><strong>{item.title}</strong><small>{item.detail}</small></span><GamingStatus value={item.status}/></div>)}</div>:<p className="empty-copy">No exceptions.</p>}</Card><Card><div className="operation-section__head"><div><span>Local state</span><h3>Store readiness</h3></div><PackageCheck size={18}/></div><div className="gaming-readiness"><div><span>Mapped products</span><strong>{products.length}</strong></div><div><span>Sellable now</span><strong>{products.filter((p)=>p.enabled&&p.availability==='available').length}</strong></div><div><span>Connected suppliers</span><strong>{suppliers.filter((s)=>s.status==='connected'&&s.enabled).length}</strong></div><div><span>Reconciled orders</span><strong>{orders.filter((o)=>orderReconciliation(o)==='reconciled').length}</strong></div></div></Card></div><Card><div className="operation-section__head"><div><span>Recent activity</span><h3>Gaming Store events</h3></div></div><div className="gaming-activity">{activity.slice(0,8).map((item)=><div key={item.id}><GamingStatus value={item.tone==='success'?'completed':item.tone==='warning'?'degraded':'processing'}/><span><strong>{item.title}</strong><small>{item.detail}</small></span></div>)}</div></Card></div>;
+}
+
+export function GamingDashboard(){return runtime.isProduction?<LiveGamingDashboard/>:<LocalGamingDashboard/>;}

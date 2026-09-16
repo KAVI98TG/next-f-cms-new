@@ -31,11 +31,11 @@ check("digital project integrity",acceptance.includes("Project relationships")&&
 check("digital delivery integrity",acceptance.includes("Task/deliverable/approval relationships"));
 check("digital recurring integrity",acceptance.includes("Recurring-service relationships"));
 check("digital site/support integrity",acceptance.includes("Site/support relationships"));
-check("gaming supplier catalog integrity",acceptance.includes("Supplier catalog references"));
-check("gaming product mapping integrity",acceptance.includes("Storefront product mapping"));
-check("gaming order integrity",acceptance.includes("Order relationships")&&acceptance.includes("Unique order idempotency keys"));
-check("gaming economics integrity",acceptance.includes("Order economics")&&acceptance.includes("Minimum-profit safeguard"));
-check("gaming support integrity",acceptance.includes("Gaming support relationships"));
+check("gaming canonical product integrity",acceptance.includes("Canonical product slugs"));
+check("gaming offer integrity",acceptance.includes("Offer → product relationships"));
+check("gaming supplier routing integrity",acceptance.includes("Supplier routing relationships")&&acceptance.includes("Unique route priorities"));
+check("gaming family integrity",acceptance.includes("Game-family identities"));
+check("gaming legacy surfaces retired",acceptance.includes("Legacy production surfaces retired"));
 check("software edition/release integrity",acceptance.includes("Edition → product references")&&acceptance.includes("Release → product references"));
 check("software order/license integrity",acceptance.includes("Software order relationships")&&acceptance.includes("License relationships"));
 check("software license uniqueness",acceptance.includes("Unique license keys"));
@@ -46,7 +46,7 @@ check("software support/update integrity",acceptance.includes("Software support 
 check("shared account integrity",acceptance.includes("Normalized account identities"));
 check("shared payment integrity",acceptance.includes("Unified payment values"));
 check("shared search/operations integrity",acceptance.includes("Global search index")&&acceptance.includes("Operations inbox"));
-check("infrastructure remains deferred",acceptance.includes("Production infrastructure")&&acceptance.includes('status:"deferred"'));
+check("production infrastructure active",acceptance.includes("Production infrastructure")&&acceptance.includes('status:"pass"'));
 check("CSV escaping",csv.includes("replaceAll")&&csv.includes("createCsv"));
 check("CSV browser download",csv.includes("URL.createObjectURL")&&csv.includes("anchor.download"));
 check("shared CSV action feedback",exportButton.includes("useToast")&&exportButton.includes("CSV exported"));
@@ -55,8 +55,8 @@ const services=read("src/next-f/services/ServicesPage.tsx"), sites=read("src/nex
 check("digital service validation",services.includes("validators.positive")&&services.includes("already exists")&&services.includes("useToast"));
 check("digital site URL/domain validation",sites.includes("validators.url")&&sites.includes("validDomain")&&sites.includes("aria-invalid"));
 check("digital maintenance guarded",sites.includes("ConfirmDialog")&&sites.includes("Record maintenance mode"));
-check("supplier key validation",suppliers.includes("validators.slug")&&suppliers.includes("already registered"));
-check("supplier disable guarded",suppliers.includes("ConfirmDialog")&&suppliers.includes("Disable supplier"));
+check("supplier page uses canonical production control plane",suppliers.includes("No placeholder provider registry")&&!suppliers.includes("gamingStore"));
+check("supplier placeholder registry retired",!suppliers.includes("addSupplier(")&&!suppliers.includes("getSuppliers("));
 check("software product slug validation",swProducts.includes("validators.slug")&&swProducts.includes("slug already exists"));
 check("software edition value validation",swProducts.includes("validators.positive")&&swProducts.includes("Activation limit"));
 check("software product feedback",swProducts.includes("useToast")&&swProducts.includes("Software product created"));

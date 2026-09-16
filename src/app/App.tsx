@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { AppShell } from "./layout/AppShell";
 import { useRouter } from "./router/RouterProvider";
 import { PlatformDashboard } from "../platform/dashboard/PlatformDashboard";
@@ -36,8 +36,6 @@ import { ReportsPage } from "../next-f/reports/ReportsPage";
 import { DigitalSettingsPage } from "../next-f/settings/DigitalSettingsPage";
 import { GamingDashboard } from "../gaming-store/dashboard/GamingDashboard";
 import { LiveOperationsPage as GamingLiveOperationsPage } from "../gaming-store/live-operations/LiveOperationsPage";
-import { OrdersPage as GamingOrdersPage } from "../gaming-store/orders/OrdersPage";
-import { ProductsPage as GamingProductsPage } from "../gaming-store/products/ProductsPage";
 import { PricingPage as GamingPricingPage } from "../gaming-store/pricing/PricingPage";
 import { SuppliersPage as GamingSuppliersPage } from "../gaming-store/suppliers/SuppliersPage";
 import { CustomersPage as GamingCustomersPage } from "../gaming-store/customers/CustomersPage";
@@ -45,7 +43,6 @@ import { FinancePage as GamingFinancePage } from "../gaming-store/finance/Financ
 import { GamingAnalyticsPage } from "../gaming-store/analytics/AnalyticsPage";
 import { PromotionsPage as GamingPromotionsPage } from "../gaming-store/promotions/PromotionsPage";
 import { SupportPage as GamingSupportPage } from "../gaming-store/support/SupportPage";
-import { GamingSettingsPage } from "../gaming-store/settings/SettingsPage";
 import { CatalogVNextPage } from "../gaming-store/vnext/cms/CatalogVNextPage";
 import { StorefrontVNextPage } from "../gaming-store/vnext/cms/StorefrontVNextPage";
 import { PublicGamingStorefront } from "../gaming-store/vnext/public/PublicGamingStorefront";
@@ -68,6 +65,12 @@ import { permissionForPath } from "./auth/permissions";
 import { useSession } from "./auth/SessionProvider";
 import { AccessDeniedPage } from "../shared/pages/AccessDeniedPage";
 import { AppErrorBoundary } from "../shared/components";
+
+function LegacyGamingRedirect({to}:{to:string}){
+  const {navigate}=useRouter();
+  useEffect(()=>navigate(to,{replace:true}),[navigate,to]);
+  return null;
+}
 
 const routes: Record<string, ReactNode> = {
   "/platform/dashboard": <PlatformDashboard />,
@@ -105,8 +108,8 @@ const routes: Record<string, ReactNode> = {
   "/next-f/settings": <DigitalSettingsPage />,
   "/gaming-store/dashboard": <GamingDashboard />,
   "/gaming-store/live-operations": <GamingLiveOperationsPage />,
-  "/gaming-store/orders": <GamingOrdersPage />,
-  "/gaming-store/products": <GamingProductsPage />,
+  "/gaming-store/orders": <LegacyGamingRedirect to="/gaming-store/live-operations" />,
+  "/gaming-store/products": <LegacyGamingRedirect to="/gaming-store/catalog" />,
   "/gaming-store/pricing": <GamingPricingPage />,
   "/gaming-store/suppliers": <GamingSuppliersPage />,
   "/gaming-store/customers": <GamingCustomersPage />,
@@ -114,8 +117,9 @@ const routes: Record<string, ReactNode> = {
   "/gaming-store/analytics": <GamingAnalyticsPage />,
   "/gaming-store/promotions": <GamingPromotionsPage />,
   "/gaming-store/support": <GamingSupportPage />,
-  "/gaming-store/settings": <GamingSettingsPage />,
-  "/gaming-store/catalog-vnext": <CatalogVNextPage />,
+  "/gaming-store/settings": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
+  "/gaming-store/catalog-vnext": <LegacyGamingRedirect to="/gaming-store/catalog" />,
+  "/gaming-store/catalog": <CatalogVNextPage />,
   "/gaming-store/storefront": <StorefrontVNextPage />,
   "/software/dashboard": <SoftwareDashboard />,
   "/software/products": <SoftwareProductsPage />,

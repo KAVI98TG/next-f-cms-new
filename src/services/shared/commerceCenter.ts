@@ -1,5 +1,4 @@
 import { digitalStore } from "../../next-f/data/digitalStore";
-import { gamingStore } from "../../gaming-store/data/gamingStore";
 import { softwareStore } from "../../software/data/softwareStore";
 
 export type BusinessDomain = "digital" | "gaming" | "software";
@@ -57,7 +56,6 @@ export function getSharedAccounts(): SharedAccount[] {
     const paid = digitalStore.getInvoices().filter((invoice) => invoice.clientId === client.id && invoice.status === "paid").reduce((sum, invoice) => sum + invoice.paidAmount, 0);
     upsert({ name: client.name, company: client.company, email: client.email, phone: client.phone, domain: "digital", ref: { domain: "digital", entityId: client.id, kind: "client" }, lkr: paid, lastActivityAt: client.since });
   });
-  gamingStore.getCustomers().forEach((customer) => upsert({ name: customer.name, email: customer.email, phone: customer.phone, domain: "gaming", ref: { domain: "gaming", entityId: customer.id, kind: "customer" }, lkr: customer.lifetimeValue, lastActivityAt: customer.lastOrderAt ?? customer.createdAt }));
   softwareStore.getCustomers().forEach((customer) => upsert({ name: customer.name, company: customer.company, email: customer.email, domain: "software", ref: { domain: "software", entityId: customer.id, kind: "customer" }, usd: customer.lifetimeValue, lastActivityAt: customer.lastOrderAt ?? customer.createdAt }));
   return [...map.values()].sort((a, b) => (b.lastActivityAt ?? "").localeCompare(a.lastActivityAt ?? ""));
 }
@@ -71,17 +69,12 @@ export function getSharedPayments(): SharedPayment[] {
     accountId: byRef.get(`digital:${invoice.clientId}`), amount: invoice.paidAmount || invoice.amount, currency: "LKR",
     status: invoice.status === "paid" ? "paid" : invoice.status === "refunded" ? "refunded" : "pending", paidAt: invoice.paidAt, createdAt: invoice.issuedAt,
   }));
-  const gaming = gamingStore.getOrders().map<SharedPayment>((order) => ({
-    id: `pay_gaming_${order.id}`, domain: "gaming", sourceType: "order", sourceId: order.id, reference: order.number,
-    accountId: byRef.get(`gaming:${order.customerId}`), amount: order.sellingPrice, currency: "LKR",
-    status: order.status === "refunded" ? "refunded" : order.customerPaid ? "paid" : order.status === "failed" ? "failed" : "pending", paidAt: order.customerPaid ? order.updatedAt : undefined, createdAt: order.createdAt,
-  }));
   const software = softwareStore.getOrders().map<SharedPayment>((order) => ({
     id: `pay_software_${order.id}`, domain: "software", sourceType: "order", sourceId: order.id, reference: order.number,
     accountId: byRef.get(`software:${order.customerId}`), amount: order.amount, currency: "USD",
     status: order.status === "paid" ? "paid" : order.status === "refunded" ? "refunded" : "pending", paidAt: order.paidAt, createdAt: order.createdAt,
   }));
-  return [...digital, ...gaming, ...software].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  return [...digital, ...software].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
 export const commerceCenter = { getAccounts: getSharedAccounts, getPayments: getSharedPayments };
