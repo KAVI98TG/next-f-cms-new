@@ -15,6 +15,7 @@ const worker=read("infrastructure/cloudflare/src/index.ts");
 const maintenance=read("infrastructure/cloudflare/src/maintenance.ts");
 const bootstrap=read("src/app/auth/ProductionBootstrap.tsx");
 const gitignore=read(".gitignore");
+const productionEnv=exists(".env.production")?read(".env.production"):"";
 
 check("package version is semantic",/^\d+\.\d+\.\d+$/.test(pkg.version));
 check("lockfile version matches package",lock.version===pkg.version&&lock.packages?.[""]?.version===pkg.version);
@@ -33,6 +34,7 @@ check("production Queue binding",prod.includes('"queue": "nextf-cms-production-e
 check("production retention policy configured",prod.includes('"AUDIT_RETENTION_DAYS": "365"')&&prod.includes('"OUTBOX_RETENTION_DAYS": "90"'));
 check("production config contains no Worker secret values",!prod.includes('"TURNSTILE_SECRET_KEY"')&&!prod.includes('"SERVICE_CREDENTIAL_SECRET"'));
 check("secret env files are ignored",gitignore.includes(".env")||gitignore.includes(".env.*"));
+check("production frontend env is committed and canonical",productionEnv.includes("VITE_NEXTF_ENVIRONMENT=production")&&productionEnv.includes("VITE_NEXTF_BACKEND_MODE=production-api")&&productionEnv.includes("VITE_NEXTF_API_BASE_URL=https://cms-api.nextf.lk")&&gitignore.includes("!.env.production"));
 
 check("production login UI is fail closed",bootstrap.includes("Secure staff access")&&bootstrap.includes("Continue with secure login")&&bootstrap.includes("Fail closed"));
 check("API login completion route exists",worker.includes('url.pathname==="/auth/complete"')&&worker.includes("resolveStaffPrincipal"));

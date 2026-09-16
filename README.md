@@ -116,3 +116,8 @@ Gaming now has a dedicated Commerce Analytics surface at `/gaming-store/analytic
 ## v1.0.13 NEXT F Media Service + Cloudflare R2 (P4 RC)
 
 Gaming merchandising and Support evidence now use a governed NEXT F Media boundary backed by the private `nextf-media-production` R2 bucket. Public storefront artwork is served through `https://media.nextf.lk/a/<assetId>`, while private Support evidence remains behind authenticated CMS API access. Direct browser uploads use short-lived presigned staging URLs and are validated/promoted server-side before use. See `docs/V1.0.13-NEXTF-MEDIA-R2-P4.md`.
+
+
+## v1.0.14 Production UI hardening (P4 RC)
+
+Storefront Merchandising now keeps rich media fields and paired CTA controls aligned, and top-level subsection headers receive consistent spacing after cards. The CMS also ships the canonical non-secret `.env.production` so `npm run deploy` cannot silently rebuild the production frontend in local-prototype mode. See `docs/V1.0.14-PRODUCTION-UI-HARDENING-P4.md`.

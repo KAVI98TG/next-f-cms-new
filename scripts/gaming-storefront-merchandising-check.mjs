@@ -7,6 +7,7 @@ const app=read('src/app/App.tsx');
 const nav=read('src/app/navigation.ts');
 const staff=read('infrastructure/cloudflare/src/staff.ts');
 const catalogPage=read('src/gaming-store/vnext/cms/CatalogVNextPage.tsx');
+const css=read('src/css/components.css');
 check('storefront route is wired', app.includes('/gaming-store/storefront') && app.includes('StorefrontVNextPage'));
 check('storefront navigation is visible', nav.includes('label: "Storefront"') && nav.includes('/gaming-store/storefront'));
 check('storefront durable key exists', store.includes('nextf.vnext.gaming.storefront'));
@@ -19,4 +20,6 @@ check('product editor can set game family', catalogPage.includes('label="Game fa
 check('CMS can derive and save family registry', page.includes('Save discovered families') && page.includes('gamingVNextStore.setGameFamilies'));
 check('storefront writes flush durably', page.includes('flushDurableWrites'));
 check('storefront and family writes require product management permission', staff.includes('nextf.vnext.gaming.storefront') && staff.includes('nextf.vnext.gaming.game-families') && staff.includes('gaming.products.manage'));
+check('hero media field spans full form width so CTA controls stay paired', page.includes('gaming-storefront-hero-form') && css.includes('.gaming-storefront-hero-form>.form-field:nth-child(5){grid-column:1/-1}'));
+check('subsection headers keep global spacing after cards', css.includes('.page > .card + .section-header { margin-top:30px; }'));
 let failed=0; for(const [n,p] of checks){console.log(`${p?'PASS':'FAIL'}  ${n}`); if(!p) failed++;} console.log(`\n${checks.length-failed}/${checks.length} storefront-merchandising checks passed.`); if(failed) process.exit(1);
