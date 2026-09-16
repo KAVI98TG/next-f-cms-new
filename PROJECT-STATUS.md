@@ -1,6 +1,7 @@
 # NEXT F CMS — Project Status
 
-**Release:** V1.0.0 final production package  
+**Current source release:** V1.0.9 P4 RC — Gaming Transactional Notifications  
+**Original production foundation:** V1.0.0 final production package  
 **Production CMS:** `https://cms.nextf.lk`  
 **Production API:** `https://cms-api.nextf.lk`
 
@@ -77,3 +78,28 @@ Gaming pricing and FazerCards non-secret supplier configuration are now CMS-mana
 The CMS pricing policy now drives customer-facing Gaming catalog prices directly through `gaming-api.nextf.lk`. Markup mode shows LKR catalog prices using already-synced private supplier-cost mappings; Supplier quote mode intentionally shows a checkout price action. Normal FX/margin changes no longer require another FazerCards catalog sync.
 
 Pricing display validation: CMS 31/31 `check:*` suites pass after the V1.0.2 pricing projection change.
+
+
+## V1.0.5 P4 RC — Gaming Live Operations Foundation
+
+The CMS now reads live Gaming orders, finance-gated payment proofs, permission-gated fulfillment jobs and the append-only Gaming audit timeline through a dedicated staff API projection over the shared D1. Browser code does not receive the Gaming manual-payment or supplier admin tokens. The v1.0.5 Live Operations UI established the safe read plane. v1.0.6 adds guarded payment verification/rejection and fulfillment retry through the existing server-only Gaming boundaries.
+
+
+## V1.0.6 P4 RC — Gaming Live Operations Actions
+
+Live Operations is now actionable. Finance staff can verify/reject payment proofs and order/supplier operators can retry non-completed fulfillment jobs. The CMS Worker uses the narrow `GAMING_CMS_OPERATIONS_TOKEN` and forwards authenticated staff identifiers to the Gaming API so the canonical Gaming audit event records the real operator. Broad Gaming admin tokens stay outside the CMS.
+
+
+## V1.0.7 P4 RC — Gaming Refunds + Finance Operations
+
+Live Operations now supports finance-gated refund create/review/payout/completion commands through the narrow Gaming operations bridge. Refunds are durable records with partial/cumulative accounting, payout evidence and supplier/gateway recovery fields. Finance now reads shared-D1 commerce state and reports gross collected, completed/pending refunds, net sales, supplier/gateway economics and estimated margin, with CSV reconciliation export. Public Gaming customer contracts remain unchanged.
+
+
+## V1.0.8 P4 RC — Gaming Risk + Abuse Operations
+
+Live Operations now includes a privacy-safe risk queue for staff with `gaming.orders.manage`. Checkout scoring and automatic high-risk holds remain in the Gaming API; CMS can release or retain a hold through the narrow operations bridge. Risk correlation fingerprints never enter the browser. Public Gaming customer contracts remain unchanged.
+
+
+## V1.0.9 P4 RC — Gaming Transactional Notifications
+
+Live Operations now projects the event-driven Gaming notification outbox with delivery/attention metrics and a guarded retry action for non-sent messages. Email sending remains inside the Gaming API Worker and provider credentials never enter CMS. Gaming v1.8.6 defaults delivery to disabled and initializes its commerce-event cursor without historical email backfill. Public Gaming customer contracts remain unchanged.

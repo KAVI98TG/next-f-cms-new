@@ -35,12 +35,15 @@ import { AutomationPage } from "../next-f/automation/AutomationPage";
 import { ReportsPage } from "../next-f/reports/ReportsPage";
 import { DigitalSettingsPage } from "../next-f/settings/DigitalSettingsPage";
 import { GamingDashboard } from "../gaming-store/dashboard/GamingDashboard";
+import { LiveOperationsPage as GamingLiveOperationsPage } from "../gaming-store/live-operations/LiveOperationsPage";
 import { OrdersPage as GamingOrdersPage } from "../gaming-store/orders/OrdersPage";
 import { ProductsPage as GamingProductsPage } from "../gaming-store/products/ProductsPage";
 import { PricingPage as GamingPricingPage } from "../gaming-store/pricing/PricingPage";
 import { SuppliersPage as GamingSuppliersPage } from "../gaming-store/suppliers/SuppliersPage";
 import { CustomersPage as GamingCustomersPage } from "../gaming-store/customers/CustomersPage";
 import { FinancePage as GamingFinancePage } from "../gaming-store/finance/FinancePage";
+import { GamingAnalyticsPage } from "../gaming-store/analytics/AnalyticsPage";
+import { PromotionsPage as GamingPromotionsPage } from "../gaming-store/promotions/PromotionsPage";
 import { SupportPage as GamingSupportPage } from "../gaming-store/support/SupportPage";
 import { GamingSettingsPage } from "../gaming-store/settings/SettingsPage";
 import { CatalogVNextPage } from "../gaming-store/vnext/cms/CatalogVNextPage";
@@ -101,12 +104,15 @@ const routes: Record<string, ReactNode> = {
   "/next-f/reports": <ReportsPage />,
   "/next-f/settings": <DigitalSettingsPage />,
   "/gaming-store/dashboard": <GamingDashboard />,
+  "/gaming-store/live-operations": <GamingLiveOperationsPage />,
   "/gaming-store/orders": <GamingOrdersPage />,
   "/gaming-store/products": <GamingProductsPage />,
   "/gaming-store/pricing": <GamingPricingPage />,
   "/gaming-store/suppliers": <GamingSuppliersPage />,
   "/gaming-store/customers": <GamingCustomersPage />,
   "/gaming-store/finance": <GamingFinancePage />,
+  "/gaming-store/analytics": <GamingAnalyticsPage />,
+  "/gaming-store/promotions": <GamingPromotionsPage />,
   "/gaming-store/support": <GamingSupportPage />,
   "/gaming-store/settings": <GamingSettingsPage />,
   "/gaming-store/catalog-vnext": <CatalogVNextPage />,

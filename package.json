@@ -1,7 +1,7 @@
 {
   "name": "@next-f/admin",
   "private": true,
-  "version": "1.0.4",
+  "version": "1.0.13",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -48,7 +48,16 @@
     "deploy": "npm run build && npx wrangler@latest pages deploy dist --project-name nextf-cms --branch main",
     "check:gaming-storefront-merchandising": "node scripts/gaming-storefront-merchandising-check.mjs",
     "deploy:api:production": "npx wrangler@latest deploy --config infrastructure/cloudflare/wrangler.production.jsonc",
-    "deploy:all:production": "npm run deploy:api:production && npm run deploy"
+    "deploy:all:production": "npm run deploy:api:production && npm run deploy",
+    "check:gaming-live-operations": "node scripts/gaming-live-operations-check.mjs",
+    "check:gaming-live-actions": "node scripts/gaming-live-actions-check.mjs",
+    "check:gaming-refund-finance": "node scripts/gaming-refund-finance-check.mjs",
+    "check:gaming-risk-operations": "node scripts/gaming-risk-operations-check.mjs",
+    "check:gaming-notifications": "node scripts/gaming-notifications-operations-check.mjs",
+    "check:gaming-analytics": "node scripts/gaming-commerce-analytics-check.mjs",
+    "check:gaming-promotions": "node scripts/gaming-promotions-check.mjs",
+    "check:gaming-support": "node scripts/gaming-support-check.mjs",
+    "check:media-service": "node scripts/media-service-check.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

@@ -6,6 +6,7 @@ import { runMaintenance } from "./maintenance";
 import { json, originAllowed, problem, requestId } from "./http";
 import { handleStaffCommand, handleStaffQuery, resolveStaffPrincipal, StaffApiError, type StaffRequestBody } from "./staff";
 import { handleNextfProjectRequest } from "./mainSiteIngest";
+import { servePrivateMedia, servePublicMedia } from "./media";
 
 const corsHeaders=(origin:string|null,env:WorkerEnv):Record<string,string>=>{
   const allowed=[env.CMS_ORIGIN,env.WORKSPACE_ORIGIN,env.PUBLIC_SITE_ORIGIN];
@@ -13,7 +14,7 @@ const corsHeaders=(origin:string|null,env:WorkerEnv):Record<string,string>=>{
 };
 async function health(env:WorkerEnv){
   const db=await env.DB.prepare("SELECT 1 AS ok").first<{ok:number}>();
-  return {status:db?.ok===1?"ok":"degraded",environment:env.ENVIRONMENT,bindings:{d1:Boolean(env.DB),r2:Boolean(env.FILES),queue:Boolean(env.EVENTS),rateLimiter:Boolean(env.PUBLIC_RATE_LIMITER)},staffDurableState:true};
+  return {status:db?.ok===1?"ok":"degraded",environment:env.ENVIRONMENT,bindings:{d1:Boolean(env.DB),r2:Boolean(env.FILES),mediaR2:Boolean(env.MEDIA),queue:Boolean(env.EVENTS),rateLimiter:Boolean(env.PUBLIC_RATE_LIMITER)},staffDurableState:true};
 }
 function canonical(value:unknown):string{
   if(value===null||typeof value!=="object") return JSON.stringify(value);
@@ -93,6 +94,12 @@ async function staffResponse(request:Request,env:WorkerEnv,id:string,route:{kind
 export default {
   async fetch(request:Request,env:WorkerEnv):Promise<Response>{
     const id=requestId(request); const url=new URL(request.url); const origin=request.headers.get("origin"); const allowed=[env.CMS_ORIGIN,env.WORKSPACE_ORIGIN,env.PUBLIC_SITE_ORIGIN];
+    const mediaHost=env.MEDIA_ORIGIN?new URL(env.MEDIA_ORIGIN).host:"media.nextf.lk";
+    if(url.host===mediaHost){
+      const publicAsset=url.pathname.match(/^\/a\/([^/]+)$/);
+      if(publicAsset&&(request.method==="GET"||request.method==="HEAD")) return servePublicMedia(request,env,decodeURIComponent(publicAsset[1]));
+      return new Response("Not found",{status:404,headers:{"cache-control":"no-store","x-content-type-options":"nosniff"}});
+    }
     if(!originAllowed(origin,allowed)) return problem(403,"ORIGIN_DENIED","Request origin is not allowlisted",id);
     if(request.method==="OPTIONS") return new Response(null,{status:204,headers:corsHeaders(origin,env)});
     let response:Response;
@@ -104,6 +111,11 @@ export default {
         response=new Response(null,{status:302,headers:{location:env.CMS_ORIGIN,"cache-control":"no-store"}});
       }
       else if(url.pathname==="/health"&&request.method==="GET") response=json({ok:true,requestId:id,data:await health(env)});
+      else if(request.method==="GET"&&url.pathname.match(/^\/v1\/staff\/media\/[^/]+\/download$/)){
+        const identity=await verifyAccessAssertion(request,env); const principal=await resolveStaffPrincipal(env.DB,identity); const assetId=decodeURIComponent(url.pathname.split("/")[4]||"");
+        if(!principal.permissions.includes("gaming.orders.manage")) throw new StaffApiError(403,"FORBIDDEN","Gaming order management permission is required");
+        response=await servePrivateMedia(env,principal,assetId);
+      }
       else if(url.pathname==="/v1/integrations/nextf/project-requests") response=await handleNextfProjectRequest(request,env,id);
       else if(url.pathname==="/v1/public/leads"&&request.method==="POST") response=await publicCommand(request,env,"public.lead.submit",id);
       else if(url.pathname==="/v1/public/demo-access"&&request.method==="POST") response=await publicCommand(request,env,"public.demo-access.request",id);

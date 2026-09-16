@@ -35,3 +35,11 @@ Do not expose generic `staff.state.*` operations to the Gaming site.
 ## First managed-site proof
 
 If Gaming is registered as the first managed Site Connection, V1's `managed_site_adapter` N/A status must be reopened. Capture a real `nextf.site.json` plus real revision/apply/publish receipt and rerun production acceptance with those evidence URLs.
+
+## P4 canonical support control plane
+
+Gaming support no longer relies on the legacy `nextf.v0.5.gaming.support` local prototype UI for live operations. Canonical records now live in shared D1 under `gaming.support.case`, `gaming.support.message` and `gaming.support.evidence` and are surfaced through the CMS staff API.
+
+Support reads and mutations require the existing `gaming.orders.manage` permission. CMS mutations cross the server-only Gaming boundary through the dedicated `GAMING_CMS_SUPPORT_TOKEN`; do not substitute the broader operations, commerce, supplier or finance credentials.
+
+Customer-facing case messages emit Gaming commerce events and are delivered by the existing notification outbox. Binary evidence upload is intentionally deferred until the governed R2 media/evidence service is implemented.

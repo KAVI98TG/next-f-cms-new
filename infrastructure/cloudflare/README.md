@@ -20,6 +20,8 @@ Set using Wrangler/Cloudflare secret management, never commit values:
 - `TURNSTILE_SECRET_KEY`
 - `SERVICE_CREDENTIAL_SECRET`
 - `NEXTF_MAIN_SITE_INGEST_TOKEN` — dedicated bearer credential for the `nextf.lk` server-to-server project-request receiver. Do not reuse the service credential or Turnstile secret.
+- `GAMING_CMS_OPERATIONS_TOKEN` — dedicated least-privilege server-to-server credential shared only with the Gaming API for exact payment-decision, fulfillment-retry and refund-mutation commands.
+- `GAMING_CMS_COMMERCE_TOKEN` — dedicated least-privilege server-to-server credential shared only with the Gaming API for promotion/campaign create-update commands. Do not reuse the operations token.
 
 Additional provider credentials should use separate least-privilege secrets.
 
@@ -34,3 +36,32 @@ Staff routes verify the Cloudflare Access JWT and then require an active exact-s
 ## Main website project-request integration
 
 The canonical production project form uses `nextf.lk` server-side Turnstile verification and then calls `POST /v1/integrations/nextf/project-requests` with a dedicated bearer token. Cloudflare Access must bypass only that exact path; the Worker still enforces the dedicated token, live Contracts authority, payload relationships and D1 idempotency. See `docs/V1.0.0-NEXTF-MAIN-SITE-PROJECT-REQUEST-INGESTION.md`.
+
+
+## v1.0.6 Gaming Live Operations Actions
+
+The CMS staff command boundary can now invoke payment review and fulfillment retry through `gaming-api.nextf.lk` without exposing any control credential to the browser. The dedicated `GAMING_CMS_OPERATIONS_TOKEN` must be configured as a Worker secret on both the CMS API Worker and Gaming API Worker.
+
+
+## v1.0.7 Gaming Refunds + Finance Operations
+
+The staff command boundary now also invokes the exact Gaming refund mutation lifecycle using the existing `GAMING_CMS_OPERATIONS_TOKEN`. Refund listing and finance evidence remain permission-gated, and the token is still not exposed to the browser or authorized for Gaming configuration/sync/list admin surfaces.
+
+
+## v1.0.8 Gaming Risk + Abuse Operations
+
+The staff command boundary now also invokes the exact Gaming risk-review mutation route through `GAMING_CMS_OPERATIONS_TOKEN`. Risk documents are read directly from shared D1 only for `gaming.orders.manage`; correlation fingerprints are stripped before browser projection. The HMAC secret itself exists only on the Gaming API Worker and is not required by CMS.
+
+
+## v1.0.9 Gaming Transactional Notifications
+
+The staff boundary projects the Gaming notification outbox from shared D1 and can invoke only the exact non-sent notification retry mutation through `GAMING_CMS_OPERATIONS_TOKEN`. Email-provider credentials and sender activation remain Gaming API Worker concerns and are never required by the CMS Worker.
+
+## v1.0.10 Gaming Commerce Analytics
+
+The staff API now exposes `staff.gaming.analytics.snapshot.get` for bounded 7/30/90-day aggregate Gaming funnel and operational analytics. The query requires `gaming.read`; finance estimates are included only for principals with `gaming.finance.manage`. Early-funnel conversion observes the v1.8.7 instrumentation coverage cutover rather than backfilling historical product views.
+
+
+## Gaming promotion campaign bridge
+
+`Gaming Store → Promotions` reads campaign state from the shared D1 and sends create/update commands to the existing Gaming API. Set the same `GAMING_CMS_COMMERCE_TOKEN` as a Worker secret on the CMS API Worker and Gaming API Worker. The credential never enters the browser and does not authorize payment/refund/risk/notification/supplier administration.

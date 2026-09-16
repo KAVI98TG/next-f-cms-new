@@ -13,7 +13,8 @@ export interface D1DatabaseLike {
 }
 export interface R2BucketLike {
   put(key: string, value: ArrayBuffer | ReadableStream | string, options?: Record<string, unknown>): Promise<unknown>;
-  get(key: string): Promise<{ body: ReadableStream; httpEtag?: string } | null>;
+  get(key: string): Promise<{ body: ReadableStream; size?: number; httpEtag?: string; httpMetadata?: { contentType?: string } } | null>;
+  head(key: string): Promise<{ size: number; httpEtag?: string; httpMetadata?: { contentType?: string } } | null>;
   delete(key: string): Promise<void>;
 }
 export interface QueueLike<T = unknown> { send(message: T, options?: Record<string, unknown>): Promise<void>; }
@@ -25,6 +26,7 @@ export interface RateLimiterLike { limit(input: { key: string }): Promise<{ succ
 export type WorkerEnv = {
   DB: D1DatabaseLike;
   FILES: R2BucketLike;
+  MEDIA: R2BucketLike;
   EVENTS: QueueLike<ProductionEvent>;
   PUBLIC_RATE_LIMITER: RateLimiterLike;
   ENVIRONMENT: "staging" | "production";
@@ -34,6 +36,15 @@ export type WorkerEnv = {
   ACCESS_TEAM_DOMAIN: string;
   ACCESS_AUD: string;
   CONTRACTS_BASE_URL: string;
+  GAMING_API_ORIGIN: string;
+  GAMING_CMS_OPERATIONS_TOKEN?: string;
+  GAMING_CMS_COMMERCE_TOKEN?: string;
+  GAMING_CMS_SUPPORT_TOKEN?: string;
+  MEDIA_ORIGIN?: string;
+  NEXTF_MEDIA_R2_BUCKET_NAME?: string;
+  NEXTF_MEDIA_R2_ACCOUNT_ID?: string;
+  NEXTF_MEDIA_R2_ACCESS_KEY_ID?: string;
+  NEXTF_MEDIA_R2_SECRET_ACCESS_KEY?: string;
   TURNSTILE_SECRET_KEY: string;
   SERVICE_CREDENTIAL_SECRET: string;
   NEXTF_MAIN_SITE_INGEST_TOKEN: string;

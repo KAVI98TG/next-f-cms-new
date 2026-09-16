@@ -1,0 +1,40 @@
+import { useEffect, useMemo, useState } from 'react';
+import { BadgeDollarSign, ChartNoAxesCombined, CircleDollarSign, Clock3, MailCheck, PackageCheck, RefreshCw, ShieldAlert, ShoppingBag, TrendingUp } from 'lucide-react';
+import { Button, Card, DataTable, MetricCard, SectionHeader, StatePanel, type DataTableColumn } from '../../shared/components';
+import { gamingLkr } from '../shared/format';
+import { loadGamingAnalyticsSnapshot, type GamingAnalyticsProduct, type GamingAnalyticsSnapshot, type GamingAnalyticsSupplier } from './analytics';
+
+const rate=(value:number|null|undefined)=>value===null||value===undefined?'—':`${value}%`;
+const minutes=(value:number|null)=>value===null?'—':value<60?`${Math.round(value)} min`:`${(value/60).toFixed(1)} h`;
+const provider=(value:string)=>value==='fazercards'?'FazerCards':value==='unrouted'?'Unrouted':value.replaceAll('_',' ');
+
+export function GamingAnalyticsPage(){
+  const [days,setDays]=useState<7|30|90>(30); const [snapshot,setSnapshot]=useState<GamingAnalyticsSnapshot>(); const [loading,setLoading]=useState(true); const [error,setError]=useState('');
+  const load=async(nextDays=days)=>{setLoading(true);setError('');try{setSnapshot(await loadGamingAnalyticsSnapshot(nextDays));}catch(err){setError(err instanceof Error?err.message:'Gaming analytics could not be loaded.');}finally{setLoading(false);}};
+  useEffect(()=>{void load(days);},[days]);
+  const funnelMax=useMemo(()=>Math.max(1,...(snapshot?.funnel.stages.map((stage)=>stage.count)??[1])),[snapshot]);
+  if(loading&&!snapshot)return <div className="page"><SectionHeader eyebrow="Gaming Store · P4" title="Commerce Analytics" description="Loading event-derived funnel and operational performance."/><StatePanel state="loading" title="Loading analytics" description="Reading canonical Gaming commerce events and operational records from the shared D1 store."/></div>;
+  if(error&&!snapshot)return <div className="page"><SectionHeader eyebrow="Gaming Store · P4" title="Commerce Analytics" description="Commerce analytics are temporarily unavailable."/><StatePanel state="error" title="Analytics unavailable" description={error} action={<Button onClick={()=>void load()}><RefreshCw size={15}/>Retry</Button>}/></div>;
+  if(!snapshot)return null;
+  const productColumns:DataTableColumn<GamingAnalyticsProduct>[]=[
+    {key:'product',header:'Product',render:(row)=><div className="entity-cell"><strong>{row.productName}</strong><small>{row.productId}</small></div>},
+    {key:'views',header:'Views',render:(row)=><strong>{row.views}</strong>},{key:'checkout',header:'Checkout',render:(row)=><span>{row.checkoutStarted}</span>},{key:'orders',header:'Orders',render:(row)=><span>{row.orders}</span>},{key:'paid',header:'Paid',render:(row)=><span>{row.paidOrders}</span>},{key:'fulfilled',header:'Fulfilled',render:(row)=><span>{row.fulfilledOrders}</span>},{key:'conversion',header:'View → order',render:(row)=><strong>{rate(row.viewToOrderRate)}</strong>},
+    ...(snapshot.capabilities.finance?[{key:'revenue',header:'Collected',render:(row:GamingAnalyticsProduct)=><strong>{gamingLkr(row.grossCollectedLkr??0)}</strong>},{key:'margin',header:'Est. margin',render:(row:GamingAnalyticsProduct)=><strong>{gamingLkr(row.estimatedMarginLkr??0)}</strong>}]:[]),
+  ];
+  const supplierColumns:DataTableColumn<GamingAnalyticsSupplier>[]=[{key:'supplier',header:'Supplier route',render:(row)=><strong>{provider(row.providerKey)}</strong>},{key:'orders',header:'Orders',render:(row)=><span>{row.orders}</span>},{key:'complete',header:'Completed',render:(row)=><span>{row.completed}</span>},{key:'failed',header:'Failed',render:(row)=><span>{row.failed}</span>},{key:'success',header:'Resolved success',render:(row)=><strong>{rate(row.successRate)}</strong>},...(snapshot.capabilities.finance?[{key:'value',header:'Paid value',render:(row:GamingAnalyticsSupplier)=><strong>{gamingLkr(row.paidValueLkr??0)}</strong>},{key:'margin',header:'Est. margin',render:(row:GamingAnalyticsSupplier)=><strong>{gamingLkr(row.estimatedMarginLkr??0)}</strong>}]:[])];
+  return <div className="page">
+    <SectionHeader eyebrow="Gaming Store · P4" title="Commerce Analytics" description="First-party funnel, conversion and commerce health derived from canonical Gaming events—not a separate tracking silo." action={<div className="analytics-window" aria-label="Analytics window">{([7,30,90] as const).map((value)=><Button key={value} variant={days===value?'primary':'secondary'} onClick={()=>setDays(value)}>{value}d</Button>)}</div>}/>
+    <div className="metric-grid">
+      <MetricCard label="Orders created" value={String(snapshot.business.orders)} detail={`${snapshot.business.verifiedOrders} payment verified`} icon={ShoppingBag}/>
+      <MetricCard label="View → order" value={rate(snapshot.funnel.overallViewToOrderRate)} detail={snapshot.dataQuality.earlyFunnelInstrumented?'Instrumented funnel':'Awaiting early-funnel data'} icon={TrendingUp}/>
+      <MetricCard label="Paid → fulfilled" value={rate(snapshot.funnel.stages.find((stage)=>stage.key==='fulfilled')?.conversionFromPrevious)} detail={`${snapshot.business.fulfilledOrders} fulfilled`} icon={PackageCheck}/>
+      <MetricCard label="Refund rate" value={rate(snapshot.business.refundRate)} detail={`${snapshot.business.refundedOrders} refunded orders`} icon={RefreshCw}/>
+    </div>
+    {snapshot.capabilities.finance?<div className="compact-metrics"><MetricCard label="Net sales" value={gamingLkr(snapshot.business.netSalesLkr??0)} detail={`${gamingLkr(snapshot.business.refundsLkr??0)} completed refunds`} icon={CircleDollarSign}/><MetricCard label="Estimated margin" value={gamingLkr(snapshot.business.estimatedMarginLkr??0)} detail="Cohort economics in selected window" icon={BadgeDollarSign}/></div>:null}
+    <Card><div className="operation-section__head"><div><span>Funnel</span><h3>Customer journey</h3></div><ChartNoAxesCombined size={18}/></div><div className="analytics-funnel">{snapshot.funnel.stages.map((stage)=><div className="analytics-funnel__row" key={stage.key}><div><strong>{stage.label}</strong><small>{stage.conversionFromPrevious===null?'Starting stage':`${rate(stage.conversionFromPrevious)} from previous stage`}</small></div><div className="analytics-funnel__bar"><span style={{width:`${Math.max(2,stage.count/funnelMax*100)}%`}}/></div><strong>{stage.count}</strong></div>)}</div><p className="muted-cell analytics-note">{snapshot.dataQuality.coverageNote}{snapshot.dataQuality.coverageStart?` Coverage starts ${new Date(snapshot.dataQuality.coverageStart).toLocaleString('en-LK')}.`:''}</p></Card>
+    <div className="compact-metrics"><MetricCard label="Risk holds" value={String(snapshot.business.riskHeld)} detail={`${rate(snapshot.business.riskHoldRate)} of assessed orders`} icon={ShieldAlert}/><MetricCard label="Notification delivery" value={rate(snapshot.business.notificationDeliveryRate)} detail={`${snapshot.business.notificationAttention} need attention`} icon={MailCheck}/><MetricCard label="Payment verification" value={minutes(snapshot.business.avgPaymentVerificationMinutes)} detail="Average order → verified" icon={Clock3}/><MetricCard label="Fulfillment" value={minutes(snapshot.business.avgFulfillmentMinutesFromPayment)} detail="Average verified → delivered" icon={PackageCheck}/></div>
+    <Card><div className="operation-section__head"><div><span>Products</span><h3>Product performance</h3></div><TrendingUp size={18}/></div><DataTable rows={snapshot.products} columns={productColumns} getKey={(row)=>row.productId} empty="No product activity has been recorded in this window."/></Card>
+    <Card><div className="operation-section__head"><div><span>Routing</span><h3>Supplier performance</h3></div><PackageCheck size={18}/></div><DataTable rows={snapshot.suppliers} columns={supplierColumns} getKey={(row)=>row.providerKey} empty="No supplier-routed orders have been recorded in this window."/></Card>
+    {error?<Card className="architecture-callout"><strong>Last refresh warning</strong><p>{error}</p></Card>:null}
+  </div>;
+}

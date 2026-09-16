@@ -285,6 +285,12 @@ export const domains: DomainDefinition[] = [
         description: "Order flow, profit and supplier status.",
       },
       {
+        label: "Live Operations",
+        path: "/gaming-store/live-operations",
+        icon: Activity,
+        description: "Production orders, payments, fulfillment jobs and commerce events.",
+      },
+      {
         label: "Orders",
         path: "/gaming-store/orders",
         icon: ShoppingBag,
@@ -315,6 +321,12 @@ export const domains: DomainDefinition[] = [
         description: "Selling prices, margins and safeguards.",
       },
       {
+        label: "Promotions",
+        path: "/gaming-store/promotions",
+        icon: BadgeDollarSign,
+        description: "Coupons, campaigns, redemption limits and margin-safe discounts.",
+      },
+      {
         label: "Suppliers",
         path: "/gaming-store/suppliers",
         icon: Boxes,
@@ -331,6 +343,12 @@ export const domains: DomainDefinition[] = [
         path: "/gaming-store/finance",
         icon: CircleDollarSign,
         description: "Payments, costs, profit and reconciliation.",
+      },
+      {
+        label: "Analytics",
+        path: "/gaming-store/analytics",
+        icon: ChartNoAxesCombined,
+        description: "Commerce funnel, conversion, product and supplier performance.",
       },
       {
         label: "Support",

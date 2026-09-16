@@ -13,6 +13,7 @@
     "ACCESS_TEAM_DOMAIN": "YOUR_TEAM.cloudflareaccess.com",
     "ACCESS_AUD": "SET_IN_ENVIRONMENT_SPECIFIC_CONFIG",
     "CONTRACTS_BASE_URL": "https://contracts.nextf.lk",
+    "GAMING_API_ORIGIN": "https://gaming-api.nextf.lk",
     "AUDIT_RETENTION_DAYS": "365",
     "OUTBOX_RETENTION_DAYS": "90"
   },

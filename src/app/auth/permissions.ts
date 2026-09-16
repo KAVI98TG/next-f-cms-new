@@ -21,6 +21,8 @@ const routePermissions: Array<[string, Permission]> = [
   ["/next-f/sites", "digital.sites.manage"],
   ["/next-f/settings", "digital.settings.manage"],
   ["/next-f", "digital.read"],
+  ["/gaming-store/live-operations", "gaming.read"],
+  ["/gaming-store/support", "gaming.orders.manage"],
   ["/gaming-store/orders", "gaming.orders.manage"],
   ["/gaming-store/products", "gaming.products.manage"],
   ["/gaming-store/pricing", "gaming.products.manage"],

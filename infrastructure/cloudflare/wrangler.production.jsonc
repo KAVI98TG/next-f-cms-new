@@ -5,7 +5,7 @@
   "compatibility_date": "2026-09-01",
   "workers_dev": false,
   "observability": { "enabled": true },
-  "routes": [{ "pattern": "cms-api.nextf.lk", "custom_domain": true }],
+  "routes": [{ "pattern": "cms-api.nextf.lk", "custom_domain": true }, { "pattern": "media.nextf.lk", "custom_domain": true }],
   "vars": {
     "ENVIRONMENT": "production",
     "CMS_ORIGIN": "https://cms.nextf.lk",
@@ -14,11 +14,14 @@
     "ACCESS_TEAM_DOMAIN": "plain-surf-8d0d.cloudflareaccess.com",
     "ACCESS_AUD": "dda0e3d9ec0ee3e1dc7528b9f0df9ea143b6d16f29aebdc54b8b2efba0952ff9",
     "CONTRACTS_BASE_URL": "https://contracts.nextf.lk",
+    "GAMING_API_ORIGIN": "https://gaming-api.nextf.lk",
+    "MEDIA_ORIGIN": "https://media.nextf.lk",
+    "NEXTF_MEDIA_R2_BUCKET_NAME": "nextf-media-production",
     "AUDIT_RETENTION_DAYS": "365",
     "OUTBOX_RETENTION_DAYS": "90"
   },
   "d1_databases": [{ "binding": "DB", "database_name": "nextf-cms-production", "database_id": "3156cd12-fece-42d1-b26a-fa8640a6aa53", "migrations_dir": "migrations" }],
-  "r2_buckets": [{ "binding": "FILES", "bucket_name": "nextf-cms-production-files" }],
+  "r2_buckets": [{ "binding": "FILES", "bucket_name": "nextf-cms-production-files" }, { "binding": "MEDIA", "bucket_name": "nextf-media-production" }],
   "queues": {
     "producers": [{ "binding": "EVENTS", "queue": "nextf-cms-production-events" }],
     "consumers": [{ "queue": "nextf-cms-production-events", "dead_letter_queue": "nextf-cms-production-events-dlq", "max_retries": 3 }]
