@@ -4,9 +4,9 @@ import type { PublicGamingProductProjection, PublicGamingOfferProjection, Public
 import { localGamingPublicService } from "../runtime/publicGamingService";
 import { useVNextStore } from "../runtime/useVNextStore";
 import { gamingVNextStore } from "../runtime/store";
-import { readExternalCapability } from "../../../services/production";
+import { readRuntimeTruth } from "../../../services/production";
 
-const publicStorefrontCapability=readExternalCapability("gaming.public-storefront");
+const publicStorefrontRuntime=readRuntimeTruth();
 
 const lkr = (value: number) => new Intl.NumberFormat("en-LK", { style: "currency", currency: "LKR", maximumFractionDigits: 0 }).format(value);
 const typeNames: Record<string,string> = { topup:"Game Top-Ups", gift_card:"Gift Cards", game_key:"Game Keys", steam_wallet:"Steam Wallet", steam_gift:"Steam Gifts", telegram_stars:"Telegram Stars", telegram_premium:"Telegram Premium", manual_service:"Services", subscription:"Subscriptions" };
@@ -25,7 +25,7 @@ function FieldInput({ field, value, onChange }: { field: PublicGamingOfferProjec
 }
 
 export function PublicGamingStorefront() {
-  if(!publicStorefrontCapability.available) return <div className="gaming-public"><main><section className="gp-hero"><div><span className="gp-kicker"><ShieldCheck size={14}/> Production integration status</span><h1>Gaming storefront <em>not connected.</em></h1><p>The CMS catalog is available for administration, but production checkout, payment and supplier fulfillment remain disabled until the real Gaming site and backend adapters are connected.</p><div className="gp-trust"><span><ShieldCheck size={16}/> No simulated payment</span><span><BadgeCheck size={16}/> No fake supplier fulfillment</span><span><Zap size={16}/> Integration required</span></div></div><div className="gp-hero-card"><Gamepad2/><strong>CMS catalog ready.<br/>Public commerce pending.</strong><p>Connect the production Gaming site to NEXT F backend APIs before enabling customer checkout.</p></div></section></main></div>;
+  if(!publicStorefrontRuntime.allowsSimulation) return <div className="gaming-public"><main><section className="gp-hero"><div><span className="gp-kicker"><ShieldCheck size={14}/> Production storefront</span><h1>Open the live <em>NEXT F Gaming</em> storefront.</h1><p>The embedded CMS storefront is a local-development simulator only. Production customer browsing and checkout run on the dedicated Gaming storefront.</p><div className="gp-trust"><span><ShieldCheck size={16}/> Production API</span><span><BadgeCheck size={16}/> Live supplier fulfillment</span><span><Zap size={16}/> Dedicated storefront</span></div><a className="gp-primary-action" href="https://gaming.nextf.lk" target="_blank" rel="noreferrer">Open gaming.nextf.lk</a></div><div className="gp-hero-card"><Gamepad2/><strong>CMS manages.<br/>Gaming sells.</strong><p>Use this CMS for catalog and merchandising control; use the live storefront for the customer experience.</p></div></section></main></div>;
   return <LocalPublicGamingStorefront/>;
 }
 

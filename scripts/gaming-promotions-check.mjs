@@ -12,7 +12,7 @@ check('CMS declares separate commerce secret',env.includes('GAMING_CMS_COMMERCE_
 check('promotion commands use commerce token not operations token',control.includes('token:env.GAMING_CMS_COMMERCE_TOKEN')&&!control.match(/createGamingPromotion[\s\S]{0,600}GAMING_CMS_OPERATIONS_TOKEN/));
 check('control validates campaign mode discount schedule and limits',control.includes('PROMOTION_MODE_INVALID')&&control.includes('PROMOTION_DISCOUNT_VALUE_INVALID')&&control.includes('PROMOTION_START_INVALID')&&control.includes('PROMOTION_MAX_REDEMPTIONS_INVALID'));
 check('frontend uses staff API without exposing commerce secret',service.includes('staff.gaming.promotions.snapshot.get')&&service.includes('staff.gaming.promotion.create')&&!service.includes('GAMING_CMS_COMMERCE_TOKEN'));
-check('CMS page exposes campaign state and usage metrics',page.includes('Active campaigns')&&page.includes('Redemptions')&&page.includes('Discount granted'));
+check('CMS page exposes campaign state and usage metrics',page.includes('promotion-overview-grid')&&page.includes('Active')&&page.includes('Scheduled')&&page.includes('Draft')&&page.includes('Redemptions')&&page.includes('Discount granted'));
 check('CMS editor supports coupon automatic schedule scope and limits',page.includes('Coupon code')&&page.includes('Automatic campaign')&&page.includes('Starts at')&&page.includes('Product IDs')&&page.includes('Per-customer limit'));
 check('CMS communicates protected margin behavior',page.includes('Discounts cannot bypass margin protection')&&page.includes('Margin floor'));
 check('CMS route and navigation are registered',app.includes('/gaming-store/promotions')&&nav.includes('/gaming-store/promotions'));

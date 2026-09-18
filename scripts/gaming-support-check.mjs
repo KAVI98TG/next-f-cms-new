@@ -11,10 +11,10 @@ check('snapshot includes live commerce context without recovery secrets',backend
 check('SLA breach is computed server side',backend.includes('firstResponseBreached')&&backend.includes('resolutionBreached'));
 check('frontend reads support through production staff API',service.includes('staff.gaming.support.snapshot.get')&&service.includes('staff.gaming.support.case.create')&&service.includes('staff.gaming.support.case.command'));
 check('frontend never exposes support credential',!service.includes('GAMING_CMS_SUPPORT_TOKEN')&&!page.includes('GAMING_CMS_SUPPORT_TOKEN'));
-check('support page exposes active urgent and SLA metrics',page.includes('Active cases')&&page.includes('Urgent')&&page.includes('SLA breached')&&page.includes('Waiting customer'));
-check('support page supports assignment status and priority',page.includes('Assign to me')&&page.includes("command('set_status'")&&page.includes("command('set_priority'"));
-check('support page separates internal and customer messaging',page.includes('Internal note')&&page.includes('Customer message')&&page.includes('send_customer_message'));
-check('support page uses governed private media evidence boundary',page.includes('Evidence boundary')&&page.includes('Private screenshots/images/PDFs are stored in NEXT F Media')&&page.includes('Payment reconciliation secrets remain in Finance')&&page.includes('Upload private evidence'));
+check('support page exposes active ownership SLA and customer queues',page.includes('Active</span>')&&page.includes('Unassigned</span>')&&page.includes('SLA risk</span>')&&page.includes('Waiting customer</span>'));
+check('support page supports assignment status and priority',page.includes('Assign to me')&&page.includes('Take case')&&page.includes('set_status')&&page.includes('set_priority'));
+check('support page separates internal and customer messaging',page.includes('Internal note')&&page.includes('Reply to customer')&&page.includes('send_customer_message'));
+check('support page uses governed private media evidence boundary',page.includes('Private support evidence')&&page.includes('NEXT F Media')&&page.includes('Payment reconciliation secrets remain in Finance')&&page.includes('Upload private evidence'));
 check('route and navigation remain registered',app.includes('/gaming-store/support')&&nav.includes('/gaming-store/support'));
-check('mutations are disabled when support bridge is read only',page.includes('snapshot?.capabilities.manage')&&page.includes('Read-only boundary'));
+check('mutations are disabled when support bridge is read only',page.includes('snapshot?.capabilities.manage')&&page.includes('Read-only support workspace'));
 const failed=checks.filter(c=>!c.ok); for(const c of checks)console.log(`${c.ok?'PASS':'FAIL'}  ${c.name}`); console.log(`\n${checks.length-failed.length}/${checks.length} Gaming support checks passed.`); if(failed.length)process.exit(1);

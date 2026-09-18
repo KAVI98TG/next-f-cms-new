@@ -10,6 +10,7 @@ import { gamingSupportSnapshot } from "./gamingSupport";
 import { gamingCustomersSnapshot } from "./gamingCustomers";
 import { GamingControlError, commandGamingSupportCase, completeGamingRefund, createGamingPromotion, createGamingRefund, createGamingSupportCase, decideGamingRefund, decideGamingRisk, markGamingRefundSent, reviewGamingPayment, retryGamingFulfillment, retryGamingNotification, updateGamingPromotion } from "./gamingControl";
 import { createMediaUpload, finalizeMediaUpload } from "./media";
+import { CheckoutControlError, checkoutPaymentsSnapshot, checkCheckoutProviderHealth, rotateCheckoutSecret, updateCheckoutBusiness, updateCheckoutBusinessRule, updateCheckoutMarketRule, updateCheckoutProvider } from "./checkoutControl";
 
 export type StaffAccessIdentity = { subject:string; email:string; assurance:"cloudflare-access" };
 export type StaffPrincipal = { principalId:string; staffUserId:string; accountId:string; organizationId:string; permissions:string[]; email:string };
@@ -146,6 +147,11 @@ export async function handleStaffQuery(input:{operation:string;body:StaffRequest
   if(input.operation==="staff.gaming.customers.snapshot.get"){
     if(!hasPermission(input.principal,"gaming.orders.manage")) throw new StaffApiError(403,"FORBIDDEN","Gaming order management permission is required");
     return gamingCustomersSnapshot(input.env.DB,input.principal);
+  }
+  if(input.operation==="staff.checkout.payments.snapshot.get"){
+    if(!hasPermission(input.principal,"platform.read")) throw new StaffApiError(403,"FORBIDDEN","Platform read permission is required");
+    const body=(input.body.input||{}) as any;
+    try{return await checkoutPaymentsSnapshot(input.env,input.principal,typeof body.businessId==="string"?body.businessId:undefined)}catch(error){if(error instanceof CheckoutControlError)throw new StaffApiError(error.status,error.code,error.message);throw error}
   }
   if(input.operation==="staff.state.document.get"){
     const record=input.body.input as Record<string,unknown>|undefined; const key=assertStateKey(record?.key);
@@ -342,6 +348,36 @@ export async function handleStaffCommand(input:{operation:string;body:StaffReque
       const orderId=typeof job?.orderId==="string"?job.orderId:"";
       await recordAudit(input.env.DB,{id:crypto.randomUUID(),action:input.operation,principalKind:"staff",principalId:input.principal.accountId,organizationId:input.principal.organizationId,targetType:"gaming.fulfillment.job",targetId:response.jobId,outcome:"queued",requestId:input.requestId,correlationId:input.correlationId,detail:JSON.stringify({orderId:orderId||undefined,jobId:response.jobId})});
       return response;
+    }
+    if(input.operation==="staff.checkout.provider.update"){
+      if(!hasPermission(input.principal,"platform.settings.manage")) throw new StaffApiError(403,"FORBIDDEN","Platform settings permission is required");
+      const body=(input.body.input||{}) as any; const key=String(body.providerKey||'').trim(); if(!key)throw new StaffApiError(400,"PROVIDER_REQUIRED","Provider key is required");
+      try{return await updateCheckoutProvider(input.env,input.principal,key,body.config||{})}catch(error){if(error instanceof CheckoutControlError)throw new StaffApiError(error.status,error.code,error.message);throw error}
+    }
+    if(input.operation==="staff.checkout.provider.health"){
+      if(!hasPermission(input.principal,"platform.settings.manage")) throw new StaffApiError(403,"FORBIDDEN","Platform settings permission is required");
+      const body=(input.body.input||{}) as any; const key=String(body.providerKey||'').trim(); if(!key)throw new StaffApiError(400,"PROVIDER_REQUIRED","Provider key is required");
+      try{return await checkCheckoutProviderHealth(input.env,input.principal,key)}catch(error){if(error instanceof CheckoutControlError)throw new StaffApiError(error.status,error.code,error.message);throw error}
+    }
+    if(input.operation==="staff.checkout.business.update"){
+      if(!hasPermission(input.principal,"platform.settings.manage")) throw new StaffApiError(403,"FORBIDDEN","Platform settings permission is required");
+      const body=(input.body.input||{}) as any; const businessId=String(body.businessId||'').trim(); if(!businessId)throw new StaffApiError(400,"BUSINESS_REQUIRED","Business id is required");
+      try{return await updateCheckoutBusiness(input.env,input.principal,businessId,body.config||{})}catch(error){if(error instanceof CheckoutControlError)throw new StaffApiError(error.status,error.code,error.message);throw error}
+    }
+    if(input.operation==="staff.checkout.business-rule.update"){
+      if(!hasPermission(input.principal,"platform.settings.manage")) throw new StaffApiError(403,"FORBIDDEN","Platform settings permission is required");
+      const body=(input.body.input||{}) as any; const providerKey=String(body.providerKey||'').trim(), businessId=String(body.businessId||'').trim(); if(!providerKey||!businessId)throw new StaffApiError(400,"RULE_TARGET_REQUIRED","Provider and business are required");
+      try{return await updateCheckoutBusinessRule(input.env,input.principal,providerKey,businessId,body.rule||{})}catch(error){if(error instanceof CheckoutControlError)throw new StaffApiError(error.status,error.code,error.message);throw error}
+    }
+    if(input.operation==="staff.checkout.market-rule.update"){
+      if(!hasPermission(input.principal,"platform.settings.manage")) throw new StaffApiError(403,"FORBIDDEN","Platform settings permission is required");
+      const body=(input.body.input||{}) as any; const providerKey=String(body.providerKey||'').trim(), businessId=String(body.businessId||'').trim(), marketId=String(body.marketId||'').trim(), currency=String(body.currency||'*').trim().toUpperCase(); if(!providerKey||!businessId||!marketId)throw new StaffApiError(400,"RULE_TARGET_REQUIRED","Provider, business and market are required");
+      try{return await updateCheckoutMarketRule(input.env,input.principal,providerKey,businessId,marketId,currency,body.rule||{})}catch(error){if(error instanceof CheckoutControlError)throw new StaffApiError(error.status,error.code,error.message);throw error}
+    }
+    if(input.operation==="staff.checkout.secret.rotate"){
+      if(!hasPermission(input.principal,"platform.security.manage")) throw new StaffApiError(403,"FORBIDDEN","Platform security permission is required");
+      const body=(input.body.input||{}) as any; const logicalKey=String(body.logicalKey||'').trim(), value=String(body.value||''); if(!logicalKey||value.length<8)throw new StaffApiError(400,"SECRET_INPUT_INVALID","Choose a supported secret and provide a valid replacement value");
+      try{return await rotateCheckoutSecret(input.env,input.principal,logicalKey,value)}catch(error){if(error instanceof CheckoutControlError)throw new StaffApiError(error.status,error.code,error.message);throw error}
     }
     if(input.operation==="staff.state.document.put"){
       const key=assertStateKey(commandInput?.key); if(!stateWriteAllowed(input.principal,key)) throw new StaffApiError(403,"FORBIDDEN","Staff permission does not allow this durable state mutation");

@@ -50,6 +50,15 @@ export async function gamingAnalyticsSnapshot(db:D1DatabaseLike, principal:Princ
   const uniqueOrderIds=(rows:typeof funnelEvents, action:string, outcome?:string)=>new Set(rows.filter((row)=>row.action===action&&(!outcome||row.outcome===outcome)).map((row)=>text(row.detailObject.orderId)||(row.target_type==='gaming.order'?row.target_id:'')).filter(Boolean));
   const productViews=funnelEvents.filter((row)=>row.action==='gaming.analytics.product_view');
   const checkoutStarts=funnelEvents.filter((row)=>row.action==='gaming.analytics.checkout_started');
+  const storefrontEventActions=new Set(['gaming.analytics.page_view','gaming.analytics.product_view','gaming.analytics.search','gaming.analytics.filter_used','gaming.analytics.offer_selected','gaming.analytics.support_opened']);
+  const storefrontEvents=funnelEvents.filter((row)=>storefrontEventActions.has(row.action));
+  const storefrontCount=(action:string)=>storefrontEvents.filter((row)=>row.action===action).length;
+  const lastStorefrontEvent=storefrontEvents.length?storefrontEvents[storefrontEvents.length-1].created_at:undefined;
+  const lastStorefrontAgeMs=lastStorefrontEvent?generatedAt.getTime()-Date.parse(lastStorefrontEvent):Number.POSITIVE_INFINITY;
+  const trackingStatus=lastStorefrontEvent?(lastStorefrontAgeMs<=86_400_000?'active':'quiet'):'awaiting';
+  const pageMap=new Map<string,number>();
+  for(const row of storefrontEvents){ if(row.action!=='gaming.analytics.page_view') continue; const path=text(row.detailObject.path)||'/'; pageMap.set(path,(pageMap.get(path)||0)+1); }
+  const landingPages=[...pageMap.entries()].map(([path,views])=>({path,views})).sort((a,b)=>b.views-a.views);
   const createdOrders=uniqueOrderIds(funnelEvents,'gaming.checkout.create','success');
   const paymentSubmitted=uniqueOrderIds(funnelEvents,'gaming.manual-payment.proof.submit','success');
   const paymentVerified=uniqueOrderIds(funnelEvents,'gaming.manual-payment.review','verified');
@@ -75,6 +84,19 @@ export async function gamingAnalyticsSnapshot(db:D1DatabaseLike, principal:Princ
   }
 
   const orders=ordersRows.map((row)=>row.value);
+  const attributionMap=new Map<string,any>();
+  for(const row of orders){
+    const attribution=row?.attribution&&typeof row.attribution==='object'?row.attribution:{};
+    const source=text(attribution?.source)||'direct';
+    const medium=text(attribution?.medium)||'none';
+    const campaign=text(attribution?.campaign)||'—';
+    const key=`${source}\u0000${medium}\u0000${campaign}`;
+    if(!attributionMap.has(key)) attributionMap.set(key,{source,medium,campaign,orders:0,verifiedOrders:0,fulfilledOrders:0,grossCollectedLkr:0,estimatedMarginLkr:0});
+    const item=attributionMap.get(key); item.orders++;
+    if(row?.payment?.state==='verified'){ item.verifiedOrders++; item.grossCollectedLkr+=money(row?.amountLkr); item.estimatedMarginLkr+=money(row?.economics?.marginLkr); }
+    if(row?.status==='completed') item.fulfilledOrders++;
+  }
+  const acquisition=[...attributionMap.values()].map((item)=>({...item,paidRate:pct(item.verifiedOrders,item.orders),...(finance?{}:{grossCollectedLkr:undefined,estimatedMarginLkr:undefined})})).sort((a,b)=>b.orders-a.orders||b.verifiedOrders-a.verifiedOrders).slice(0,20);
   const refunds=refundRows.map((row)=>row.value);
   const notifications=notificationRows.map((row)=>row.value);
   const completedRefunds=refunds.filter((row:any)=>row?.status==='completed'&&text(row?.completedAt)>=windowStart);
@@ -131,6 +153,8 @@ export async function gamingAnalyticsSnapshot(db:D1DatabaseLike, principal:Princ
     source:'shared-d1-events' as const, generatedAt:generatedAt.toISOString(), window:{days,startAt:windowStart,endAt:generatedAt.toISOString()},
     dataQuality:{earlyFunnelInstrumented,coverageStart:earlyFunnelInstrumented?coverageStart:undefined,coverageNote:earlyFunnelInstrumented?'Early-funnel conversion uses only events from the instrumentation coverage start.':'Early-funnel instrumentation has not recorded a product view or checkout start yet.'},
     capabilities:{finance},
+    tracking:{status:trackingStatus,lastEventAt:lastStorefrontEvent,eventCount:storefrontEvents.length,pageViews:storefrontCount('gaming.analytics.page_view'),productViews:storefrontCount('gaming.analytics.product_view'),searches:storefrontCount('gaming.analytics.search'),filterUses:storefrontCount('gaming.analytics.filter_used'),offerSelections:storefrontCount('gaming.analytics.offer_selected'),supportOpens:storefrontCount('gaming.analytics.support_opened'),landingPages},
+    acquisition,
     funnel:{stages,overallViewToOrderRate:pct(createdOrders.size,productViews.length),overallViewToFulfilledRate:pct(fulfilled.size,productViews.length)},
     business:{orders:orders.length,verifiedOrders:verifiedOrders.length,fulfilledOrders:fulfilledOrders.length,refundedOrders:refundedOrders.size,refundRate:pct(refundedOrders.size,verifiedOrders.length),riskAssessed:riskAssessed.length,riskHeld:riskHeld.length,riskHoldRate:pct(riskHeld.length,riskAssessed.length),riskReleased:riskReleased.length,notifications:notifications.length,notificationSent:sentNotifications,notificationAttention,notificationDeliveryRate:pct(sentNotifications,notifications.length),avgPaymentVerificationMinutes:avg(paymentMinutes),avgFulfillmentMinutesFromPayment:avg(fulfillmentMinutes),...(finance?{grossCollectedLkr,refundsLkr,netSalesLkr:grossCollectedLkr-refundsLkr,supplierCostLkr,gatewayFeesLkr,supplierRecoveriesLkr,gatewayRecoveriesLkr,estimatedMarginLkr:grossCollectedLkr-refundsLkr-supplierCostLkr-gatewayFeesLkr+supplierRecoveriesLkr+gatewayRecoveriesLkr}:{})},
     daily:[...dailyMap.values()], products, suppliers,

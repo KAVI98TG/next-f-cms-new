@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Activity, CircleDollarSign, Eye, Mail, RefreshCw, RotateCcw, Route, ShieldCheck, ShoppingBag } from "lucide-react";
-import { Button, Card, ConfirmDialog, DataTable, Drawer, FormField, KeyValueList, MetricCard, Modal, PageToolbar, SectionHeader, SelectInput, StatePanel, TextInput, Toggle, type DataTableColumn } from "../../shared/components";
+import { Activity, AlertTriangle, CheckCircle2, CircleDollarSign, Eye, Mail, PackageCheck, RefreshCw, RotateCcw, ShieldCheck, ShoppingBag, SlidersHorizontal } from "lucide-react";
+import { Button, Card, ConfirmDialog, DataTable, Drawer, FormField, KeyValueList, Modal, PageToolbar, SectionHeader, SelectInput, StatePanel, TextInput, Toggle, type DataTableColumn } from "../../shared/components";
 import { useToast } from "../../shared/feedback/ToastProvider";
 import { GamingStatus } from "../shared/GamingStatus";
 import { gamingDate, gamingLkr } from "../shared/format";
@@ -27,6 +27,7 @@ export function LiveOperationsPage(){
   const [loading,setLoading]=useState(true);
   const [tab,setTab]=useState<"orders"|"payments"|"fulfillment"|"risk"|"refunds"|"notifications"|"events">("orders");
   const [query,setQuery]=useState("");
+  const [queueFilter,setQueueFilter]=useState("all");
   const [selectedOrderId,setSelectedOrderId]=useState<string|null>(null);
   const [reviewProof,setReviewProof]=useState<LivePaymentProof|null>(null);
   const [paymentDraft,setPaymentDraft]=useState<PaymentDraft>({decision:"verified",statementReference:"",receivedAmountLkr:"",receivedAt:localDateTime(),destinationConfirmed:false,note:""});
@@ -52,14 +53,45 @@ export function LiveOperationsPage(){
   const timeline=useMemo(()=>snapshot?.events.filter((event)=>event.orderId===selectedOrderId)??[],[snapshot,selectedOrderId]);
   const selectedRefunds=useMemo(()=>snapshot?.refunds.filter((refund)=>refund.orderId===selectedOrderId)??[],[snapshot,selectedOrderId]);
   const normalized=query.trim().toLowerCase();
-  const orders=(snapshot?.orders??[]).filter((order)=>`${order.orderNumber} ${order.productName} ${order.offerName} ${order.customer.email} ${order.status} ${order.payment.providerKey}`.toLowerCase().includes(normalized));
-  const proofs=(snapshot?.paymentProofs??[]).filter((proof)=>`${proof.orderNumber} ${proof.reference} ${proof.paymentMethodLabel} ${proof.status}`.toLowerCase().includes(normalized));
-  const jobs=(snapshot?.fulfillmentJobs??[]).filter((job)=>`${job.orderId} ${job.jobId} ${job.providerKey??""} ${job.state} ${job.lastError??""}`.toLowerCase().includes(normalized));
-  const refunds=(snapshot?.refunds??[]).filter((refund)=>`${refund.orderNumber} ${refund.refundId} ${refund.reasonCode} ${refund.paymentProviderKey} ${refund.status}`.toLowerCase().includes(normalized));
-  const risks=(snapshot?.riskAssessments??[]).filter((risk)=>`${risk.orderNumber} ${risk.assessmentId} ${risk.level} ${risk.state} ${risk.signals.map((signal)=>signal.code).join(" ")}`.toLowerCase().includes(normalized));
-  const notifications=(snapshot?.notifications??[]).filter((notification)=>`${notification.orderNumber} ${notification.notificationId} ${notification.recipient.email} ${notification.templateKey} ${notification.providerKey} ${notification.state} ${notification.lastError??""}`.toLowerCase().includes(normalized));
+  const baseOrders=(snapshot?.orders??[]).filter((order)=>`${order.orderNumber} ${order.productName} ${order.offerName} ${order.customer.email} ${order.status} ${order.payment.providerKey}`.toLowerCase().includes(normalized));
+  const baseProofs=(snapshot?.paymentProofs??[]).filter((proof)=>`${proof.orderNumber} ${proof.reference} ${proof.paymentMethodLabel} ${proof.status}`.toLowerCase().includes(normalized));
+  const baseJobs=(snapshot?.fulfillmentJobs??[]).filter((job)=>`${job.orderId} ${job.jobId} ${job.providerKey??""} ${job.state} ${job.lastError??""}`.toLowerCase().includes(normalized));
+  const baseRefunds=(snapshot?.refunds??[]).filter((refund)=>`${refund.orderNumber} ${refund.refundId} ${refund.reasonCode} ${refund.paymentProviderKey} ${refund.status}`.toLowerCase().includes(normalized));
+  const baseRisks=(snapshot?.riskAssessments??[]).filter((risk)=>`${risk.orderNumber} ${risk.assessmentId} ${risk.level} ${risk.state} ${risk.signals.map((signal)=>signal.code).join(" ")}`.toLowerCase().includes(normalized));
+  const baseNotifications=(snapshot?.notifications??[]).filter((notification)=>`${notification.orderNumber} ${notification.notificationId} ${notification.recipient.email} ${notification.templateKey} ${notification.providerKey} ${notification.state} ${notification.lastError??""}`.toLowerCase().includes(normalized));
   const selectedRisk=(snapshot?.riskAssessments??[]).find((risk)=>risk.orderId===selectedOrderId);
-  const events=(snapshot?.events??[]).filter((event)=>`${event.eventType} ${event.action} ${event.orderId??""} ${event.outcome}`.toLowerCase().includes(normalized));
+  const baseEvents=(snapshot?.events??[]).filter((event)=>`${event.eventType} ${event.action} ${event.orderId??""} ${event.outcome}`.toLowerCase().includes(normalized));
+
+  const orders=baseOrders.filter((order)=>queueFilter==="all"||order.status===queueFilter);
+  const proofs=baseProofs.filter((proof)=>queueFilter==="all"||proof.status===queueFilter);
+  const jobs=baseJobs.filter((job)=>queueFilter==="all"||(queueFilter==="attention"?["retry","blocked","failed"].includes(job.state):job.state===queueFilter));
+  const refunds=baseRefunds.filter((refund)=>queueFilter==="all"||(queueFilter==="active"?["requested","approved","sent"].includes(refund.status):refund.status===queueFilter));
+  const risks=baseRisks.filter((risk)=>queueFilter==="all"||(queueFilter==="attention"?["held","review"].includes(risk.state):queueFilter==="high"?["high","critical"].includes(risk.level):risk.state===queueFilter));
+  const notifications=baseNotifications.filter((notification)=>queueFilter==="all"||(queueFilter==="attention"?["retry","blocked","failed"].includes(notification.state):notification.state===queueFilter));
+  const events=baseEvents.filter((event)=>queueFilter==="all"||event.outcome===queueFilter);
+
+  const paymentAttention=(snapshot?.paymentProofs??[]).filter((proof)=>proof.status==="pending_review").length;
+  const fulfillmentAttention=snapshot?.summary.fulfillmentAttention??0;
+  const riskAttention=(snapshot?.riskAssessments??[]).filter((risk)=>["held","review"].includes(risk.state)).length;
+  const refundAttention=(snapshot?.refunds??[]).filter((refund)=>["requested","approved","sent"].includes(refund.status)).length;
+  const notificationAttention=snapshot?.summary.notificationAttention??0;
+  const totalAttention=paymentAttention+fulfillmentAttention+riskAttention+refundAttention+notificationAttention;
+  const activeOrders=(snapshot?.orders??[]).filter((order)=>!["completed","failed","refunded","cancelled"].includes(order.status)).length;
+  const recentActivity=(snapshot?.events??[]).slice(0,8);
+
+  const queueOptions=tab==="orders"
+    ? [["all","All states"],["payment_pending","Payment pending"],["processing","Processing"],["completed","Completed"],["failed","Failed"]]
+    : tab==="payments"
+      ? [["all","All reviews"],["pending_review","Needs review"],["verified","Verified"],["rejected","Rejected"]]
+      : tab==="fulfillment"
+        ? [["all","All jobs"],["attention","Needs attention"],["processing","Processing"],["completed","Completed"]]
+        : tab==="risk"
+          ? [["all","All assessments"],["attention","Needs review"],["high","High / critical"],["released","Released"]]
+          : tab==="refunds"
+            ? [["all","All refunds"],["active","Active workflow"],["completed","Completed"],["rejected","Rejected"]]
+            : tab==="notifications"
+              ? [["all","All notifications"],["attention","Needs attention"],["pending","Pending"],["sent","Sent"]]
+              : [["all","All outcomes"],["success","Success"],["failed","Failed"],["verified","Verified"],["completed","Completed"]];
 
   const completedRefundFor=(orderId:string)=>(snapshot?.refunds??[]).filter((refund)=>refund.orderId===orderId&&refund.status==="completed").reduce((sum,refund)=>sum+refund.amountLkr,0);
   const activeRefundFor=(orderId:string)=>(snapshot?.refunds??[]).find((refund)=>refund.orderId===orderId&&["requested","approved","sent"].includes(refund.status));
@@ -225,37 +257,71 @@ export function LiveOperationsPage(){
     {key:"time",header:"Time",render:(row)=><span className="muted-cell">{gamingDate(row.createdAt)}</span>},
   ];
 
-  return <div className="page">
-    <SectionHeader eyebrow="Gaming Store · P4" title="Live Operations" description="Operate real Gaming payments, fulfillment, risk, refunds and customer notifications while the Gaming API remains the single owner of commerce business rules and delivery transitions." action={<Button onClick={()=>void load()} disabled={loading||actionBusy}><RefreshCw size={15}/>Refresh</Button>}/>
+  return <div className="page live-operations-page">
+    <SectionHeader eyebrow="Gaming Store · Operations" title="Live Operations" description="Monitor and operate payment, fulfillment, risk, refund and notification queues from one production command center." action={<Button onClick={()=>void load()} disabled={loading||actionBusy}><RefreshCw size={15}/>Refresh</Button>}/>
     {loading&&!snapshot?<StatePanel state="loading" title="Loading live Gaming operations" description="Reading the shared order, payment, fulfillment, risk, refund, notification and audit state."/>:error&&!snapshot?<StatePanel state="error" title="Live operations unavailable" description={error} action={<Button onClick={()=>void load()}><RefreshCw size={15}/>Retry</Button>}/>:snapshot?<>
-      <div className="compact-metrics">
-        <MetricCard label="Live orders" value={String(snapshot.summary.totalOrders)} detail={`${snapshot.summary.completed} completed`} icon={ShoppingBag}/>
-        <MetricCard label="Payment review" value={String(snapshot.summary.paymentReview||snapshot.summary.pendingPaymentProofs)} detail={`${snapshot.summary.paymentPending} awaiting payment`} icon={CircleDollarSign}/>
-        <MetricCard label="Refund workflow" value={String(snapshot.refunds.filter((refund)=>["requested","approved","sent"].includes(refund.status)).length)} detail={snapshot.capabilities.finance?`${gamingLkr(snapshot.summary.pendingRefundsLkr??0)} pending`:`${snapshot.summary.refundPending} orders pending`} icon={RotateCcw}/>
-        <MetricCard label="Notification attention" value={String(snapshot.summary.notificationAttention)} detail={`${snapshot.summary.notificationSent} sent · ${snapshot.summary.notificationPending} pending`} icon={Mail}/>
-        <MetricCard label={snapshot.capabilities.finance?"Net recorded sales":"Commerce events"} value={snapshot.capabilities.finance?gamingLkr(snapshot.summary.netSalesLkr??snapshot.summary.grossSalesLkr??0):String(snapshot.events.length)} detail={snapshot.source==="shared-d1"?"Shared production D1":"Local development projection"} icon={snapshot.capabilities.finance?ShieldCheck:Activity}/>
+      <div className="live-ops-status-grid">
+        <button className="live-ops-stat" onClick={()=>{setTab("orders");setQuery("");setQueueFilter("all");}}><span><ShoppingBag size={15}/>Active orders</span><strong>{activeOrders}</strong><small>{snapshot.summary.totalOrders} total recorded</small></button>
+        <button className={`live-ops-stat ${paymentAttention?"is-warning":""}`} onClick={()=>{setTab("payments");setQuery("");setQueueFilter(paymentAttention?"pending_review":"all");}}><span><CircleDollarSign size={15}/>Payment review</span><strong>{paymentAttention}</strong><small>{paymentAttention?"operator review required":"queue clear"}</small></button>
+        <button className={`live-ops-stat ${fulfillmentAttention?"is-danger":""}`} onClick={()=>{setTab("fulfillment");setQuery("");setQueueFilter(fulfillmentAttention?"attention":"all");}}><span><PackageCheck size={15}/>Fulfillment</span><strong>{fulfillmentAttention}</strong><small>{fulfillmentAttention?"jobs need attention":"no blocked jobs"}</small></button>
+        <button className={`live-ops-stat ${riskAttention?"is-warning":""}`} onClick={()=>{setTab("risk");setQuery("");setQueueFilter(riskAttention?"attention":"all");}}><span><ShieldCheck size={15}/>Risk holds</span><strong>{riskAttention}</strong><small>{riskAttention?"reviews waiting":"no active holds"}</small></button>
+        <button className={`live-ops-stat ${refundAttention?"is-warning":""}`} onClick={()=>{setTab("refunds");setQuery("");setQueueFilter(refundAttention?"active":"all");}}><span><RotateCcw size={15}/>Refunds</span><strong>{refundAttention}</strong><small>{snapshot.capabilities.finance?`${gamingLkr(snapshot.summary.pendingRefundsLkr??0)} pending`:"finance restricted"}</small></button>
+        <button className={`live-ops-stat ${notificationAttention?"is-warning":""}`} onClick={()=>{setTab("notifications");setQuery("");setQueueFilter(notificationAttention?"attention":"all");}}><span><Mail size={15}/>Notifications</span><strong>{notificationAttention}</strong><small>{snapshot.summary.notificationPending} pending · {snapshot.summary.notificationSent} sent</small></button>
+        <div className="live-ops-stat live-ops-stat--sales"><span><CircleDollarSign size={15}/>{snapshot.capabilities.finance?"Net sales":"Commerce events"}</span><strong>{snapshot.capabilities.finance?gamingLkr(snapshot.summary.netSalesLkr??snapshot.summary.grossSalesLkr??0):snapshot.events.length}</strong><small>{snapshot.source==="shared-d1"?"shared production D1":"local projection"}</small></div>
       </div>
-      <Card>
-        <div className="segmented-nav">
-          <button className={tab==="orders"?"is-active":""} onClick={()=>{setTab("orders");setQuery("");}}>Orders <span>{snapshot.orders.length}</span></button>
-          <button className={tab==="payments"?"is-active":""} onClick={()=>{setTab("payments");setQuery("");}}>Payments <span>{snapshot.paymentProofs.length}</span></button>
-          <button className={tab==="fulfillment"?"is-active":""} onClick={()=>{setTab("fulfillment");setQuery("");}}>Fulfillment <span>{snapshot.fulfillmentJobs.length}</span></button>
-          <button className={tab==="risk"?"is-active":""} onClick={()=>{setTab("risk");setQuery("");}}>Risk <span>{snapshot.riskAssessments.length}</span></button>
-          <button className={tab==="refunds"?"is-active":""} onClick={()=>{setTab("refunds");setQuery("");}}>Refunds <span>{snapshot.refunds.length}</span></button>
-          <button className={tab==="notifications"?"is-active":""} onClick={()=>{setTab("notifications");setQuery("");}}>Notifications <span>{snapshot.notifications.length}</span></button>
-          <button className={tab==="events"?"is-active":""} onClick={()=>{setTab("events");setQuery("");}}>Events <span>{snapshot.events.length}</span></button>
+
+      <Card className={`live-ops-attention ${totalAttention?"has-attention":"is-clear"}`}>
+        <div className="live-ops-attention__main">
+          <span className="live-ops-attention__icon">{totalAttention?<AlertTriangle size={18}/>:<CheckCircle2 size={18}/>}</span>
+          <div><strong>{totalAttention?`${totalAttention} operational item${totalAttention===1?"":"s"} need attention`:"All operational queues are clear"}</strong><small>{totalAttention?"Use the queue shortcuts to work the items that need an operator decision or retry.":"No payment, fulfillment, risk, refund or notification exceptions currently require action."}</small></div>
         </div>
-        <PageToolbar query={query} onQueryChange={setQuery} placeholder={`Search ${tab}…`}/>
-        {tab==="orders"&&<DataTable rows={orders} columns={orderColumns} getKey={(row)=>row.orderId} empty="No live Gaming orders match this view."/>}
-        {tab==="payments"&&(snapshot.capabilities.finance?<DataTable rows={proofs} columns={paymentColumns} getKey={(row)=>row.proofId} empty="No payment proofs are currently recorded."/>:<StatePanel state="empty" title="Finance permission required" description="Payment proof and reconciliation details are restricted to staff with Gaming finance permission."/>)}
-        {tab==="fulfillment"&&(snapshot.capabilities.fulfillment?<DataTable rows={jobs} columns={fulfillmentColumns} getKey={(row)=>row.jobId} empty="No fulfillment jobs are currently recorded."/>:<StatePanel state="empty" title="Fulfillment permission required" description="Fulfillment job details require Gaming order or supplier management permission."/>)}
-        {tab==="risk"&&(snapshot.capabilities.risk?<DataTable rows={risks} columns={riskColumns} getKey={(row)=>row.assessmentId} empty="No risk assessments are currently recorded."/>:<StatePanel state="empty" title="Order management permission required" description="Risk signals and review state require Gaming order management permission."/>)}
-        {tab==="refunds"&&(snapshot.capabilities.finance?<DataTable rows={refunds} columns={refundColumns} getKey={(row)=>row.refundId} empty="No refund records are currently recorded."/>:<StatePanel state="empty" title="Finance permission required" description="Refund records and payout references are restricted to staff with Gaming finance permission."/>)}
-        {tab==="notifications"&&<DataTable rows={notifications} columns={notificationColumns} getKey={(row)=>row.notificationId} empty="No customer notifications are currently recorded."/>}
-        {tab==="events"&&<DataTable rows={events} columns={eventColumns} getKey={(row)=>row.id} empty="No Gaming commerce events have been recorded yet."/>}
+        {totalAttention>0&&<div className="live-ops-attention__actions">
+          {paymentAttention>0&&<button onClick={()=>{setTab("payments");setQuery("");setQueueFilter("pending_review");}}>Payments <b>{paymentAttention}</b></button>}
+          {fulfillmentAttention>0&&<button onClick={()=>{setTab("fulfillment");setQuery("");setQueueFilter("attention");}}>Fulfillment <b>{fulfillmentAttention}</b></button>}
+          {riskAttention>0&&<button onClick={()=>{setTab("risk");setQuery("");setQueueFilter("attention");}}>Risk <b>{riskAttention}</b></button>}
+          {refundAttention>0&&<button onClick={()=>{setTab("refunds");setQuery("");setQueueFilter("active");}}>Refunds <b>{refundAttention}</b></button>}
+          {notificationAttention>0&&<button onClick={()=>{setTab("notifications");setQuery("");setQueueFilter("attention");}}>Notifications <b>{notificationAttention}</b></button>}
+        </div>}
       </Card>
-      {snapshot.source==="shared-d1"&&(!snapshot.capabilities.paymentReview||!snapshot.capabilities.fulfillmentRetry||!snapshot.capabilities.refundManage||!snapshot.capabilities.notificationRetry)&&<Card className="architecture-callout"><strong><ShieldCheck size={16}/> Live command bridge readiness</strong><p>Read access is active. State-changing Gaming controls require the server-side operations credential plus the relevant CMS staff permission. That credential remains inside the CMS Worker and is never sent to the browser.</p></Card>}
-      <Card><div className="operation-section__head"><div><span>Payment providers</span><h3>Provider abstraction readiness</h3></div><CircleDollarSign size={18}/></div>{snapshot.paymentMethods.length?<div className="gaming-readiness">{snapshot.paymentMethods.map((method)=><div key={method.id}><span>{method.label}</span><strong>{providerLabel(method.providerKey)}</strong></div>)}</div>:<p className="empty-copy">No CMS payment-method configuration is stored yet. The Gaming API may still be using its server-side defaults.</p>}</Card>
+
+      <Card className="live-ops-workspace">
+        <div className="operation-section__head live-ops-workspace__head"><div><span>Work queues</span><h3>Operate live commerce</h3></div><small>Updated {gamingDate(snapshot.generatedAt)}</small></div>
+        <div className="segmented-nav live-ops-queue-nav">
+          <button className={tab==="orders"?"is-active":""} onClick={()=>{setTab("orders");setQuery("");setQueueFilter("all");}}>Orders <span>{snapshot.orders.length}</span></button>
+          <button className={tab==="payments"?"is-active":""} onClick={()=>{setTab("payments");setQuery("");setQueueFilter("all");}}>Payments <span>{snapshot.paymentProofs.length}</span></button>
+          <button className={tab==="fulfillment"?"is-active":""} onClick={()=>{setTab("fulfillment");setQuery("");setQueueFilter("all");}}>Fulfillment <span>{snapshot.fulfillmentJobs.length}</span></button>
+          <button className={tab==="risk"?"is-active":""} onClick={()=>{setTab("risk");setQuery("");setQueueFilter("all");}}>Risk <span>{snapshot.riskAssessments.length}</span></button>
+          <button className={tab==="refunds"?"is-active":""} onClick={()=>{setTab("refunds");setQuery("");setQueueFilter("all");}}>Refunds <span>{snapshot.refunds.length}</span></button>
+          <button className={tab==="notifications"?"is-active":""} onClick={()=>{setTab("notifications");setQuery("");setQueueFilter("all");}}>Notifications <span>{snapshot.notifications.length}</span></button>
+          <button className={`live-ops-activity-tab ${tab==="events"?"is-active":""}`} onClick={()=>{setTab("events");setQuery("");setQueueFilter("all");}}><Activity size={13}/>Events <span>{snapshot.events.length}</span></button>
+        </div>
+        <div className="live-ops-toolbar">
+          <PageToolbar query={query} onQueryChange={setQuery} placeholder={`Search ${tab}…`}/>
+          <div className="live-ops-toolbar__filter"><SlidersHorizontal size={14}/><SelectInput value={queueFilter} onChange={(event)=>setQueueFilter(event.target.value)}>{queueOptions.map(([value,label])=><option key={value} value={value}>{label}</option>)}</SelectInput></div>
+        </div>
+        <div className="live-ops-table">
+          {tab==="orders"&&<DataTable rows={orders} columns={orderColumns} getKey={(row)=>row.orderId} empty={query||queueFilter!=="all"?"No orders match the current search and filter.":"No live Gaming orders are recorded yet."}/>}
+          {tab==="payments"&&(snapshot.capabilities.finance?<DataTable rows={proofs} columns={paymentColumns} getKey={(row)=>row.proofId} empty={query||queueFilter!=="all"?"No payment proofs match this view.":"Payment review is clear. No proofs are waiting."}/>:<StatePanel state="empty" title="Finance permission required" description="Payment proof and reconciliation details are restricted to staff with Gaming finance permission."/>)}
+          {tab==="fulfillment"&&(snapshot.capabilities.fulfillment?<DataTable rows={jobs} columns={fulfillmentColumns} getKey={(row)=>row.jobId} empty={query||queueFilter!=="all"?"No fulfillment jobs match this view.":"No fulfillment jobs are currently recorded."}/>:<StatePanel state="empty" title="Fulfillment permission required" description="Fulfillment job details require Gaming order or supplier management permission."/>)}
+          {tab==="risk"&&(snapshot.capabilities.risk?<DataTable rows={risks} columns={riskColumns} getKey={(row)=>row.assessmentId} empty={query||queueFilter!=="all"?"No risk assessments match this view.":"No risk assessments are currently recorded."}/>:<StatePanel state="empty" title="Order management permission required" description="Risk signals and review state require Gaming order management permission."/>)}
+          {tab==="refunds"&&(snapshot.capabilities.finance?<DataTable rows={refunds} columns={refundColumns} getKey={(row)=>row.refundId} empty={query||queueFilter!=="all"?"No refunds match this view.":"No refund workflow is currently active."}/>:<StatePanel state="empty" title="Finance permission required" description="Refund records and payout references are restricted to staff with Gaming finance permission."/>)}
+          {tab==="notifications"&&<DataTable rows={notifications} columns={notificationColumns} getKey={(row)=>row.notificationId} empty={query||queueFilter!=="all"?"No notifications match this view.":"No customer notifications are currently recorded."}/>}
+          {tab==="events"&&<DataTable rows={events} columns={eventColumns} getKey={(row)=>row.id} empty={query||queueFilter!=="all"?"No commerce events match this view.":"No Gaming commerce events have been recorded yet."}/>}
+        </div>
+      </Card>
+
+      {tab!=="events"&&<Card className="live-ops-activity-card">
+        <div className="operation-section__head"><div><span>Activity</span><h3>Recent operational events</h3></div><Activity size={18}/></div>
+        {recentActivity.length?<div className="live-ops-activity-feed">{recentActivity.map((event)=><div key={event.id}><GamingStatus value={event.outcome}/><span><strong>{eventLabel(event.eventType)}</strong><small>{snapshot.orders.find((order)=>order.orderId===event.orderId)?.orderNumber??event.targetId} · {event.action}</small></span><time>{gamingDate(event.createdAt)}</time></div>)}</div>:<div className="live-ops-inline-empty"><Activity size={18}/><span><strong>No operational activity yet</strong><small>Commerce events will appear here as customers and operators use the Gaming platform.</small></span></div>}
+      </Card>}
+
+      <details className="live-ops-diagnostics">
+        <summary><span><ShieldCheck size={16}/><strong>System diagnostics</strong><small>Command bridge and payment-provider readiness</small></span><span>{snapshot.source==="shared-d1"?"Production":"Local"}</span></summary>
+        <div className="live-ops-diagnostics__grid">
+          <div><span>Command bridge</span><strong>{snapshot.capabilities.paymentReview&&snapshot.capabilities.fulfillmentRetry&&snapshot.capabilities.refundManage&&snapshot.capabilities.notificationRetry?"Ready":"Partially available"}</strong><small>State-changing controls stay behind the CMS Worker and staff permissions.</small></div>
+          <div><span>Payment providers</span><strong>{snapshot.paymentMethods.length?`${snapshot.paymentMethods.length} configured`:"Server defaults"}</strong><small>{snapshot.paymentMethods.length?snapshot.paymentMethods.map((method)=>`${method.label} · ${providerLabel(method.providerKey)}`).join(" • "):"No CMS payment-method configuration is stored yet."}</small></div>
+        </div>
+      </details>
       <Drawer open={!!selectedOrder} onClose={()=>setSelectedOrderId(null)} title={selectedOrder?.orderNumber??"Order"} description={selectedOrder?`${selectedOrder.productName} · ${selectedOrder.customer.email}`:undefined}>{selectedOrder&&<>
         <div className="record-detail-section"><h4>Order state</h4><KeyValueList items={[{label:"Status",value:<GamingStatus value={selectedOrder.status}/>},{label:"Created",value:gamingDate(selectedOrder.createdAt)},{label:"Updated",value:gamingDate(selectedOrder.updatedAt)},{label:"Amount",value:gamingLkr(selectedOrder.amountLkr)},{label:"Refundable balance",value:snapshot.capabilities.finance?gamingLkr(remainingRefundFor(selectedOrder)):"Finance permission required"}]}/>{canStartRefund(selectedOrder)&&<Button variant="primary" disabled={actionBusy} onClick={()=>openRefundCreate(selectedOrder)}><RotateCcw size={13}/>Start refund</Button>}</div>
         <div className="record-detail-section"><h4>Payment</h4><KeyValueList items={[{label:"Provider",value:providerLabel(selectedOrder.payment.providerKey)},{label:"Method",value:selectedOrder.payment.methodLabel||selectedOrder.payment.methodId},{label:"State",value:<GamingStatus value={selectedOrder.payment.state}/>},{label:"Latest proof",value:selectedOrder.payment.latestProofId??"Not submitted"}]}/></div>

@@ -17,18 +17,20 @@ check('homepage hero is CMS controlled', types.includes('NextFGamingStorefrontCo
 check('homepage rails are CMS controlled', types.includes('NextFGamingHomeSection') && page.includes('Homepage sections'));
 check('family card and hero artwork are modeled', types.includes('NextFGamingGameFamily') && types.includes('heroArtworkUrl'));
 check('artwork URLs fail closed to HTTPS', page.includes('url.protocol==="https:"') && page.includes('Hero background must be a valid HTTPS URL'));
-check('product editor can set game family', catalogPage.includes('label="Game family"') && catalogPage.includes('gameFamily:selectedProduct.gameFamily?.trim()'));
+check('product editor can set game family', catalogPage.includes('label="Game family"') && /gameFamily:\s*selectedProduct\.gameFamily\?\.trim\(\)/.test(catalogPage));
 check('CMS can derive and save family registry', page.includes('Save discovered families') && page.includes('gamingVNextStore.setGameFamilies'));
 check('storefront writes flush durably', page.includes('flushDurableWrites'));
 check('storefront and family writes require product management permission', staff.includes('nextf.vnext.gaming.storefront') && staff.includes('nextf.vnext.gaming.game-families') && staff.includes('gaming.products.manage'));
 check('hero media field spans full form width so CTA controls stay paired', page.includes('gaming-storefront-hero-form') && css.includes('.gaming-storefront-hero-form>.form-field:nth-child(5){grid-column:1/-1}'));
 check('subsection headers keep global spacing after cards', css.includes('.page > .card + .section-header { margin-top:30px; }'));
 check('hero product uses reusable searchable picker', page.includes('SearchSelectInput') && page.includes('searchPlaceholder="Search products…"') && formField.includes('export function SearchSelectInput'));
-check('storefront makes draft persistence explicit', page.includes('storefrontDirty') && page.includes('Unsaved changes') && page.includes('All storefront changes saved') && page.includes('disabled={!storefrontDirty||saving}'));
+
+check('hero product search uses canonical product kind instead of retired category field', page.includes('const productKind=merchandisingKind(product.kind)') && !page.includes('product.category'));
+check('storefront makes draft persistence explicit', page.includes('storefrontDirty') && page.includes('Unsaved changes') && page.includes('All storefront changes saved') && page.includes('storefrontDirty?<Button variant="primary"') && page.includes('onClick={saveStorefront}'));
 check('unsaved storefront draft warns before browser exit', page.includes('beforeunload') && page.includes('BeforeUnloadEvent'));
 check('family artwork supports category filtering', page.includes('familyKind') && page.includes('Filter game families by category') && page.includes('familyKindCounts'));
 check('family category filter normalizes detailed product kinds', page.includes('merchandisingKind') && page.includes('steam_wallet') && page.includes('telegram_stars') && page.includes('manual_service'));
 check('family artwork supports search and operational filters', page.includes('Search game families…') && page.includes('familyArtwork') && page.includes('familyVisibility') && page.includes('filteredFamilies'));
-check('family rows expose derived categories for faster scanning', page.includes('familyKindsByName') && page.includes('categories.map((kind)=>kind.replaceAll'));
+check('family rows expose color-coded derived categories for faster scanning', page.includes('familyKindsByName') && page.includes('GamingKindBadge') && page.includes('gaming-family-kinds'));
 
 let failed=0; for(const [n,p] of checks){console.log(`${p?'PASS':'FAIL'}  ${n}`); if(!p) failed++;} console.log(`\n${checks.length-failed}/${checks.length} storefront-merchandising checks passed.`); if(failed) process.exit(1);

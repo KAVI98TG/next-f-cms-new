@@ -26,5 +26,5 @@ check('R2 CORS allows CMS PUT content type',cors.includes('https://cms.nextf.lk'
 check('CMS CSP permits direct R2 upload endpoint',headers.includes('https://*.r2.cloudflarestorage.com'));
 check('product artwork integrates NEXT F Media',catalog.includes('gaming_product_artwork')&&catalog.includes('Upload to NEXT F Media'));
 check('storefront hero and game family artwork integrate NEXT F Media',storefront.includes('gaming_storefront_hero')&&storefront.includes('gaming_family_artwork')&&storefront.includes('gaming_family_hero'));
-check('support UI uploads private evidence and uses authenticated download',support.includes('support_evidence')&&support.includes('privateMediaDownloadUrl')&&support.includes("kind:'media_asset'"));
+check('support UI uploads private evidence and uses authenticated download',support.includes('support_evidence')&&support.includes('privateMediaDownloadUrl')&&support.includes('kind: "media_asset"'));
 const failed=checks.filter(c=>!c.ok);for(const c of checks)console.log(`${c.ok?'PASS':'FAIL'}  ${c.name}`);console.log(`\n${checks.length-failed.length}/${checks.length} NEXT F Media checks passed.`);if(failed.length)process.exit(1);

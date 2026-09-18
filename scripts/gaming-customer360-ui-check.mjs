@@ -1,0 +1,27 @@
+import fs from 'node:fs';
+const read=(path)=>fs.readFileSync(path,'utf8');
+const page=read('src/gaming-store/customers/CustomersPage.tsx');
+const client=read('src/gaming-store/customers/customers.ts');
+const worker=read('infrastructure/cloudflare/src/gamingCustomers.ts');
+const drawer=read('src/shared/components/Drawer.tsx');
+const css=read('src/css/components.css');
+const headers=read('public/_headers');
+const checks=[]; const check=(name,ok)=>checks.push([name,Boolean(ok)]);
+check('canonical customer model exposes avatarUrl',client.includes('avatarUrl?:string'));
+check('canonical customer snapshot returns account avatarUrl',worker.includes('avatarUrl:text(account?.avatarUrl)||undefined'));
+check('customer avatar accepts HTTPS only',page.includes("url.protocol==='https:'")&&page.includes('safeAvatarUrl'));
+check('customer avatar falls back to initials',page.includes('customerInitials')&&page.includes('src&&!failed'));
+check('failed remote avatar falls back safely',page.includes('onError={()=>setFailed(true)}'));
+check('customer table renders profile avatar',page.includes('customer-identity-cell')&&page.includes('<CustomerAvatar customer={row}/>'));
+check('Customer 360 drawer renders larger profile avatar',page.includes('<CustomerAvatar customer={selected} size="lg"/>'));
+check('Google identity is visibly verified',page.includes('Google verified')&&page.includes('BadgeCheck'));
+check('Customer 360 keeps marketing consent separate',page.includes('Transactional order, payment, delivery, refund and support messages remain separate'));
+check('Customer 360 has commerce summary cards',page.includes('customer360-summary-grid')&&page.includes('Average order')&&page.includes('Last purchase'));
+check('customer metrics act as useful filters',page.includes('setLifecycle(lifecycle===\'repeat\'?\'all\':\'repeat\')')&&page.includes('setMarketing(marketing===\'subscribed\'?\'all\':\'subscribed\')'));
+check('drawer supports targeted customer width without changing defaults',drawer.includes('className?:string')&&drawer.includes('detail-drawer${className'));
+check('customer UI is responsive',css.includes('.customer360-drawer')&&css.includes('@media(max-width:700px)'));
+check('CMS CSP permits secure remote profile images',headers.includes("img-src 'self' data: blob: https:"));
+let failed=0;
+for(const [name,ok] of checks){console.log(`${ok?'PASS':'FAIL'}  ${name}`);if(!ok)failed++;}
+console.log(`\n${checks.length-failed}/${checks.length} Customer 360 UI checks passed.`);
+if(failed)process.exit(1);

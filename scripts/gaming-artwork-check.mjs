@@ -6,7 +6,7 @@ check('CMS product separates supplier and public names',types.includes('sourceNa
 check('CMS product has merchandising description override',types.includes('merchandisingDescription?: string'));
 check('Artwork editor accepts HTTPS only',page.includes('url.protocol === "https:"'));
 check('Artwork editor renders preview',page.includes('gaming-artwork-preview')&&page.includes('<img'));
-check('Artwork editor explains supplier-sync protection',page.includes('Supplier sync keeps supply facts current without replacing these merchandising fields'));
+check('Artwork editor explains supplier-sync protection',page.includes('Supplier identity can refresh during sync while NEXT F public overrides remain protected.'));
 check('Product save flushes durable D1 write',page.includes('await flushDurableWrites()'));
 check('Public projection includes artwork',service.includes('artworkUrl: product.artworkUrl'));
 check('Public contract exposes artwork',contract.includes('artworkUrl?: string'));

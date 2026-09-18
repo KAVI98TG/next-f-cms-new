@@ -1,7 +1,7 @@
 {
   "name": "@next-f/admin",
   "private": true,
-  "version": "1.0.18",
+  "version": "1.0.32",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -12,6 +12,8 @@
     "check:digital": "node scripts/digital-check.mjs",
     "check:digital-operations": "node scripts/digital-operations-check.mjs",
     "check:gaming": "node scripts/gaming-check.mjs",
+    "check:gaming-customer360-ui": "node scripts/gaming-customer360-ui-check.mjs",
+    "check:gaming-suppliers-ui": "node scripts/gaming-suppliers-ui-check.mjs",
     "check:gaming-canonical-cleanup": "node scripts/gaming-canonical-cleanup-check.mjs",
     "check:software": "node scripts/software-check.mjs",
     "check:saas": "node scripts/saas-check.mjs",
@@ -57,8 +59,21 @@
     "check:gaming-notifications": "node scripts/gaming-notifications-operations-check.mjs",
     "check:gaming-analytics": "node scripts/gaming-commerce-analytics-check.mjs",
     "check:gaming-promotions": "node scripts/gaming-promotions-check.mjs",
+    "check:gaming-promotions-ui": "node scripts/gaming-promotions-ui-check.mjs",
     "check:gaming-support": "node scripts/gaming-support-check.mjs",
-    "check:media-service": "node scripts/media-service-check.mjs"
+    "check:media-service": "node scripts/media-service-check.mjs",
+    "check:gaming-build-contract": "node scripts/gaming-build-contract-check.mjs",
+    "check:gaming-dashboard": "node scripts/gaming-dashboard-command-center-check.mjs",
+    "check:gaming-catalog-control": "node scripts/gaming-catalog-control-center-check.mjs",
+    "check:gaming-product-editor-ui": "node scripts/gaming-product-editor-ui-check.mjs",
+    "check:global-ui": "node scripts/global-ui-system-check.mjs",
+    "check:font-floor": "node scripts/font-floor-check.mjs",
+    "check:gaming-live-operations-ui": "node scripts/gaming-live-operations-ui-check.mjs",
+    "check:gaming-storefront-builder-ui": "node scripts/gaming-storefront-builder-ui-check.mjs",
+    "check:gaming-pricing-ui": "node scripts/gaming-pricing-ui-check.mjs",
+    "check:gaming-support-ui": "node scripts/gaming-support-operations-ui-check.mjs",
+    "check:gaming-tracking-ui": "node scripts/gaming-first-party-tracking-ui-check.mjs",
+    "check:checkout-payments": "node scripts/checkout-payments-control-check.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

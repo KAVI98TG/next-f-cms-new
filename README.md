@@ -1,4 +1,4 @@
-# NEXT F CMS V1.0.0
+# NEXT F CMS V1.0.32
 
 Production CMS for NEXT F Platform, Digital, Website Platform, Gaming Store administration and Software operations.
 
@@ -121,3 +121,8 @@ Gaming merchandising and Support evidence now use a governed NEXT F Media bounda
 ## v1.0.14 Production UI hardening (P4 RC)
 
 Storefront Merchandising now keeps rich media fields and paired CTA controls aligned, and top-level subsection headers receive consistent spacing after cards. The CMS also ships the canonical non-secret `.env.production` so `npm run deploy` cannot silently rebuild the production frontend in local-prototype mode. See `docs/V1.0.14-PRODUCTION-UI-HARDENING-P4.md`.
+
+
+## v1.0.32 NEXT F Checkout Payments Control Center (P4 RC)
+
+`Platform → Payments` now operates the shared NEXT F Checkout control plane: provider configuration, business registry, market/currency availability, transaction/webhook/audit visibility and a separate write-only provider-secret boundary. PayPal/PayHere configuration stays server-side; Gaming and other NEXT F businesses consume normalized Checkout contracts instead of provider-specific browser integrations. See `docs/V1.0.32-NEXTF-CHECKOUT-P4.md`.

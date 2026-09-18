@@ -1,0 +1,20 @@
+import fs from 'node:fs';
+const page=fs.readFileSync('src/gaming-store/vnext/cms/StorefrontVNextPage.tsx','utf8');
+const css=fs.readFileSync('src/css/components.css','utf8');
+const checks=[]; const check=(name,pass)=>checks.push([name,Boolean(pass)]);
+check('storefront page uses visual builder shell',page.includes('storefront-builder-page')&&css.includes('.storefront-builder-page'));
+check('storefront overview strip exposes status sections artwork and featured metrics',page.includes('storefront-overview-strip')&&page.includes('Homepage sections')&&page.includes('Family artwork')&&page.includes('Featured products'));
+check('hero builder uses split controls and live preview',page.includes('storefront-hero-layout')&&page.includes('storefront-hero-controls')&&page.includes('storefront-live-preview'));
+check('hero preview derives artwork fallback chain',page.includes('heroPreviewArtwork')&&page.includes('selectedHeroFamily?.heroArtworkUrl')&&page.includes('selectedHeroProduct?.artworkUrl'));
+check('hero preview remains visible without custom artwork',page.includes('is-fallback')&&css.includes('.storefront-live-preview.is-fallback'));
+check('single storefront save state controls hero and section draft',page.includes('storefront-save-indicator')&&page.includes('storefrontDirty?<Button variant="primary"')&&page.includes('Save changes'));
+check('homepage sections render as visual rail cards',page.includes('storefront-section-grid')&&page.includes('storefront-section-card'));
+check('homepage section order can be changed inline',page.includes('moveSection')&&page.includes('Move ${section.title} up')&&page.includes('Move ${section.title} down'));
+check('section modal applies edits to draft instead of persisting independently',page.includes('Apply to draft')&&!page.slice(page.indexOf('title="Edit homepage section"')).includes('Could not save homepage section.'));
+check('family artwork uses searchable visual card workspace',page.includes('storefront-family-workspace')&&page.includes('storefront-family-grid')&&page.includes('Search game families…'));
+check('family cards expose category colors and artwork state',page.includes('GamingKindBadge')&&page.includes('Artwork configured')&&page.includes('Artwork missing'));
+check('discovered families only show persistence action when needed',page.includes('discoveredFamilyCount>0')&&page.includes('Save discovered families'));
+check('open storefront remains configured production action',page.includes('storefrontCapability.href')&&page.includes('Open storefront'));
+check('builder is responsive across desktop tablet and mobile',css.includes('@media(max-width:1180px)')&&css.includes('@media(max-width:760px)')&&css.includes('@media(max-width:520px)'));
+let failed=0; for(const [name,pass] of checks){console.log(`${pass?'PASS':'FAIL'}  ${name}`);if(!pass)failed++;}
+console.log(`\n${checks.length-failed}/${checks.length} Storefront builder UI checks passed.`);if(failed)process.exit(1);

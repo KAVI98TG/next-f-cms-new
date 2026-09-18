@@ -1,0 +1,24 @@
+import { ProductionBackendClient } from '../../services/production/httpClient';
+import { readProductionRuntimeConfig } from '../../services/production/runtime';
+
+export type CheckoutProvider={key:string;environment:'sandbox'|'live';enabled:boolean;displayName:string;description:string;displayOrder:number;maintenance:boolean;config:Record<string,any>;secretStatus:Record<string,boolean>;health?:{status:string;detail?:string;checked_at?:string}|null};
+export type CheckoutBusiness={id:string;display_name:string;logo_url?:string|null;allowedOrigins:string[];callback_url?:string|null;enabled:boolean;created_at?:string;updated_at?:string};
+export type CheckoutBusinessRule={provider_key:string;business_id:string;enabled:number;display_behavior:'show_disabled'|'hide';min_amount_minor?:number|null;max_amount_minor?:number|null;updated_at?:string};
+export type CheckoutMarketRule={provider_key:string;business_id:string;market_id:string;currency:string;enabled:number;display_behavior:'show_disabled'|'hide';unavailable_message?:string|null;updated_at?:string};
+export type CheckoutTransaction={id:string;session_id:string;business_id:string;business_order_id:string;provider_key:string;provider_payment_id:string;status:string;amount_minor:number;currency:string;captured_at?:string|null;created_at:string;updated_at:string};
+export type CheckoutWebhook={provider_key:string;provider_event_id:string;event_type:string;verified:number;status:string;error?:string|null;created_at:string};
+export type CheckoutOutbox={id:string;business_id:string;event_type:string;aggregate_id:string;status:string;attempts:number;last_error?:string|null;created_at:string;updated_at:string};
+export type CheckoutAudit={id:string;actor:string;action:string;target_type:string;target_id:string;detail_json:string;outcome:string;created_at:string};
+export type CheckoutRefund={id:string;payment_id:string;business_id:string;business_order_id:string;provider_key:string;provider_payment_id:string;amount_minor:number;currency:string;status:string;reason?:string|null;requested_by:string;created_at:string;updated_at:string};
+export type CheckoutSnapshot={overview:{providers:number;businesses:number;payments:number;capturedMinor:number;failedAttempts:number;pendingSessions:number;webhookAttention:number;outboxPending:number;health:Array<{provider_key:string;status:string;detail?:string;checked_at?:string}>};providers:CheckoutProvider[];businesses:CheckoutBusiness[];selectedBusinessId:string;availability:{businessId:string;businessRules:CheckoutBusinessRule[];marketRules:CheckoutMarketRule[]};transactions:CheckoutTransaction[];refunds:CheckoutRefund[];webhooks:CheckoutWebhook[];outbox:CheckoutOutbox[];audit:CheckoutAudit[];capabilities:{configure:boolean;secretWrite:boolean;audit:boolean;refunds:boolean};contractRelease:string};
+
+const runtime=readProductionRuntimeConfig();
+const client=runtime.mode==='production-api'?new ProductionBackendClient(runtime.apiBaseUrl):undefined;
+async function execute<T>(operation:string,kind:'query'|'command',input:unknown,idempotencyKey?:string){if(!client)throw new Error('NEXT F Checkout control plane is available only through the production CMS API.');const result=await client.execute<T>({operation,kind,input,...(idempotencyKey?{idempotencyKey}:{})});if(!result.ok)throw new Error(`${result.problem.code}: ${result.problem.detail}`);return result.data;}
+export function loadCheckoutSnapshot(businessId?:string){return execute<CheckoutSnapshot>('staff.checkout.payments.snapshot.get','query',{businessId});}
+export function saveCheckoutProvider(providerKey:string,config:unknown){return execute('staff.checkout.provider.update','command',{providerKey,config},`checkout-provider:${providerKey}:${crypto.randomUUID()}`)}
+export function testCheckoutProvider(providerKey:string){return execute('staff.checkout.provider.health','command',{providerKey},`checkout-health:${providerKey}:${crypto.randomUUID()}`)}
+export function saveCheckoutBusiness(businessId:string,config:unknown){return execute('staff.checkout.business.update','command',{businessId,config},`checkout-business:${businessId}:${crypto.randomUUID()}`)}
+export function saveCheckoutBusinessRule(providerKey:string,businessId:string,rule:unknown){return execute('staff.checkout.business-rule.update','command',{providerKey,businessId,rule},`checkout-business-rule:${providerKey}:${businessId}:${crypto.randomUUID()}`)}
+export function saveCheckoutMarketRule(providerKey:string,businessId:string,marketId:string,currency:string,rule:unknown){return execute('staff.checkout.market-rule.update','command',{providerKey,businessId,marketId,currency,rule},`checkout-market-rule:${providerKey}:${businessId}:${marketId}:${currency}:${crypto.randomUUID()}`)}
+export function rotateCheckoutSecret(logicalKey:string,value:string){return execute('staff.checkout.secret.rotate','command',{logicalKey,value},`checkout-secret:${logicalKey}:${crypto.randomUUID()}`)}

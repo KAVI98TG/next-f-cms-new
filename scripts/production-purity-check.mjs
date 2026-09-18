@@ -50,7 +50,7 @@ check("production backup recovery uses D1 Time Travel",backup.includes("D1 Time 
 check("production cleanup is server controlled",cleanup.includes("Production Worker cron")&&cleanup.includes("Browser cleanup"));
 check("production browser import disabled",dataManagement.includes('disabled={runtime.mode==="production-api"}')&&dataManagement.includes("D1 Time Travel"));
 check("Gaming vNext reset is local only",vnextCms.includes("runtime.isLocal&&")&&vnextCms.includes("Reset local sandbox"));
-check("Gaming storefront is capability gated",vnextCms.includes("Public storefront not connected")&&vnextPublic.includes("Gaming storefront")&&vnextPublic.includes("not connected"));
+check("Gaming storefront uses configured production destination while simulator stays local",capabilities.includes("VITE_GAMING_STOREFRONT_URL")&&vnextCms.includes("storefrontCapability.href")&&vnextPublic.includes("publicStorefrontRuntime.allowsSimulation"));
 check("Gaming local public service hard guarded",vnextService.includes("assertLocalPrototype")&&vnextService.includes("Gaming payment and supplier fulfillment simulation"));
 check("legacy Gaming commerce mutation is gated",gamingOrders.includes("operationalCapabilityAvailable")&&gamingOrders.includes("Commerce integration not connected"));
 check("supplier browser integration is server controlled",supplierRepo.includes("Browser supplier API configuration")&&supplierRepo.includes("Supplier catalog sync simulation")&&supplierControl.includes("nextf.vnext.gaming.supplier-command.fazercards")&&supplierPage.includes("FAZERCARDS_API_KEY")&&!supplierPage.includes("apiSecret"));

@@ -95,7 +95,7 @@ export const domains: DomainDefinition[] = [
         label: "Payments",
         path: "/platform/payments",
         icon: CircleDollarSign,
-        description: "Unified provider-independent payment ledger view.",
+        description: "Shared Checkout providers, availability, transactions, webhooks and payment operations.",
       },
       {
         label: "Roles & Permissions",

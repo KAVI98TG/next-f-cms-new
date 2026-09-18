@@ -1,6 +1,6 @@
 # NEXT F CMS — Project Status
 
-**Current source release:** V1.0.9 P4 RC — Gaming Transactional Notifications  
+**Current source release:** V1.0.32 P4 RC — NEXT F Checkout Payments Control Center  
 **Original production foundation:** V1.0.0 final production package  
 **Production CMS:** `https://cms.nextf.lk`  
 **Production API:** `https://cms-api.nextf.lk`
@@ -44,9 +44,9 @@ Deploy the V1 Worker/frontend, then run `npm run acceptance:production:final`. T
 
 After the V1 source is deployed, run `npm run acceptance:production:final` as the final production proof.
 
-## Next stream
+## Current stream
 
-Customer Workspace is already live. After CMS V1 acceptance, begin Gaming G0 contract/API design, then storefront implementation. Gaming should not consume staff state APIs directly.
+Gaming and CMS are in production-completion/acceptance. v1.0.32 adds the global NEXT F Checkout Payments control plane. Checkout is a separate shared payment platform; Gaming remains the owner of Gaming orders, pricing, risk and fulfillment.
 
 ## Production Purity + Auth UX completion
 
@@ -103,3 +103,8 @@ Live Operations now includes a privacy-safe risk queue for staff with `gaming.or
 ## V1.0.9 P4 RC — Gaming Transactional Notifications
 
 Live Operations now projects the event-driven Gaming notification outbox with delivery/attention metrics and a guarded retry action for non-sent messages. Email sending remains inside the Gaming API Worker and provider credentials never enter CMS. Gaming v1.8.6 defaults delivery to disabled and initializes its commerce-event cursor without historical email backfill. Public Gaming customer contracts remain unchanged.
+
+
+## V1.0.32 P4 RC — NEXT F Checkout Payments Control Center
+
+The CMS now governs the shared `checkout.nextf.lk` platform through a server-only bridge. Providers, businesses and availability are runtime configuration, while provider secrets remain write-only outside normal D1 configuration. PayPal/PayHere can be enabled per business/market/currency without hard-coding rules in Gaming. The Checkout v1.0.0 contract is intended for the existing JavaScript Contracts registry at `contracts.nextf.lk`.

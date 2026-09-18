@@ -1,34 +1,40 @@
-# P4 RC verification — CMS v1.0.18
+# P4 RC verification — CMS v1.0.32
 
-Baseline: CMS v1.0.16 P4 RC.
+Baseline: user-provided CMS v1.0.31 P4 RC.
 
-This increment retires production-facing legacy Gaming CMS surfaces and introduces canonical Customer 360 built from authenticated accounts and real commerce history.
+## Retained v1.0.31 capabilities
 
-Verified in this build session:
+- SaaS-level Gaming Support operations center with SLA/assignment/commerce context;
+- canonical customer/staff/service message identity;
+- governed private NEXT F Media evidence;
+- Gaming first-party Tracking Health and acquisition analytics;
+- global 10px absolute typography floor.
 
-- all local CMS `check:*` suites: 43/43 passed;
-- canonical Gaming cleanup: 21/21 passed;
-- Gaming vNext integration: 26/26 passed;
-- production purity: 33/33 passed;
-- Live Operations: 13/13 passed;
-- Refund/Finance: 12/12 passed;
-- Risk operations: 14/14 passed;
-- Notification operations: 12/12 passed;
-- Commerce Analytics: 16/16 passed;
-- Promotions: 15/15 passed;
-- Support: 16/16 passed;
-- NEXT F Media: 25/25 passed;
-- Final Acceptance regression: 67/67 passed;
-- CMS Worker TypeScript compile passed;
-- changed TS/TSX syntax transpilation passed.
+## v1.0.32 NEXT F Checkout Payments Control Center
 
-The full Vite build remains a deployment-machine gate when dependency restoration is unavailable in the packaging runtime.
+- `Platform → Payments` is a first-class control-plane route;
+- CMS talks to Checkout through its server Worker, never directly to provider APIs from the browser;
+- provider secret rotation uses a separate secret-admin credential and `platform.security.manage` permission;
+- provider/business/market/currency availability and show-disabled/hide behavior are centrally configurable;
+- PayPal non-secret configuration includes Client ID/Webhook ID/environment/currencies;
+- PayHere non-secret configuration includes Merchant ID/environment/currencies;
+- existing provider secret plaintext is never returned to CMS;
+- businesses govern allowed HTTPS origins and signed payment callback URLs;
+- transaction, webhook, outbox and audit visibility are available without exposing provider credentials;
+- automated provider refund execution is intentionally **not** exposed in this release; the canonical refund ledger remains foundation only.
 
-No D1 schema migration or new secret is required.
+## Verification in the final source tree
 
-The live Contracts Registry remains authoritative if packaged documentation conflicts with production contracts.
+- all CMS `check:*` suites: **58/58 PASS**;
+- Checkout Payments control-plane gate: **14/14 PASS**;
+- combined final Checkout/Gaming/CMS TS/TSX syntax/transpile run: CMS **240 files, 0 errors**.
 
+## Build environment note
 
-## v1.0.18 build hotfix
-- Corrected required StatePanel state props in Customers and Gaming Dashboard.
-- Corrected Storefront hero search to use canonical product kind/merchandising kind rather than nonexistent category.
+The final packaging environment could not complete an npm dependency restore/build cycle. A production `tsc -b && vite build` is therefore **not claimed** here and remains mandatory on the deployment machine. The final source check inventory and TS/TSX syntax/transpile gates are clean.
+
+## Deployment scope
+
+This release changes both CMS frontend and CMS API Worker because Checkout configuration/secrets are brokered server-side. Deploy Checkout API first, then CMS API, then CMS Pages. Configure `CHECKOUT_ADMIN_TOKEN` and `CHECKOUT_SECRET_ADMIN_TOKEN` as Worker secrets. No CMS D1 SQL migration is introduced by this integration.
+
+See `docs/V1.0.32-NEXTF-CHECKOUT-P4.md`.

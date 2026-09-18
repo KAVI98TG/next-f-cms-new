@@ -1,0 +1,16 @@
+import fs from 'node:fs';
+const read=(p)=>fs.readFileSync(p,'utf8'); const checks=[]; const check=(name,ok)=>checks.push({name,ok});
+const backend=read('infrastructure/cloudflare/src/gamingAnalytics.ts'); const types=read('src/gaming-store/analytics/analytics.ts'); const page=read('src/gaming-store/analytics/AnalyticsPage.tsx'); const css=read('src/css/components.css'); const pkg=JSON.parse(read('package.json'));
+check('analytics snapshot reads privacy-safe storefront event family',backend.includes("gaming.analytics.page_view")&&backend.includes("gaming.analytics.search")&&backend.includes("gaming.analytics.filter_used")&&backend.includes("gaming.analytics.offer_selected")&&backend.includes("gaming.analytics.support_opened"));
+check('tracking health exposes active quiet and awaiting states',backend.includes("'active':'quiet'")&&backend.includes("'awaiting'")&&types.includes("status:'active'|'quiet'|'awaiting'"));
+check('tracking snapshot includes top landing pages',backend.includes('landingPages')&&types.includes('landingPages:Array'));
+check('order attribution is summarized by source medium campaign',backend.includes("const source=text(attribution?.source)||'direct'")&&backend.includes("const medium=text(attribution?.medium)||'none'")&&backend.includes("const campaign=text(attribution?.campaign)||'—'"));
+check('acquisition revenue remains finance permission gated',backend.includes("...(finance?{}:{grossCollectedLkr:undefined,estimatedMarginLkr:undefined})"));
+check('CMS shows first-party Tracking Health',page.includes('First-party measurement')&&page.includes('Tracking health'));
+check('CMS shows page search filter offer and support interaction counts',page.includes('snapshot.tracking.pageViews')&&page.includes('snapshot.tracking.searches')&&page.includes('snapshot.tracking.filterUses')&&page.includes('snapshot.tracking.offerSelections')&&page.includes('snapshot.tracking.supportOpens'));
+check('CMS shows campaign and source performance table',page.includes('Campaign & source performance')&&page.includes('snapshot.acquisition')&&page.includes('Order → paid'));
+check('CMS explains GTM is not source of truth',page.includes('GTM is not required as the measurement source of truth'));
+check('tracking UI has responsive SaaS layout',css.includes('.analytics-tracking-panel')&&css.includes('.analytics-tracking-health')&&css.includes('.analytics-tracking-state')&&css.includes('@media(max-width:720px)'));
+check('tracking UI respects 10px minimum',!css.match(/\.analytics-(?:tracking|landing|acquisition)[^{}]*\{[^{}]*font-size:\s*[1-9]px/));
+check('permanent tracking UI check is wired',pkg.scripts?.['check:gaming-tracking-ui']==='node scripts/gaming-first-party-tracking-ui-check.mjs');
+const failed=checks.filter(x=>!x.ok); for(const c of checks) console.log(`${c.ok?'PASS':'FAIL'}  ${c.name}`); console.log(`\n${checks.length-failed.length}/${checks.length} Gaming first-party tracking UI checks passed.`); if(failed.length) process.exit(1);

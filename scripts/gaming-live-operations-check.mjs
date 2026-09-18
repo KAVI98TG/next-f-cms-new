@@ -18,6 +18,6 @@ check("non-finance event detail redacts reconciliation evidence",projection.incl
 check("frontend loads through staff production backend instead of Gaming admin tokens",service.includes('staff.gaming.operations.snapshot.get')&&!service.includes('GAMING_MANUAL_PAYMENT_ADMIN_TOKEN')&&!service.includes('GAMING_SUPPLIER_ADMIN_TOKEN'));
 check("live operations UI covers orders payments fulfillment and events",page.includes('Live Operations')&&page.includes('Payments <span>')&&page.includes('Fulfillment <span>')&&page.includes('Events <span>'));
 check("order drawer surfaces routing economics and timeline",page.includes('Economics snapshot')&&page.includes('Commerce timeline')&&page.includes('Supplier provider'));
-check("payment provider readiness is visible",page.includes('Provider abstraction readiness')&&service.includes('providerKey'));
+check("payment provider readiness is visible in diagnostics",page.includes('System diagnostics')&&page.includes('Payment providers')&&service.includes('providerKey'));
 check("route is registered in app navigation and permission map",app.includes('/gaming-store/live-operations')&&nav.includes('/gaming-store/live-operations')&&perms.includes('["/gaming-store/live-operations", "gaming.read"]'));
 const failed=checks.filter((c)=>!c.ok); for(const c of checks) console.log(`${c.ok?"PASS":"FAIL"}  ${c.name}`); console.log(`\n${checks.length-failed.length}/${checks.length} Gaming live-operations checks passed.`); if(failed.length) process.exit(1);

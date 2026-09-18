@@ -23,5 +23,9 @@ check('analytics page discloses coverage quality',page.includes('coverageNote')&
 check('finance metrics render only when finance capability is present',page.includes('snapshot.capabilities.finance'));
 check('CMS route and navigation are registered',app.includes('/gaming-store/analytics')&&nav.includes('/gaming-store/analytics'));
 check('dashboard includes funnel product and supplier surfaces',page.includes('Customer journey')&&page.includes('Product performance')&&page.includes('Supplier performance'));
-console.log(`\n${passed}/16 Gaming commerce analytics checks passed.`);
+check('dashboard has daily commerce pulse visualization',page.includes('Daily commerce pulse')&&page.includes('AnalyticsTrend')&&page.includes('snapshot.daily'));
+check('dashboard groups operational health',page.includes('Commerce health')&&page.includes('analytics-health-grid'));
+check('product and supplier conversion cells are visualized',page.includes('analytics-conversion-cell'));
+check('analytics keeps compact KPI hierarchy',page.includes('analytics-kpi-strip')&&page.includes('AnalyticsStat'));
+console.log(`\n${passed}/20 Gaming commerce analytics checks passed.`);
 if(process.exitCode)process.exit(process.exitCode);

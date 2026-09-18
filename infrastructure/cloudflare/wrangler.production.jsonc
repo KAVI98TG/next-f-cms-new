@@ -15,6 +15,8 @@
     "ACCESS_AUD": "dda0e3d9ec0ee3e1dc7528b9f0df9ea143b6d16f29aebdc54b8b2efba0952ff9",
     "CONTRACTS_BASE_URL": "https://contracts.nextf.lk",
     "GAMING_API_ORIGIN": "https://gaming-api.nextf.lk",
+    "CHECKOUT_API_ORIGIN": "https://checkout-api.nextf.lk",
+    "CHECKOUT_CONTRACT_RELEASE": "1.0.0",
     "MEDIA_ORIGIN": "https://media.nextf.lk",
     "NEXTF_MEDIA_R2_BUCKET_NAME": "nextf-media-production",
     "AUDIT_RETENTION_DAYS": "365",
