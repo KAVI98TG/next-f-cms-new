@@ -150,13 +150,15 @@ export async function handleStaffQuery(input:{operation:string;body:StaffRequest
   }
   if(input.operation==="staff.gaming.supplier.funding.snapshot.get"){
     if(!hasPermission(input.principal,"gaming.suppliers.manage")||!hasPermission(input.principal,"gaming.finance.manage")) throw new StaffApiError(403,"FORBIDDEN","Gaming supplier and finance permissions are required");
-    return getGamingSupplierFundingSnapshot(input.env,input.requestId,input.correlationId,{accountId:input.principal.accountId,staffUserId:input.principal.staffUserId});
+    try{return await getGamingSupplierFundingSnapshot(input.env,input.requestId,input.correlationId,{accountId:input.principal.accountId,staffUserId:input.principal.staffUserId});}
+    catch(error){if(error instanceof GamingControlError)throw new StaffApiError(error.status,error.code,error.message);throw error;}
   }
   if(input.operation==="staff.gaming.supplier.funding.payment.get"){
     if(!hasPermission(input.principal,"gaming.suppliers.manage")||!hasPermission(input.principal,"gaming.finance.manage")) throw new StaffApiError(403,"FORBIDDEN","Gaming supplier and finance permissions are required");
     const query=input.body.input as Record<string,unknown>|undefined;const paymentId=typeof query?.paymentId==="string"?query.paymentId.trim():"";
     if(!paymentId) throw new StaffApiError(400,"FUNDING_PAYMENT_ID_REQUIRED","paymentId is required");
-    return getGamingSupplierFundingPayment(input.env,paymentId,input.requestId,input.correlationId,{accountId:input.principal.accountId,staffUserId:input.principal.staffUserId});
+    try{return await getGamingSupplierFundingPayment(input.env,paymentId,input.requestId,input.correlationId,{accountId:input.principal.accountId,staffUserId:input.principal.staffUserId});}
+    catch(error){if(error instanceof GamingControlError)throw new StaffApiError(error.status,error.code,error.message);throw error;}
   }
   if(input.operation==="staff.checkout.payments.snapshot.get"){
     if(!hasPermission(input.principal,"platform.read")) throw new StaffApiError(403,"FORBIDDEN","Platform read permission is required");

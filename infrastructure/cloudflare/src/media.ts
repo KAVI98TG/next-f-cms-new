@@ -77,7 +77,7 @@ async function assertSupportOwner(db:D1DatabaseLike, caseId:string, orderId?:str
 }
 function hex(bytes:ArrayBuffer|Uint8Array){ const a=bytes instanceof Uint8Array?bytes:new Uint8Array(bytes); return [...a].map((b)=>b.toString(16).padStart(2,"0")).join(""); }
 async function sha256(value:string){ return hex(await crypto.subtle.digest("SHA-256",enc.encode(value))); }
-async function hmac(key:ArrayBuffer|Uint8Array,value:string){ const material=key instanceof Uint8Array?key:new Uint8Array(key); const k=await crypto.subtle.importKey("raw",material,{name:"HMAC",hash:"SHA-256"},false,["sign"]); return new Uint8Array(await crypto.subtle.sign("HMAC",k,enc.encode(value))); }
+async function hmac(key:ArrayBuffer|Uint8Array,value:string){ const source=key instanceof Uint8Array?key:new Uint8Array(key); const material=new Uint8Array(source.byteLength); material.set(source); const k=await crypto.subtle.importKey("raw",material,{name:"HMAC",hash:"SHA-256"},false,["sign"]); return new Uint8Array(await crypto.subtle.sign("HMAC",k,enc.encode(value))); }
 function awsEncode(value:string){ return encodeURIComponent(value).replace(/[!'()*]/g,(c)=>`%${c.charCodeAt(0).toString(16).toUpperCase()}`); }
 function canonicalPath(bucket:string,key:string){ return `/${awsEncode(bucket)}/${key.split("/").map(awsEncode).join("/")}`; }
 async function presignedPut(env:WorkerEnv,key:string,contentType:string,expiresSeconds=300){
