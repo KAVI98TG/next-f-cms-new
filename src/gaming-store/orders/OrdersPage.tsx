@@ -31,7 +31,7 @@ export function OrdersPage() {
     {key:"value",header:"Value",render:(o)=><div className="entity-cell"><strong>{gamingLkr(o.sellingPrice)}</strong><small>Profit {gamingLkr(o.profit)}</small></div>},
     {key:"status",header:"Status",render:(o)=><GamingStatus value={o.status}/>},
     {key:"recon",header:"Reconciliation",render:(o)=><GamingStatus value={orderReconciliation(o)}/>},
-    {key:"action",header:"",width:"100px",render:(o)=><Button onClick={()=>setSelectedId(o.id)}><Eye size={13}/>View</Button>},
+    {key:"action",header:"",render:(o)=><Button onClick={()=>setSelectedId(o.id)}><Eye size={13}/>View</Button>},
   ];
   const nameError=attempted?validators.required(name,"Customer name"):""; const emailError=attempted?firstError(validators.required(email,"Email"),email.trim()?validators.email(email):""):""; const requiredFieldErrors=Object.fromEntries((selectedProduct?.requiredFields??[]).map((field)=>[field,attempted?validators.required(fields[field]??"",field):""]));
   const create=()=>{if(!operationalCapabilityAvailable)return;setAttempted(true);if(!selectedProduct||nameError||emailError||Object.values(requiredFieldErrors).some(Boolean)||!name.trim()||!email.trim())return; const order=gamingStore.createOrder({customerName:name.trim(),email:email.trim(),phone:phone.trim(),productId:selectedProduct.id,accountFields:fields}); if(!order){notify({title:"Order not created",description:"The selected product is not currently available.",tone:"danger"});return;} notify({title:"Order created",description:`${order.number} is ready for payment confirmation.`,tone:"success"}); setOpen(false); setAttempted(false); setName("");setEmail("");setPhone("");setFields({}); setSelectedId(order.id);};

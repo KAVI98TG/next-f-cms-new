@@ -47,7 +47,7 @@ export function BillingPage() {
     { key: "amount", header: "Amount", render: (row) => <strong>{formatLkr(row.amount)}</strong> },
     { key: "due", header: "Due", render: (row) => <span className="muted-cell">{formatDate(row.dueAt)}</span> },
     { key: "status", header: "Status", render: (row) => <DigitalStatus value={row.status} /> },
-    { key: "action", header: "", width: "330px", render: (row) => <div className="billing-actions">
+    { key: "action", header: "", render: (row) => <div className="billing-actions">
       <Button onClick={() => openInvoice(row)}><Edit3 size={14}/>Edit</Button>
       {row.status !== "paid" && !["cancelled", "refunded"].includes(row.status) ? <Button variant="primary" onClick={() => openPayment(row)}>Record payment</Button> : <Button onClick={()=>refundInvoice(row.id)}><RotateCcw size={14}/>Refund</Button>}
       <Button onClick={()=>sendReminder(row.id)}><Mail size={14}/>Remind</Button>
@@ -61,7 +61,7 @@ export function BillingPage() {
     { key: "frequency", header: "Frequency", render: (row) => <span className="muted-cell">{row.frequency === "monthly" ? "Monthly" : "Annual"}</span> },
     { key: "renewal", header: "Next renewal", render: (row) => <span className="muted-cell">{formatDate(row.nextRenewalAt)}</span> },
     { key: "status", header: "Status", render: (row) => <DigitalStatus value={row.status} /> },
-    { key: "action", header: "", width: "230px", render: (row) => <div className="billing-actions">
+    { key: "action", header: "", render: (row) => <div className="billing-actions">
       <Button onClick={()=>openSubscription(row)}><Edit3 size={14}/>Edit</Button>
       {row.status === "active" ? <Button onClick={() => issueRenewal(row.id)}>Issue renewal</Button> : <Button onClick={() => digitalStore.updateSubscription(row.id, { status: "active" })}>Reactivate</Button>}
     </div> },

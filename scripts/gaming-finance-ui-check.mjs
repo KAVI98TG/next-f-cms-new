@@ -1,0 +1,11 @@
+import fs from "node:fs";
+const page=fs.readFileSync("src/gaming-store/finance/FinancePage.tsx","utf8");
+const css=fs.readFileSync("src/css/components.css","utf8");
+const checks=[]; const check=(name,ok)=>checks.push({name,ok});
+check("finance uses a consolidated money-flow view",page.includes('className="finance-flow"')&&page.includes('Gross collected')&&page.includes('Net operating cost')&&page.includes('Estimated margin'));
+check("finance keeps CSV export",page.includes('ExportCsvButton')&&page.includes('Refunded LKR')&&page.includes('Estimated margin LKR'));
+check("finance exposes manual refresh",page.includes('Refresh')&&page.includes('void load()'));
+check("orders and refunds share one ledger workspace",page.includes('ledgerView')&&page.includes('role="tablist"')&&page.includes('setLedgerView("orders")')&&page.includes('setLedgerView("refunds")'));
+check("empty finance ledgers use compact purpose-built states",page.includes('finance-ledger-empty')&&page.includes('No order economics yet')&&page.includes('No refund activity yet'));
+check("finance design is locally scoped",css.includes('.finance-page')&&css.includes('.finance-overview-grid')&&css.includes('.finance-ledger-tabs'));
+const failed=checks.filter((c)=>!c.ok); for(const c of checks)console.log(`${c.ok?"PASS":"FAIL"}  ${c.name}`); console.log(`\n${checks.length-failed.length}/${checks.length} Gaming finance UI checks passed.`); if(failed.length)process.exit(1);

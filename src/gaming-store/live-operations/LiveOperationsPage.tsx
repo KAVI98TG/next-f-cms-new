@@ -202,7 +202,7 @@ export function LiveOperationsPage(){
     {key:"payment",header:"Payment",render:(row)=><div className="entity-cell"><strong>{providerLabel(row.payment.providerKey)}</strong><small>{row.payment.methodLabel||row.payment.state}</small></div>},
     {key:"status",header:"Order state",render:(row)=><GamingStatus value={row.status}/>},
     {key:"fulfillment",header:"Fulfillment",render:(row)=><GamingStatus value={snapshot?.fulfillmentJobs.find((job)=>job.orderId===row.orderId)?.state??(row.status==="completed"?"completed":"not_started")}/>},
-    {key:"action",header:"",width:"88px",render:(row)=><Button onClick={()=>setSelectedOrderId(row.orderId)}><Eye size={13}/>View</Button>},
+    {key:"action",header:"",render:(row)=><Button onClick={()=>setSelectedOrderId(row.orderId)}><Eye size={13}/>View</Button>},
   ];
   const paymentColumns:DataTableColumn<LivePaymentProof>[]= [
     {key:"order",header:"Order",render:(row)=><div className="entity-cell"><strong>{row.orderNumber}</strong><small>{row.proofId}</small></div>},
@@ -211,7 +211,7 @@ export function LiveOperationsPage(){
     {key:"amount",header:"Amount",render:(row)=><strong>{gamingLkr(row.amountLkr)}</strong>},
     {key:"status",header:"Review state",render:(row)=><GamingStatus value={row.status}/>},
     {key:"submitted",header:"Submitted",render:(row)=><span className="muted-cell">{gamingDate(row.submittedAt)}</span>},
-    {key:"action",header:"",width:"110px",render:(row)=>row.status==="pending_review"?<Button variant="primary" disabled={!snapshot?.capabilities.paymentReview||actionBusy} onClick={()=>openPaymentReview(row)}>Review</Button>:<span className="muted-cell">Reviewed</span>},
+    {key:"action",header:"",render:(row)=>row.status==="pending_review"?<Button variant="primary" disabled={!snapshot?.capabilities.paymentReview||actionBusy} onClick={()=>openPaymentReview(row)}>Review</Button>:<span className="muted-cell">Reviewed</span>},
   ];
   const fulfillmentColumns:DataTableColumn<LiveFulfillmentJob>[]= [
     {key:"job",header:"Job",render:(row)=><div className="entity-cell"><strong>{row.jobId}</strong><small>{snapshot?.orders.find((order)=>order.orderId===row.orderId)?.orderNumber??row.orderId}</small></div>},
@@ -220,7 +220,7 @@ export function LiveOperationsPage(){
     {key:"attempts",header:"Attempts",render:(row)=><strong>{row.attempts}</strong>},
     {key:"next",header:"Next check",render:(row)=><span className="muted-cell">{gamingDate(row.nextAttemptAt)}</span>},
     {key:"error",header:"Last error",render:(row)=><span className="muted-cell">{row.lastError??"—"}</span>},
-    {key:"action",header:"",width:"110px",render:(row)=>row.state!=="completed"?<Button disabled={!snapshot?.capabilities.fulfillmentRetry||actionBusy} onClick={()=>setRetryJob(row)}><RotateCcw size={13}/>Retry</Button>:<span className="muted-cell">Done</span>},
+    {key:"action",header:"",render:(row)=>row.state!=="completed"?<Button disabled={!snapshot?.capabilities.fulfillmentRetry||actionBusy} onClick={()=>setRetryJob(row)}><RotateCcw size={13}/>Retry</Button>:<span className="muted-cell">Done</span>},
   ];
   const riskColumns:DataTableColumn<LiveRiskAssessment>[]= [
     {key:"order",header:"Order",render:(row)=><div className="entity-cell"><strong>{row.orderNumber}</strong><small>{row.assessmentId}</small></div>},
@@ -229,7 +229,7 @@ export function LiveOperationsPage(){
     {key:"account",header:"Account context",render:(row)=><div className="entity-cell"><strong>{row.account.authenticated?"Signed in":"Guest checkout"}</strong><small>{row.account.ageHours===undefined?`${row.account.previousOrderCount} previous orders`:`${row.account.ageHours}h old · ${row.account.previousOrderCount} previous orders`}</small></div>},
     {key:"signals",header:"Signals",render:(row)=><span className="muted-cell">{row.signals.slice(0,2).map((signal)=>eventLabel(signal.code)).join(" · ")||"No elevated signals"}</span>},
     {key:"updated",header:"Updated",render:(row)=><span className="muted-cell">{gamingDate(row.updatedAt)}</span>},
-    {key:"action",header:"",width:"120px",render:(row)=>["held","review"].includes(row.state)?<Button variant={row.state==="held"?"primary":"secondary"} disabled={!snapshot?.capabilities.riskReview||actionBusy} onClick={()=>{setRiskError("");setRiskDecision("release");setRiskNote("");setRiskReview(row);}}>Review</Button>:<Button onClick={()=>setSelectedOrderId(row.orderId)}><Eye size={13}/>View</Button>},
+    {key:"action",header:"",render:(row)=>["held","review"].includes(row.state)?<Button variant={row.state==="held"?"primary":"secondary"} disabled={!snapshot?.capabilities.riskReview||actionBusy} onClick={()=>{setRiskError("");setRiskDecision("release");setRiskNote("");setRiskReview(row);}}>Review</Button>:<Button onClick={()=>setSelectedOrderId(row.orderId)}><Eye size={13}/>View</Button>},
   ];
   const refundColumns:DataTableColumn<LiveRefundRecord>[]= [
     {key:"refund",header:"Refund",render:(row)=><div className="entity-cell"><strong>{row.orderNumber}</strong><small>{row.refundId}</small></div>},
@@ -237,7 +237,7 @@ export function LiveOperationsPage(){
     {key:"amount",header:"Customer refund",render:(row)=><strong>{gamingLkr(row.amountLkr)}</strong>},
     {key:"status",header:"State",render:(row)=><GamingStatus value={row.status}/>},
     {key:"updated",header:"Updated",render:(row)=><span className="muted-cell">{gamingDate(row.updatedAt)}</span>},
-    {key:"action",header:"",width:"120px",render:(row)=>row.status==="requested"?<Button variant="primary" disabled={!snapshot?.capabilities.refundManage||actionBusy} onClick={()=>{setRefundError("");setRefundDecisionDraft({decision:"approved",note:""});setRefundDecision(row);}}>Review</Button>:row.status==="approved"?<Button disabled={!snapshot?.capabilities.refundManage||actionBusy} onClick={()=>{setRefundError("");setRefundSentDraft({providerReference:"",sentAt:localDateTime(),destinationConfirmed:false,supplierRecoveryLkr:"0",gatewayFeeRecoveredLkr:"0"});setRefundSent(row);}}>Mark sent</Button>:row.status==="sent"?<Button variant="primary" disabled={!snapshot?.capabilities.refundManage||actionBusy} onClick={()=>setCompleteRefund(row)}>Complete</Button>:<span className="muted-cell">{eventLabel(row.status)}</span>},
+    {key:"action",header:"",render:(row)=>row.status==="requested"?<Button variant="primary" disabled={!snapshot?.capabilities.refundManage||actionBusy} onClick={()=>{setRefundError("");setRefundDecisionDraft({decision:"approved",note:""});setRefundDecision(row);}}>Review</Button>:row.status==="approved"?<Button disabled={!snapshot?.capabilities.refundManage||actionBusy} onClick={()=>{setRefundError("");setRefundSentDraft({providerReference:"",sentAt:localDateTime(),destinationConfirmed:false,supplierRecoveryLkr:"0",gatewayFeeRecoveredLkr:"0"});setRefundSent(row);}}>Mark sent</Button>:row.status==="sent"?<Button variant="primary" disabled={!snapshot?.capabilities.refundManage||actionBusy} onClick={()=>setCompleteRefund(row)}>Complete</Button>:<span className="muted-cell">{eventLabel(row.status)}</span>},
   ];
   const notificationColumns:DataTableColumn<LiveNotificationRecord>[]= [
     {key:"notification",header:"Notification",render:(row)=><div className="entity-cell"><strong>{eventLabel(row.templateKey)}</strong><small>{row.notificationId}</small></div>},
@@ -246,7 +246,7 @@ export function LiveOperationsPage(){
     {key:"state",header:"State",render:(row)=><GamingStatus value={row.state}/>},
     {key:"attempts",header:"Attempts",render:(row)=><strong>{row.attempts}</strong>},
     {key:"updated",header:"Updated",render:(row)=><div className="entity-cell"><strong>{gamingDate(row.sentAt??row.updatedAt)}</strong><small>{row.lastError??(row.providerMessageId?`Provider ${row.providerMessageId}`:"Waiting for delivery")}</small></div>},
-    {key:"action",header:"",width:"110px",render:(row)=>row.state!=="sent"?<Button disabled={!snapshot?.capabilities.notificationRetry||actionBusy} onClick={()=>void submitNotificationRetry(row)}><RotateCcw size={13}/>Retry</Button>:<span className="muted-cell">Sent</span>},
+    {key:"action",header:"",render:(row)=>row.state!=="sent"?<Button disabled={!snapshot?.capabilities.notificationRetry||actionBusy} onClick={()=>void submitNotificationRetry(row)}><RotateCcw size={13}/>Retry</Button>:<span className="muted-cell">Sent</span>},
   ];
   const eventColumns:DataTableColumn<LiveGamingEvent>[]= [
     {key:"event",header:"Commerce event",render:(row)=><div className="entity-cell"><strong>{eventLabel(row.eventType)}</strong><small>{row.action}</small></div>},

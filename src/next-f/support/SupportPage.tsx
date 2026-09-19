@@ -23,7 +23,7 @@ export function SupportPage() {
     { key:"priority", header:"Priority", render:(row)=><DigitalStatus value={row.priority}/> },
     { key:"status", header:"Status", render:(row)=><DigitalStatus value={row.status}/> },
     { key:"updated", header:"Updated", render:(row)=><span className="muted-cell">{formatDate(row.updatedAt)}</span> },
-    { key:"action", header:"", width:"130px", render:(row)=>row.status!=="resolved"&&row.status!=="closed"?<Button variant="primary" onClick={()=>digitalStore.updateTicket(row.id,{status:"resolved"})}>Resolve</Button>:<Button onClick={()=>digitalStore.updateTicket(row.id,{status:"open"})}>Reopen</Button> },
+    { key:"action", header:"", render:(row)=>row.status!=="resolved"&&row.status!=="closed"?<Button variant="primary" onClick={()=>digitalStore.updateTicket(row.id,{status:"resolved"})}>Resolve</Button>:<Button onClick={()=>digitalStore.updateTicket(row.id,{status:"open"})}>Reopen</Button> },
   ];
   const submit=()=>{if(!form.clientId||!form.subject.trim())return; digitalStore.addTicket({...form,projectId:form.projectId||undefined,siteId:form.siteId||undefined});setOpen(false);};
   return <div className="page">

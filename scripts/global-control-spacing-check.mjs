@@ -1,0 +1,20 @@
+import fs from "node:fs";
+const read=(p)=>fs.readFileSync(p,"utf8");
+const components=read("src/css/components.css");
+const tokens=read("src/css/tokens.css");
+const checks=[];
+const check=(name,ok)=>checks.push([name,Boolean(ok)]);
+check("shared control inset token is 12px",tokens.includes("--control-padding-inline: 12px;"));
+check("shared select icon reserves safe end space",tokens.includes("--control-end-icon-space: 40px;")&&tokens.includes("--control-icon-inset: 11px;"));
+check("text inputs use shared horizontal inset",components.includes(".text-input { width:100%;")&&components.includes("padding-inline:var(--control-padding-inline); outline:0;"));
+check("select labels use shared start inset and reserved chevron space",components.includes("padding-inline:var(--control-padding-inline) var(--control-end-icon-space);"));
+check("select chevron is inset from the outer edge",components.includes("right:var(--control-icon-inset);"));
+check("select menu options use shared horizontal inset",components.includes(".select-input__option")&&components.includes("padding-inline:var(--control-padding-inline); text-align:left;"));
+check("toolbar search uses shared horizontal inset",components.includes(".toolbar-search")&&components.includes("padding-inline:var(--control-padding-inline); color:var(--text-subtle);"));
+check("catalog search uses shared horizontal inset",components.includes(".catalog-search")&&components.includes(".catalog-search{height:38px;display:flex;align-items:center;gap:8px;padding-inline:var(--control-padding-inline);"));
+check("promotion search uses shared horizontal inset",components.includes(".promotion-search")&&components.includes("gap:7px;padding-inline:var(--control-padding-inline);border:1px solid var(--border);"));
+check("legacy cramped select spacing is removed",!components.includes("padding:0 25px 0 5px")&&!components.includes("right:5px; top:50%; width:18px"));
+let failed=0;
+for(const [name,ok] of checks){console.log(`${ok?"PASS":"FAIL"}  ${name}`);if(!ok)failed++;}
+console.log(`\n${checks.length-failed}/${checks.length} global control spacing checks passed.`);
+if(failed)process.exit(1);
