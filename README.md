@@ -55,7 +55,7 @@ npx wrangler@latest pages deploy dist --project-name nextf-cms --branch main
 npm run acceptance:production:final
 ```
 
-`infrastructure/cloudflare/wrangler.production.jsonc` contains non-secret production identifiers only. `TURNSTILE_SECRET_KEY`, `SERVICE_CREDENTIAL_SECRET`, `NEXTF_MAIN_SITE_INGEST_TOKEN`, `GAMING_CMS_OPERATIONS_TOKEN`, `GAMING_CMS_COMMERCE_TOKEN`, `GAMING_CMS_SUPPORT_TOKEN`, `NEXTF_MEDIA_R2_ACCOUNT_ID`, `NEXTF_MEDIA_R2_ACCESS_KEY_ID` and `NEXTF_MEDIA_R2_SECRET_ACCESS_KEY` remain Cloudflare Worker Secrets and must never be committed.
+`infrastructure/cloudflare/wrangler.production.jsonc` contains non-secret production identifiers only. `TURNSTILE_SECRET_KEY`, `SERVICE_CREDENTIAL_SECRET`, `NEXTF_MAIN_SITE_INGEST_TOKEN`, `GAMING_CMS_OPERATIONS_TOKEN`, `GAMING_CMS_COMMERCE_TOKEN`, `GAMING_CMS_SUPPORT_TOKEN`, `GAMING_CMS_SUPPLIER_FUNDING_TOKEN`, `NEXTF_MEDIA_R2_ACCOUNT_ID`, `NEXTF_MEDIA_R2_ACCESS_KEY_ID` and `NEXTF_MEDIA_R2_SECRET_ACCESS_KEY` remain Cloudflare Worker Secrets and must never be committed.
 
 ## Authentication
 
@@ -126,3 +126,12 @@ Storefront Merchandising now keeps rich media fields and paired CTA controls ali
 ## v1.0.32 NEXT F Checkout Payments Control Center (P4 RC)
 
 `Platform → Payments` now operates the shared NEXT F Checkout control plane: provider configuration, business registry, market/currency availability, transaction/webhook/audit visibility and a separate write-only provider-secret boundary. PayPal/PayHere configuration stays server-side; Gaming and other NEXT F businesses consume normalized Checkout contracts instead of provider-specific browser integrations. See `docs/V1.0.32-NEXTF-CHECKOUT-P4.md`.
+
+
+## v1.0.33 FazerCards payment safety hardening
+
+The supplier-funding payment view now mirrors the provider-critical payment semantics: exact arrival amount, separate network-fee warning, local address QR, live expiry countdown and expiry lock. Exact provider decimal strings are preserved without USD reformatting. See `docs/V1.0.33-FAZERCARDS-PAYMENT-SAFETY-P4.md`.
+
+## v1.0.32 FazerCards supplier funding
+
+`Gaming Store → Suppliers → FazerCards` now exposes live provider balance, dynamic funding methods/limits, user-authorized Binance Pay verification and recent funding intents through the existing CMS → Gaming API control plane. Funding requires both `gaming.suppliers.manage` and `gaming.finance.manage`; `FAZERCARDS_API_KEY` remains exclusively on the Gaming API Worker. Configure the dedicated `GAMING_CMS_SUPPLIER_FUNDING_TOKEN` on both Workers. See `docs/V1.0.32-FAZERCARDS-FUNDING-P4.md`.

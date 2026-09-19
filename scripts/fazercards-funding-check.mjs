@@ -1,0 +1,17 @@
+import fs from 'node:fs';
+const read=(p)=>fs.readFileSync(new URL(`../${p}`,import.meta.url),'utf8');
+const env=read('infrastructure/cloudflare/src/env.ts');const control=read('infrastructure/cloudflare/src/gamingControl.ts');const staff=read('infrastructure/cloudflare/src/staff.ts');const service=read('src/gaming-store/live/fazercardsFunding.ts');const page=read('src/gaming-store/suppliers/SuppliersPage.tsx');const qr=read('src/shared/qr/qrCode.ts');const qrView=read('src/shared/qr/PaymentQr.tsx');
+let failed=0;const check=(name,ok)=>{console.log(`${ok?'PASS':'FAIL'} ${name}`);if(!ok)failed+=1;};
+check('CMS Worker declares dedicated funding credential',env.includes('GAMING_CMS_SUPPLIER_FUNDING_TOKEN'));
+check('CMS funding bridge uses only the dedicated credential',control.includes('token:env.GAMING_CMS_SUPPLIER_FUNDING_TOKEN')&&!service.includes('GAMING_CMS_SUPPLIER_FUNDING_TOKEN')&&!page.includes('GAMING_CMS_SUPPLIER_FUNDING_TOKEN'));
+check('funding requires supplier and finance permissions',staff.includes('gaming.suppliers.manage')&&staff.includes('gaming.finance.manage')&&staff.includes('staff.gaming.supplier.funding.create'));
+check('CMS command passes idempotency to Gaming API',control.includes('idempotencyKey')&&control.includes('/v1/gaming/admin/supplier/fazercards/funding/payments')&&service.includes('staff.gaming.supplier.funding.verify'));
+check('frontend discovers live methods and provider limits',page.includes('funding?.methods')&&page.includes('minAmountUsd')&&page.includes('maxAmountUsd'));
+check('Binance Pay stays user-authorized',page.includes('Binance Order ID')&&page.includes('Verify Binance Pay')&&!page.includes('BINANCE_API_KEY'));
+check('exact provider amount is not formatted as USD',page.includes('exactProviderAmount')&&page.includes('Send this exact amount')&&page.includes('Copy amount')&&!page.includes('money(fundingRecord.payment?.uniqueAmount'));
+check('network fee and exact-arrival warning are explicit',page.includes('The network fee is separate')&&page.includes('must arrive at the address')&&page.includes('wrong network, address, memo/tag or amount'));
+check('expired payment instructions are locked',page.includes('paymentExpired')&&page.includes('Payment window expired')&&page.includes('Create new payment')&&page.includes('disabled={paymentExpired}'));
+check('payment QR is generated locally',page.includes('<PaymentQr')&&qrView.includes('createPaymentQrMatrix')&&qr.includes('TextEncoder')&&!qr.includes('http://')&&!qr.includes('https://'));
+check('crypto payment instructions support address and memo',page.includes('Payment address')&&page.includes('Memo / tag'));
+check('browser code never calls FazerCards directly',!service.includes('X-API-Key')&&!service.includes('api.fzr.cards')&&!page.includes('X-API-Key')&&!page.includes('api.fzr.cards'));
+if(failed){console.error(`\n${failed} CMS FazerCards funding checks failed.`);process.exit(1);}console.log('\nCMS FazerCards funding checks passed.');

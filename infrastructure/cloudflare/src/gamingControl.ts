@@ -14,12 +14,13 @@ function apiBase(env:WorkerEnv){
   return base;
 }
 
-async function callGaming<T>(env:WorkerEnv, input:{path:string;token:string|undefined;body:Record<string,unknown>;requestId:string;correlationId:string;staffAccountId:string;staffUserId:string}){
+async function callGaming<T>(env:WorkerEnv, input:{path:string;token:string|undefined;body?:Record<string,unknown>;method?:"GET"|"POST";idempotencyKey?:string;requestId:string;correlationId:string;staffAccountId:string;staffUserId:string}){
   if(!input.token) throw new GamingControlError(503,"GAMING_CONTROL_NOT_CONFIGURED","Gaming control credential is not configured");
+  const method=input.method??"POST";
   let response:Response;
   try{
     response=await fetch(`${apiBase(env)}${input.path}`,{
-      method:"POST",
+      method,
       headers:{
         "authorization":`Bearer ${input.token}`,
         "content-type":"application/json",
@@ -27,8 +28,9 @@ async function callGaming<T>(env:WorkerEnv, input:{path:string;token:string|unde
         "x-correlation-id":input.correlationId,
         "x-nextf-staff-account-id":input.staffAccountId,
         "x-nextf-staff-user-id":input.staffUserId,
+        ...(input.idempotencyKey?{"idempotency-key":input.idempotencyKey}:{}),
       },
-      body:JSON.stringify(input.body),
+      ...(method==="POST"?{body:JSON.stringify(input.body??{})}:{}),
     });
   }catch{
     throw new GamingControlError(502,"GAMING_CONTROL_UNAVAILABLE","Gaming control API could not be reached");
@@ -235,4 +237,26 @@ export function validateGamingSupportCommand(value:Record<string,unknown>|undefi
 }
 export async function commandGamingSupportCase(env:WorkerEnv,value:Record<string,unknown>|undefined,requestId:string,correlationId:string,staff:{accountId:string;staffUserId:string}){
   const input=validateGamingSupportCommand(value);return callGaming<Record<string,unknown>>(env,{path:`/v1/gaming/admin/support-cases/${encodeURIComponent(input.caseId)}/command`,token:env.GAMING_CMS_SUPPORT_TOKEN,body:input.body,requestId,correlationId,staffAccountId:staff.accountId,staffUserId:staff.staffUserId});
+}
+
+export type GamingFundingMethod={code:string;label:string;minAmountUsd:number;maxAmountUsd:number};
+export type GamingFundingPayment={id:string;method?:string;network?:string;amount:string;uniqueAmount?:string|null;address?:string;memo?:string|null;binanceId?:string|null;displayName?:string|null;status:string;verifyAttempts:number;expiresAt?:string|null;completedAt?:string|null;cancelledAt?:string|null;createdAt?:string|null};
+export type GamingFundingRecord={intentId:string;providerKey:"fazercards";method:string;amountUsd:number;state:"creating"|"pending"|"completed"|"cancelled"|"failed"|"uncertain";externalPaymentId?:string;payment?:GamingFundingPayment;requestedBy:string;lastError?:string;createdAt:string;updatedAt:string};
+export type GamingFundingSnapshot={providerKey:"fazercards";balance?:{amount:string;currency:string};account?:{id:string|null;plan?:string|null};methods:GamingFundingMethod[];payments:GamingFundingRecord[];generatedAt:string};
+
+function fundingStaff(staff:{accountId:string;staffUserId:string}){return{staffAccountId:staff.accountId,staffUserId:staff.staffUserId};}
+export async function getGamingSupplierFundingSnapshot(env:WorkerEnv,requestId:string,correlationId:string,staff:{accountId:string;staffUserId:string}){
+  return callGaming<GamingFundingSnapshot>(env,{path:"/v1/gaming/admin/supplier/fazercards/funding",token:env.GAMING_CMS_SUPPLIER_FUNDING_TOKEN,method:"GET",requestId,correlationId,...fundingStaff(staff)});
+}
+export async function getGamingSupplierFundingPayment(env:WorkerEnv,paymentId:string,requestId:string,correlationId:string,staff:{accountId:string;staffUserId:string}){
+  return callGaming<GamingFundingRecord>(env,{path:`/v1/gaming/admin/supplier/fazercards/funding/payments/${encodeURIComponent(requiredText(paymentId,"paymentId",160))}`,token:env.GAMING_CMS_SUPPLIER_FUNDING_TOKEN,method:"GET",requestId,correlationId,...fundingStaff(staff)});
+}
+export async function createGamingSupplierFundingPayment(env:WorkerEnv,value:Record<string,unknown>|undefined,idempotencyKey:string,requestId:string,correlationId:string,staff:{accountId:string;staffUserId:string}){
+  const method=requiredText(value?.method,"method",40).toLowerCase();const amountUsd=Number(value?.amountUsd);
+  if(!Number.isFinite(amountUsd)||amountUsd<=0||amountUsd>100000)throw new GamingControlError(400,"FUNDING_AMOUNT_INVALID","Enter a valid USD funding amount");
+  return callGaming<GamingFundingRecord>(env,{path:"/v1/gaming/admin/supplier/fazercards/funding/payments",token:env.GAMING_CMS_SUPPLIER_FUNDING_TOKEN,body:{method,amountUsd},idempotencyKey,requestId,correlationId,...fundingStaff(staff)});
+}
+export async function verifyGamingSupplierFundingPayment(env:WorkerEnv,value:Record<string,unknown>|undefined,idempotencyKey:string,requestId:string,correlationId:string,staff:{accountId:string;staffUserId:string}){
+  const paymentId=requiredText(value?.paymentId,"paymentId",160);const binanceOrderId=requiredText(value?.binanceOrderId,"binanceOrderId",200);
+  return callGaming<GamingFundingRecord>(env,{path:`/v1/gaming/admin/supplier/fazercards/funding/payments/${encodeURIComponent(paymentId)}/verify`,token:env.GAMING_CMS_SUPPLIER_FUNDING_TOKEN,body:{binanceOrderId},idempotencyKey,requestId,correlationId,...fundingStaff(staff)});
 }

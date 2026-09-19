@@ -8,6 +8,8 @@ export type BackendQueryName =
   | "staff.workspace.get"
   | "staff.workspace.activity.list"
   | "staff.website-platform.queue.list"
+  | "staff.gaming.supplier.funding.snapshot.get"
+  | "staff.gaming.supplier.funding.payment.get"
   | "customer.workspace.get"
   | "customer.projects.list"
   | "customer.sites.list"
@@ -40,6 +42,8 @@ export type BackendCommandName =
   | "staff.contract-migration.create"
   | "staff.production-acceptance.record"
   | "staff.system.maintenance.run"
+  | "staff.gaming.supplier.funding.create"
+  | "staff.gaming.supplier.funding.verify"
   | "customer.change.submit"
   | "customer.publish.submit"
   | "customer.support.create"
@@ -70,9 +74,13 @@ export const BACKEND_API_OPERATIONS: ApiOperationDefinition[] = [
   { name: "staff.state.document.put", kind: "command", allowedPrincipals: ["staff"], workspaceScoped: false, idempotency: "required", description: "Optimistically write one D1-backed CMS state document with server permission enforcement and audit evidence." },
   { name: "staff.state.document.delete", kind: "command", allowedPrincipals: ["staff"], workspaceScoped: false, idempotency: "required", description: "Soft-delete one D1-backed CMS state document with server permission enforcement and audit evidence." },
   { name: "staff.system.maintenance.run", kind: "command", allowedPrincipals: ["staff"], workspaceScoped: false, idempotency: "required", staffPermissions: ["platform.cleanup.manage"], description: "Run production demo-expiry, retention and idempotency maintenance immediately with audited evidence." },
+  { name: "staff.gaming.supplier.funding.create", kind: "command", allowedPrincipals: ["staff"], workspaceScoped: false, idempotency: "required", staffPermissions: ["gaming.suppliers.manage","gaming.finance.manage"], description: "Create a FazerCards wallet-funding invoice using current provider methods and limits without exposing provider credentials to the browser." },
+  { name: "staff.gaming.supplier.funding.verify", kind: "command", allowedPrincipals: ["staff"], workspaceScoped: false, idempotency: "required", staffPermissions: ["gaming.suppliers.manage","gaming.finance.manage"], description: "Verify a Binance Pay FazerCards funding payment by provider payment id and Binance Order ID." },
   { name: "staff.workspace.get", kind: "query", allowedPrincipals: ["staff"], workspaceScoped: true, idempotency: "not_applicable", staffPermissions: ["digital.website-platform.manage"], description: "Internal staff projection for one Customer Workspace." },
   { name: "staff.workspace.activity.list", kind: "query", allowedPrincipals: ["staff"], workspaceScoped: true, idempotency: "not_applicable", staffPermissions: ["digital.website-platform.manage"], description: "Internal operational/audit activity for one Customer Workspace." },
   { name: "staff.website-platform.queue.list", kind: "query", allowedPrincipals: ["staff"], workspaceScoped: false, idempotency: "not_applicable", staffPermissions: ["digital.website-platform.manage"], description: "Internal website-platform operations queue." },
+  { name: "staff.gaming.supplier.funding.snapshot.get", kind: "query", allowedPrincipals: ["staff"], workspaceScoped: false, idempotency: "not_applicable", staffPermissions: ["gaming.suppliers.manage","gaming.finance.manage"], description: "Read live FazerCards balance, available funding methods and recent audited funding intents through the server-only Gaming bridge." },
+  { name: "staff.gaming.supplier.funding.payment.get", kind: "query", allowedPrincipals: ["staff"], workspaceScoped: false, idempotency: "not_applicable", staffPermissions: ["gaming.suppliers.manage","gaming.finance.manage"], description: "Reconcile one previously created FazerCards funding payment through the server-only Gaming bridge." },
   { name: "customer.workspace.get", kind: "query", allowedPrincipals: ["customer"], workspaceScoped: true, idempotency: "not_applicable", description: "Customer-safe projection of the principal's own workspace." },
   { name: "customer.projects.list", kind: "query", allowedPrincipals: ["customer"], workspaceScoped: true, idempotency: "not_applicable", description: "Customer-visible projects attached to the current workspace." },
   { name: "customer.sites.list", kind: "query", allowedPrincipals: ["customer"], workspaceScoped: true, idempotency: "not_applicable", description: "Customer-visible managed sites attached to the current workspace." },

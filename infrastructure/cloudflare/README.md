@@ -22,6 +22,7 @@ Set using Wrangler/Cloudflare secret management, never commit values:
 - `NEXTF_MAIN_SITE_INGEST_TOKEN` — dedicated bearer credential for the `nextf.lk` server-to-server project-request receiver. Do not reuse the service credential or Turnstile secret.
 - `GAMING_CMS_OPERATIONS_TOKEN` — dedicated least-privilege server-to-server credential shared only with the Gaming API for exact payment-decision, fulfillment-retry and refund-mutation commands.
 - `GAMING_CMS_COMMERCE_TOKEN` — dedicated least-privilege server-to-server credential shared only with the Gaming API for promotion/campaign create-update commands. Do not reuse the operations token.
+- `GAMING_CMS_SUPPLIER_FUNDING_TOKEN` — dedicated least-privilege server-to-server credential shared only with the Gaming API for FazerCards funding reads/create/verify/reconciliation. Do not reuse operations, commerce or support credentials.
 
 Additional provider credentials should use separate least-privilege secrets.
 
@@ -65,3 +66,8 @@ The staff API now exposes `staff.gaming.analytics.snapshot.get` for bounded 7/30
 ## Gaming promotion campaign bridge
 
 `Gaming Store → Promotions` reads campaign state from the shared D1 and sends create/update commands to the existing Gaming API. Set the same `GAMING_CMS_COMMERCE_TOKEN` as a Worker secret on the CMS API Worker and Gaming API Worker. The credential never enters the browser and does not authorize payment/refund/risk/notification/supplier administration.
+
+
+### FazerCards supplier funding bridge
+
+Set the same `GAMING_CMS_SUPPLIER_FUNDING_TOKEN` as a Cloudflare Worker secret on both the CMS API Worker and Gaming API Worker. CMS browser code never receives this credential or `FAZERCARDS_API_KEY`. Funding commands require `gaming.suppliers.manage` plus `gaming.finance.manage`, and Binance Pay authorization remains outside NEXT F.

@@ -20,6 +20,8 @@ check('provider UI supports PayHere Merchant ID',page.includes('PayHere Merchant
 check('provider secrets are write-only in CMS',page.includes('Write-only')&&page.includes('current secret value is never returned')&&service.includes('rotateCheckoutSecret'));
 check('business registry controls origins and signed callback URL',page.includes('Allowed HTTPS origins')&&page.includes('Signed callback URL')&&service.includes('saveCheckoutBusiness'));
 check('availability controls business market currency and disabled-vs-hide',page.includes('Business · Market · Currency')&&page.includes('Show disabled')&&page.includes('Hide'));
+check('pending attempts and transaction timelines exist',page.includes('Payment attempts')&&page.includes('Transaction timeline')&&service.includes('CheckoutAttempt')&&control.includes('/v1/admin/attempts'));
+check('dead callback delivery is included in attention',page.includes('outboxDead')&&service.includes('outboxDead'));
 check('transaction webhook outbox and audit views exist',page.includes('Transactions')&&page.includes('Webhook verification')&&page.includes('Signed event delivery')&&page.includes('Checkout audit'));
 check('Checkout bridge variables are production-configured',wrangler.includes('CHECKOUT_API_ORIGIN')&&wrangler.includes('CHECKOUT_CONTRACT_RELEASE')&&env.includes('CHECKOUT_ADMIN_TOKEN')&&env.includes('CHECKOUT_SECRET_ADMIN_TOKEN'));
 check('Payments UI follows 10px typography floor',!css.match(/\.checkout[^{}]*\{[^{}]*font-size:\s*[1-9]px/));

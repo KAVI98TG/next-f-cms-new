@@ -18,10 +18,11 @@ async function call<T>(env:WorkerEnv,principal:StaffPrincipal,path:string,init?:
 function can(principal:StaffPrincipal,permission:string){return principal.permissions.includes(permission)}
 
 export async function checkoutPaymentsSnapshot(env:WorkerEnv,principal:StaffPrincipal,businessId?:string){
-  const [overview,providers,businesses,transactions,refunds,webhooks,outbox,auditRows]=await Promise.all([
+  const [overview,providers,businesses,attempts,transactions,refunds,webhooks,outbox,auditRows]=await Promise.all([
     call<any>(env,principal,'/v1/admin/overview'),
     call<any[]>(env,principal,'/v1/admin/providers'),
     call<any[]>(env,principal,'/v1/admin/businesses'),
+    call<any[]>(env,principal,'/v1/admin/attempts'),
     call<any[]>(env,principal,'/v1/admin/transactions?limit=100'),
     call<any[]>(env,principal,'/v1/admin/refunds'),
     call<any[]>(env,principal,'/v1/admin/webhooks'),
@@ -30,7 +31,7 @@ export async function checkoutPaymentsSnapshot(env:WorkerEnv,principal:StaffPrin
   ]);
   const selected=businessId&&businesses.some((row:any)=>row.id===businessId)?businessId:(businesses[0]?.id||'');
   const availability=selected?await call<any>(env,principal,`/v1/admin/availability?businessId=${encodeURIComponent(selected)}`):{businessId:'',businessRules:[],marketRules:[]};
-  return {overview,providers,businesses,selectedBusinessId:selected,availability,transactions,refunds,webhooks,outbox,audit:auditRows,capabilities:{configure:can(principal,'platform.settings.manage'),secretWrite:can(principal,'platform.security.manage'),audit:can(principal,'platform.audit.read'),refunds:false},contractRelease:env.CHECKOUT_CONTRACT_RELEASE||'1.0.0'};
+  return {overview,providers,businesses,selectedBusinessId:selected,availability,attempts,transactions,refunds,webhooks,outbox,audit:auditRows,capabilities:{configure:can(principal,'platform.settings.manage'),secretWrite:can(principal,'platform.security.manage'),audit:can(principal,'platform.audit.read'),refunds:false},contractRelease:env.CHECKOUT_CONTRACT_RELEASE||'1.0.0'};
 }
 
 export async function updateCheckoutProvider(env:WorkerEnv,principal:StaffPrincipal,key:string,input:any){return call(env,principal,`/v1/admin/providers/${encodeURIComponent(key)}`,{method:'PUT',body:input})}

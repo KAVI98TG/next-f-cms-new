@@ -1,7 +1,7 @@
 {
   "name": "@next-f/admin",
   "private": true,
-  "version": "1.0.32",
+  "version": "1.0.33",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -73,7 +73,8 @@
     "check:gaming-pricing-ui": "node scripts/gaming-pricing-ui-check.mjs",
     "check:gaming-support-ui": "node scripts/gaming-support-operations-ui-check.mjs",
     "check:gaming-tracking-ui": "node scripts/gaming-first-party-tracking-ui-check.mjs",
-    "check:checkout-payments": "node scripts/checkout-payments-control-check.mjs"
+    "check:checkout-payments": "node scripts/checkout-payments-control-check.mjs",
+    "check:fazercards-funding": "node scripts/fazercards-funding-check.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
