@@ -8,7 +8,7 @@ import { gamingAnalyticsSnapshot } from "./gamingAnalytics";
 import { gamingPromotionsSnapshot } from "./gamingPromotions";
 import { gamingSupportSnapshot } from "./gamingSupport";
 import { gamingCustomersSnapshot } from "./gamingCustomers";
-import { GamingControlError, commandGamingSupportCase, completeGamingRefund, createGamingPromotion, createGamingRefund, createGamingSupportCase, createGamingSupplierFundingPayment, decideGamingRefund, decideGamingRisk, getGamingSupplierFundingPayment, getGamingSupplierFundingSnapshot, markGamingRefundSent, reviewGamingPayment, retryGamingFulfillment, retryGamingNotification, updateGamingPromotion, verifyGamingSupplierFundingPayment } from "./gamingControl";
+import { GamingControlError, commandGamingSupportCase, completeGamingRefund, createGamingPromotion, createGamingRefund, createGamingSupportCase, createGamingSupplierFundingPayment, decideGamingRefund, decideGamingRisk, getGamingSupplierFundingPayment, getGamingSupplierFundingSnapshot, getGamingNotificationHealth, markGamingRefundSent, reviewGamingPayment, retryGamingFulfillment, retryGamingNotification, updateGamingPromotion, verifyGamingSupplierFundingPayment } from "./gamingControl";
 import { createMediaUpload, finalizeMediaUpload } from "./media";
 import { CheckoutControlError, checkoutPaymentsSnapshot, checkCheckoutProviderHealth, rotateCheckoutSecret, updateCheckoutBusiness, updateCheckoutBusinessRule, updateCheckoutMarketRule, updateCheckoutProvider } from "./checkoutControl";
 
@@ -47,7 +47,10 @@ function hasAny(principal:StaffPrincipal, permissions:string[]){ return permissi
 const DIGITAL_MANAGE_PERMISSIONS=["digital.sales.manage","digital.projects.manage","digital.billing.manage","digital.sites.manage","digital.settings.manage","digital.website-platform.manage"];
 const PLATFORM_MANAGE_PERMISSIONS=["platform.users.manage","platform.access.manage","platform.settings.manage","platform.help.manage","platform.organizations.manage","platform.domains.manage","platform.security.manage","platform.backup.manage","platform.cleanup.manage"];
 
+function ownOperationsAckKey(principal:StaffPrincipal,key:string){return key===`nextf.v0.7.operations.acknowledged.${principal.staffUserId}`;}
+
 function stateReadAllowed(principal:StaffPrincipal,key:string){
+  if(key.startsWith('nextf.v0.7.operations.acknowledged.')) return ownOperationsAckKey(principal,key)&&hasPermission(principal,'platform.read');
   if(key.startsWith("nextf.v0.4.digital.")||key.startsWith("nextf.v0.10.digital.")||key.startsWith("nextf.v0.12.digital.")||key.startsWith("nextf.v0.13.digital.")||key.startsWith("nextf.v0.14.digital.")||key.startsWith("nextf.v0.19.digital.")||key.includes("website-platform")||key.includes("contract-registry")) return hasPermission(principal,"digital.read")||hasPermission(principal,"digital.website-platform.manage");
   if(key.startsWith("nextf.v0.5.gaming.")) return false;
   if(key.startsWith("nextf.vnext.gaming.")) return hasPermission(principal,"gaming.read");
@@ -57,6 +60,7 @@ function stateReadAllowed(principal:StaffPrincipal,key:string){
 }
 
 function stateWriteAllowed(principal:StaffPrincipal,key:string){
+  if(key.startsWith('nextf.v0.7.operations.acknowledged.')) return ownOperationsAckKey(principal,key)&&hasPermission(principal,'platform.read');
   if(key.startsWith("nextf.v0.4.digital.leads")||key.startsWith("nextf.v0.4.digital.opportunities")||key.startsWith("nextf.v0.4.digital.proposals")||key.startsWith("nextf.v0.4.digital.clients")) return hasPermission(principal,"digital.sales.manage");
   if(key.startsWith("nextf.v0.4.digital.projects")||key.startsWith("nextf.v0.4.digital.tasks")||key.startsWith("nextf.v0.4.digital.deliverables")||key.startsWith("nextf.v0.4.digital.approvals")||key.startsWith("nextf.v0.4.digital.tickets")||key.startsWith("nextf.v0.4.digital.workflows")||key.startsWith("nextf.v0.10.digital.project-templates")) return hasPermission(principal,"digital.projects.manage");
   if(key.startsWith("nextf.v0.4.digital.invoices")||key.startsWith("nextf.v0.4.digital.subscriptions")||key.startsWith("nextf.v0.10.digital.billing-adjustments")||key.startsWith("nextf.v0.10.digital.addons")) return hasPermission(principal,"digital.billing.manage");
@@ -131,6 +135,11 @@ export async function handleStaffQuery(input:{operation:string;body:StaffRequest
     if(!hasPermission(input.principal,"gaming.read")) throw new StaffApiError(403,"FORBIDDEN","Gaming read permission is required");
     return gamingOperationsSnapshot(input.env.DB,input.principal,{paymentReview:Boolean(input.env.GAMING_API_ORIGIN&&input.env.GAMING_CMS_OPERATIONS_TOKEN),fulfillmentRetry:Boolean(input.env.GAMING_API_ORIGIN&&input.env.GAMING_CMS_OPERATIONS_TOKEN),refundManage:Boolean(input.env.GAMING_API_ORIGIN&&input.env.GAMING_CMS_OPERATIONS_TOKEN),riskReview:Boolean(input.env.GAMING_API_ORIGIN&&input.env.GAMING_CMS_OPERATIONS_TOKEN),notificationRetry:Boolean(input.env.GAMING_API_ORIGIN&&input.env.GAMING_CMS_OPERATIONS_TOKEN)});
   }
+  if(input.operation==="staff.gaming.notifications.health.get"){
+    if(!hasPermission(input.principal,"gaming.read")) throw new StaffApiError(403,"FORBIDDEN","Gaming read permission is required");
+    try{return await getGamingNotificationHealth(input.env,input.requestId,input.correlationId,{accountId:input.principal.accountId,staffUserId:input.principal.staffUserId});}
+    catch(error){if(error instanceof GamingControlError)throw new StaffApiError(error.status,error.code,error.message);throw error;}
+  }
   if(input.operation==="staff.gaming.analytics.snapshot.get"){
     if(!hasPermission(input.principal,"gaming.read")) throw new StaffApiError(403,"FORBIDDEN","Gaming read permission is required");
     const query=input.body.input as Record<string,unknown>|undefined;
@@ -150,15 +159,13 @@ export async function handleStaffQuery(input:{operation:string;body:StaffRequest
   }
   if(input.operation==="staff.gaming.supplier.funding.snapshot.get"){
     if(!hasPermission(input.principal,"gaming.suppliers.manage")||!hasPermission(input.principal,"gaming.finance.manage")) throw new StaffApiError(403,"FORBIDDEN","Gaming supplier and finance permissions are required");
-    try{return await getGamingSupplierFundingSnapshot(input.env,input.requestId,input.correlationId,{accountId:input.principal.accountId,staffUserId:input.principal.staffUserId});}
-    catch(error){if(error instanceof GamingControlError)throw new StaffApiError(error.status,error.code,error.message);throw error;}
+    return getGamingSupplierFundingSnapshot(input.env,input.requestId,input.correlationId,{accountId:input.principal.accountId,staffUserId:input.principal.staffUserId});
   }
   if(input.operation==="staff.gaming.supplier.funding.payment.get"){
     if(!hasPermission(input.principal,"gaming.suppliers.manage")||!hasPermission(input.principal,"gaming.finance.manage")) throw new StaffApiError(403,"FORBIDDEN","Gaming supplier and finance permissions are required");
     const query=input.body.input as Record<string,unknown>|undefined;const paymentId=typeof query?.paymentId==="string"?query.paymentId.trim():"";
     if(!paymentId) throw new StaffApiError(400,"FUNDING_PAYMENT_ID_REQUIRED","paymentId is required");
-    try{return await getGamingSupplierFundingPayment(input.env,paymentId,input.requestId,input.correlationId,{accountId:input.principal.accountId,staffUserId:input.principal.staffUserId});}
-    catch(error){if(error instanceof GamingControlError)throw new StaffApiError(error.status,error.code,error.message);throw error;}
+    return getGamingSupplierFundingPayment(input.env,paymentId,input.requestId,input.correlationId,{accountId:input.principal.accountId,staffUserId:input.principal.staffUserId});
   }
   if(input.operation==="staff.checkout.payments.snapshot.get"){
     if(!hasPermission(input.principal,"platform.read")) throw new StaffApiError(403,"FORBIDDEN","Platform read permission is required");

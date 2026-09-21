@@ -38,3 +38,8 @@ The final packaging environment could not complete an npm dependency restore/bui
 This release changes both CMS frontend and CMS API Worker because Checkout configuration/secrets are brokered server-side. Deploy Checkout API first, then CMS API, then CMS Pages. Configure `CHECKOUT_ADMIN_TOKEN` and `CHECKOUT_SECRET_ADMIN_TOKEN` as Worker secrets. No CMS D1 SQL migration is introduced by this integration.
 
 See `docs/V1.0.32-NEXTF-CHECKOUT-P4.md`.
+
+## v1.0.46 Media WebCrypto type fix
+
+The Media AWS SigV4 HMAC helper now copies key bytes into a guaranteed `ArrayBuffer` before WebCrypto `importKey()`, resolving the TypeScript 5.8 `ArrayBufferLike` / `SharedArrayBuffer` overload error without changing signing behavior. CMS-only hotfix; no D1 migration.
+

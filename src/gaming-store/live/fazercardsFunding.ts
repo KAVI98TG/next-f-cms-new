@@ -4,7 +4,8 @@ import { readProductionRuntimeConfig } from '../../services/production/runtime';
 
 export type FundingMethod={code:string;label:string;minAmountUsd:number;maxAmountUsd:number};
 export type FundingPayment={id:string;method?:string;network?:string;amount:string;uniqueAmount?:string|null;address?:string;memo?:string|null;binanceId?:string|null;displayName?:string|null;status:string;verifyAttempts:number;expiresAt?:string|null;completedAt?:string|null;cancelledAt?:string|null;createdAt?:string|null};
-export type FundingRecord={intentId:string;providerKey:'fazercards';method:string;amountUsd:number;state:'creating'|'pending'|'completed'|'cancelled'|'failed'|'uncertain';externalPaymentId?:string;payment?:FundingPayment;requestedBy:string;lastError?:string;createdAt:string;updatedAt:string;replayed?:boolean};
+export type FundingReconciliation={state:'pending'|'observed'|'review';expectedCreditUsd:number;observedBalanceDeltaUsd?:number;checkedAt?:string;note?:string};
+export type FundingRecord={intentId:string;providerKey:'fazercards';method:string;amountUsd:number;state:'creating'|'pending'|'completed'|'cancelled'|'failed'|'uncertain';externalPaymentId?:string;payment?:FundingPayment;requestedBy:string;balanceBeforeUsd?:number;balanceAfterUsd?:number;reconciliation?:FundingReconciliation;lastError?:string;createdAt:string;updatedAt:string;replayed?:boolean};
 export type FundingSnapshot={providerKey:'fazercards';balance?:{amount:string;currency:string};account?:{id:string|null;plan?:string|null};methods:FundingMethod[];payments:FundingRecord[];generatedAt:string};
 
 const runtime=readProductionRuntimeConfig();

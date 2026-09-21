@@ -190,12 +190,12 @@ export function SupportPage() {
   }, [allCases, categoryFilter, priorityFilter, query, queue, staffAccountId, statusFilter]);
 
   const cols: DataTableColumn<GamingSupportCase>[] = [
-    { key: "case", header: "Case", render: (row) => <button className="support-ops-case-link" onClick={() => setSelected(row)}><strong>{row.caseNumber}</strong><small>{categoryName(row.category)}</small></button> },
+    { key: "case", header: "Case", width: "150px", render: (row) => <button className="support-ops-case-link" onClick={() => setSelected(row)}><strong>{row.caseNumber}</strong><small>{categoryName(row.category)}</small></button> },
     { key: "issue", header: "Customer & issue", render: (row) => <div className="support-ops-identity"><span className="support-ops-avatar">{(row.orderContext.customerEmail || row.subject || "C").slice(0, 1).toUpperCase()}</span><span><strong>{row.subject}</strong><small>{row.orderContext.customerEmail || "Guest / recovered order"}</small></span></div> },
     { key: "context", header: "Order context", render: (row) => <div className="entity-cell"><strong>{row.orderContext.productName || row.orderContext.offerName || "Gaming order"}</strong><small>{row.orderNumber} · {gamingLkr(row.orderContext.amountLkr)}</small></div> },
-    { key: "state", header: "State", render: (row) => <div className="support-ops-state-cell"><GamingStatus value={row.status}/><GamingStatus value={row.priority}/></div> },
-    { key: "sla", header: "SLA", render: (row) => { const copy = slaCopy(row); return <div className="support-ops-sla-cell"><Badge tone={slaTone(row)}>{copy.title}</Badge><small>{copy.detail}</small></div>; } },
-    { key: "owner", header: "Owner", render: (row) => <div className="support-ops-owner"><strong>{row.assignee?.accountId === staffAccountId ? "You" : row.assignee ? "Assigned" : "Unassigned"}</strong><small>{row.assignee ? shortId(row.assignee.accountId) : "Needs owner"}</small></div> },
+    { key: "state", header: "State", width: "150px", render: (row) => <div className="support-ops-state-cell"><GamingStatus value={row.status}/><GamingStatus value={row.priority}/></div> },
+    { key: "sla", header: "SLA", width: "170px", render: (row) => { const copy = slaCopy(row); return <div className="support-ops-sla-cell"><Badge tone={slaTone(row)}>{copy.title}</Badge><small>{copy.detail}</small></div>; } },
+    { key: "owner", header: "Owner", width: "145px", render: (row) => <div className="support-ops-owner"><strong>{row.assignee?.accountId === staffAccountId ? "You" : row.assignee ? "Assigned" : "Unassigned"}</strong><small>{row.assignee ? shortId(row.assignee.accountId) : "Needs owner"}</small></div> },
   ];
 
   if (loading && !snapshot) return <StatePanel state="loading" title="Loading support operations" description="Reading canonical support cases from the shared Gaming commerce database."/>;

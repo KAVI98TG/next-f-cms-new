@@ -1,6 +1,6 @@
 # NEXT F CMS — Project Status
 
-**Current source release:** V1.0.39 P4 RC — Global Control Spacing  
+**Current source release:** V1.0.32 P4 RC — NEXT F Checkout Payments Control Center  
 **Original production foundation:** V1.0.0 final production package  
 **Production CMS:** `https://cms.nextf.lk`  
 **Production API:** `https://cms-api.nextf.lk`
@@ -46,7 +46,7 @@ After the V1 source is deployed, run `npm run acceptance:production:final` as th
 
 ## Current stream
 
-Gaming and CMS are in production-completion/acceptance. v1.0.39 standardizes balanced horizontal spacing across shared CMS form controls while preserving the v1.0.38 shared modal/form system and the v1.0.37 adaptive data-table system so compact columns size to their content, the primary identity/entity column flexes, operational badges/actions do not wrap, and genuinely wide datasets scroll horizontally instead of relying on fixed pixel widths. It preserves the v1.0.36 Finance UX and v1.0.32 global NEXT F Checkout Payments control plane. Checkout remains a separate shared payment platform; Gaming remains the owner of Gaming orders, pricing, risk and fulfillment.
+Gaming and CMS are in production-completion/acceptance. v1.0.32 adds the global NEXT F Checkout Payments control plane. Checkout is a separate shared payment platform; Gaming remains the owner of Gaming orders, pricing, risk and fulfillment.
 
 ## Production Purity + Auth UX completion
 
@@ -108,3 +108,8 @@ Live Operations now projects the event-driven Gaming notification outbox with de
 ## V1.0.32 P4 RC — NEXT F Checkout Payments Control Center
 
 The CMS now governs the shared `checkout.nextf.lk` platform through a server-only bridge. Providers, businesses and availability are runtime configuration, while provider secrets remain write-only outside normal D1 configuration. PayPal/PayHere can be enabled per business/market/currency without hard-coding rules in Gaming. The Checkout v1.0.0 contract is intended for the existing JavaScript Contracts registry at `contracts.nextf.lk`.
+
+## v1.0.46 Media WebCrypto type fix
+
+The Media AWS SigV4 HMAC helper now copies key bytes into a guaranteed `ArrayBuffer` before WebCrypto `importKey()`, resolving the TypeScript 5.8 `ArrayBufferLike` / `SharedArrayBuffer` overload error without changing signing behavior. CMS-only hotfix; no D1 migration.
+

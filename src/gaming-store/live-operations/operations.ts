@@ -15,7 +15,8 @@ export type LiveRefundRecord={refundId:string;orderId:string;orderNumber:string;
 export type LiveRiskSignal={code:string;weight:number;observedAt:string;detail:Record<string,unknown>};
 export type LiveRiskAssessment={assessmentId:string;orderId:string;orderNumber:string;score:number;level:string;state:string;requiresReview:boolean;holdRequired:boolean;signals:LiveRiskSignal[];account:{authenticated:boolean;ageHours?:number;previousOrderCount:number};review?:{decision:string;note?:string;reviewedAt:string;reviewedBy:string};createdAt:string;updatedAt:string};
 export type LiveGamingEvent={id:string;eventType:string;action:string;scope:string;orderId?:string;targetType:string;targetId:string;outcome:string;principalKind:string;principalId:string;detail:Record<string,unknown>;createdAt:string};
-export type LiveNotificationRecord={notificationId:string;sourceEventId:string;sourceAction:string;sourceOutcome:string;orderId:string;orderNumber:string;channel:string;templateKey:string;recipient:{email:string};providerKey:string;state:string;attempts:number;nextAttemptAt:string;providerMessageId?:string;sentAt?:string;lastError?:string;createdAt:string;updatedAt:string};
+export type LiveNotificationRecord={notificationId:string;sourceEventId:string;sourceAction:string;sourceOutcome:string;orderId:string;orderNumber:string;channel:string;templateKey:string;recipient:{email:string};providerKey:string;state:string;attempts:number;nextAttemptAt:string;providerMessageId?:string;sentAt?:string;deliveredAt?:string;delivery?:{state:string;providerEventId?:string;lastEventAt:string;reason?:string};lastError?:string;createdAt:string;updatedAt:string};
+export type GamingNotificationHealth={provider:string;configured:boolean;webhookConfigured:boolean;sender:string;replyTo?:string;counts:{pending:number;retry:number;failed:number;sent:number;delivered:number;delayed:number;bounced:number;complained:number;suppressed:number};lastAcceptedAt?:string;lastDeliveredAt?:string;lastFailureAt?:string;generatedAt:string};
 export type LivePaymentMethod={id:string;type:string;providerKey:string;label:string;enabled:boolean;sortOrder:number};
 export type LiveGamingOperationsSnapshot={
   source:"shared-d1"|"local-prototype"; generatedAt:string; capabilities:{finance:boolean;fulfillment:boolean;risk:boolean;paymentReview:boolean;fulfillmentRetry:boolean;refundManage:boolean;riskReview:boolean;notificationRetry:boolean};
@@ -56,6 +57,13 @@ function localSnapshot():LiveGamingOperationsSnapshot{
 export async function loadGamingOperationsSnapshot():Promise<LiveGamingOperationsSnapshot>{
   if(!client)return localSnapshot();
   const result=await client.execute<LiveGamingOperationsSnapshot>({operation:"staff.gaming.operations.snapshot.get",kind:"query",input:{}});
+  if(!result.ok)throw new Error(`${result.problem.code}: ${result.problem.detail}`);
+  return result.data;
+}
+
+export async function loadGamingNotificationHealth():Promise<GamingNotificationHealth>{
+  if(!client)return{provider:'disabled',configured:false,webhookConfigured:false,sender:'',counts:{pending:0,retry:0,failed:0,sent:0,delivered:0,delayed:0,bounced:0,complained:0,suppressed:0},generatedAt:new Date().toISOString()};
+  const result=await client.execute<GamingNotificationHealth>({operation:'staff.gaming.notifications.health.get',kind:'query',input:{}});
   if(!result.ok)throw new Error(`${result.problem.code}: ${result.problem.detail}`);
   return result.data;
 }

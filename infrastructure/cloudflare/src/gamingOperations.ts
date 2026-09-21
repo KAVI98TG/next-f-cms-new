@@ -76,8 +76,9 @@ function safeNotification(row:any){
     notificationId:text(row?.notificationId), sourceEventId:text(row?.sourceEventId), sourceAction:text(row?.sourceAction), sourceOutcome:text(row?.sourceOutcome),
     orderId:text(row?.orderId), orderNumber:text(row?.orderNumber), channel:text(row?.channel)||"email", templateKey:text(row?.templateKey),
     recipient:{email:text(row?.recipient?.email)}, providerKey:text(row?.providerKey)||"disabled", state:text(row?.state), attempts:Number(row?.attempts||0),
-    nextAttemptAt:text(row?.nextAttemptAt), providerMessageId:text(row?.providerMessageId)||undefined, sentAt:text(row?.sentAt)||undefined, lastError:text(row?.lastError)||undefined,
-    createdAt:text(row?.createdAt), updatedAt:text(row?.updatedAt),
+    nextAttemptAt:text(row?.nextAttemptAt), providerMessageId:text(row?.providerMessageId)||undefined, sentAt:text(row?.sentAt)||undefined, deliveredAt:text(row?.deliveredAt)||undefined,
+    delivery:row?.delivery&&typeof row.delivery==='object'?{state:text(row.delivery.state),providerEventId:text(row.delivery.providerEventId)||undefined,lastEventAt:text(row.delivery.lastEventAt),reason:text(row.delivery.reason)||undefined}:undefined,
+    lastError:text(row?.lastError)||undefined, createdAt:text(row?.createdAt), updatedAt:text(row?.updatedAt),
   };
 }
 

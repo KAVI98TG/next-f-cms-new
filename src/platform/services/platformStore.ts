@@ -43,6 +43,7 @@ export type PlatformNotification = {
   tone: NotificationTone;
   read: boolean;
   createdAt: string;
+  href?: string;
 };
 
 export type IntegrationRecord = {

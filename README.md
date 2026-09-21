@@ -1,32 +1,6 @@
-# NEXT F CMS V1.0.39
+# NEXT F CMS V1.0.32
 
 Production CMS for NEXT F Platform, Digital, Website Platform, Gaming Store administration and Software operations.
-
-
-
-## V1.0.39 Global Control Spacing
-
-- Standardizes shared CMS input/select/search horizontal insets at 12px.
-- Keeps select labels clear of the chevron with dedicated end-icon space and an 11px edge inset.
-- Applies the shared spacing token to normal inputs, custom selects, select options, toolbar search, catalog search and promotion search.
-- Preserves v1.0.38 modal/form alignment and v1.0.37 adaptive tables.
-
-## V1.0.38 Global Modal & Form Layout
-
-- Normalizes the shared CMS modal shell across editor, create, review and confirmation popups.
-- Prevents two-column form rows from stretching compact inputs when the neighboring field is taller.
-- Gives standard editor dialogs more working width while keeping confirmation dialogs compact.
-- Keeps long modal content inside the viewport with an independently scrolling body and fixed/sticky action area.
-- Makes legacy in-body modal action rows render like the shared footer so older popups match newer footer-based dialogs.
-- Improves mobile dialog sizing/actions, body scroll locking and per-instance dialog accessibility IDs.
-
-## V1.0.37 Global Adaptive Data Tables
-
-Shared CMS data tables now size compact columns from their content instead of hard-coded pixel widths. The first primary data column flexes to consume available desktop space, badges/buttons/status cells stay on one line, and genuinely wide tables use horizontal overflow rather than crushing labels. Existing DataTable pixel-width overrides were removed across Gaming, Platform, Software and NEXT F modules.
-
-## V1.0.36 Gaming Finance UX
-
-Gaming Finance & Reconciliation now uses a compact money-flow overview, a reconciliation snapshot, and one tabbed ledger workspace for orders and refunds. The release is frontend-only and does not change finance calculations, refund state, D1 schema, or Worker contracts.
 
 ## Production endpoints
 
@@ -161,3 +135,8 @@ The supplier-funding payment view now mirrors the provider-critical payment sema
 ## v1.0.32 FazerCards supplier funding
 
 `Gaming Store → Suppliers → FazerCards` now exposes live provider balance, dynamic funding methods/limits, user-authorized Binance Pay verification and recent funding intents through the existing CMS → Gaming API control plane. Funding requires both `gaming.suppliers.manage` and `gaming.finance.manage`; `FAZERCARDS_API_KEY` remains exclusively on the Gaming API Worker. Configure the dedicated `GAMING_CMS_SUPPLIER_FUNDING_TOKEN` on both Workers. See `docs/V1.0.32-FAZERCARDS-FUNDING-P4.md`.
+
+## v1.0.46 Media WebCrypto type fix
+
+The Media AWS SigV4 HMAC helper now copies key bytes into a guaranteed `ArrayBuffer` before WebCrypto `importKey()`, resolving the TypeScript 5.8 `ArrayBufferLike` / `SharedArrayBuffer` overload error without changing signing behavior. CMS-only hotfix; no D1 migration.
+

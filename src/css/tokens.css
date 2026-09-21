@@ -105,9 +105,6 @@
   --space-6: 24px;
   --space-8: 32px;
   --space-10: 40px;
-  --control-padding-inline: 12px;
-  --control-end-icon-space: 40px;
-  --control-icon-inset: 11px;
 }
 
 :root[data-theme="dark"] {

@@ -42,7 +42,7 @@ export function UsersPage() {
     { key: "role", header: "Role", render: (user) => roles.find((role) => role.id === user.roleId)?.name ?? "Unknown" },
     { key: "status", header: "Status", render: (user) => <Badge tone={user.status === "active" ? "success" : user.status === "invited" ? "info" : "danger"}>{user.status}</Badge> },
     { key: "activity", header: "Last active", render: (user) => <span className="muted-cell">{formatRelative(user.lastActive)}</span> },
-    { key: "actions", header: "", render: (user) => <button className="table-action" aria-label={`Change status for ${user.name}`} onClick={() => setPendingStatusUser(user)}><MoreHorizontal size={17}/></button> },
+    { key: "actions", header: "", width: "56px", render: (user) => <button className="table-action" aria-label={`Change status for ${user.name}`} onClick={() => setPendingStatusUser(user)}><MoreHorizontal size={17}/></button> },
   ];
 
   const create = () => {

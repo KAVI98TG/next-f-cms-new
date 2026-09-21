@@ -8,6 +8,12 @@ type UpstreamEnvelope<T> = { ok:true; data:T } | { ok:false; problem?:{ code?:st
 
 function cleanText(value:unknown, max:number){ return typeof value==="string"?value.trim().slice(0,max):""; }
 function requiredText(value:unknown, field:string, max=200){ const out=cleanText(value,max); if(!out) throw new GamingControlError(400,"VALIDATION_FAILED",`${field} is required`); return out; }
+async function scopedGamingIdempotencyKey(scope:"funding-create"|"funding-verify",sourceKey:string){
+  if(!sourceKey.trim()) throw new GamingControlError(400,"IDEMPOTENCY_KEY_REQUIRED","Funding command requires an idempotency key");
+  const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(sourceKey));
+  const fingerprint=[...new Uint8Array(digest)].map((byte)=>byte.toString(16).padStart(2,"0")).join("");
+  return `cms-gaming:${scope}:${fingerprint}`;
+}
 function apiBase(env:WorkerEnv){
   const base=(env.GAMING_API_ORIGIN||"").trim().replace(/\/$/,"");
   if(!base) throw new GamingControlError(503,"GAMING_CONTROL_NOT_CONFIGURED","Gaming control API origin is not configured");
@@ -167,6 +173,10 @@ export async function decideGamingRisk(env:WorkerEnv, value:Record<string,unknow
   return callGaming<Record<string,unknown>>(env,{path:`/v1/gaming/admin/risk-assessments/${encodeURIComponent(assessmentId)}/decision`,token:env.GAMING_CMS_OPERATIONS_TOKEN,body,requestId,correlationId,staffAccountId:staff.accountId,staffUserId:staff.staffUserId});
 }
 
+export async function getGamingNotificationHealth(env:WorkerEnv,requestId:string,correlationId:string,staff:{accountId:string;staffUserId:string}){
+  return callGaming<Record<string,unknown>>(env,{path:'/v1/gaming/admin/notifications/health',token:env.GAMING_CMS_OPERATIONS_TOKEN,method:'GET',requestId,correlationId,staffAccountId:staff.accountId,staffUserId:staff.staffUserId});
+}
+
 export function validateGamingNotificationRetry(value:Record<string,unknown>|undefined){ return {notificationId:requiredText(value?.notificationId,"notificationId",200)}; }
 
 export async function retryGamingNotification(env:WorkerEnv, value:Record<string,unknown>|undefined, requestId:string, correlationId:string, staff:{accountId:string;staffUserId:string}){
@@ -254,9 +264,11 @@ export async function getGamingSupplierFundingPayment(env:WorkerEnv,paymentId:st
 export async function createGamingSupplierFundingPayment(env:WorkerEnv,value:Record<string,unknown>|undefined,idempotencyKey:string,requestId:string,correlationId:string,staff:{accountId:string;staffUserId:string}){
   const method=requiredText(value?.method,"method",40).toLowerCase();const amountUsd=Number(value?.amountUsd);
   if(!Number.isFinite(amountUsd)||amountUsd<=0||amountUsd>100000)throw new GamingControlError(400,"FUNDING_AMOUNT_INVALID","Enter a valid USD funding amount");
-  return callGaming<GamingFundingRecord>(env,{path:"/v1/gaming/admin/supplier/fazercards/funding/payments",token:env.GAMING_CMS_SUPPLIER_FUNDING_TOKEN,body:{method,amountUsd},idempotencyKey,requestId,correlationId,...fundingStaff(staff)});
+  const downstreamIdempotencyKey=await scopedGamingIdempotencyKey("funding-create",idempotencyKey);
+  return callGaming<GamingFundingRecord>(env,{path:"/v1/gaming/admin/supplier/fazercards/funding/payments",token:env.GAMING_CMS_SUPPLIER_FUNDING_TOKEN,body:{method,amountUsd},idempotencyKey:downstreamIdempotencyKey,requestId,correlationId,...fundingStaff(staff)});
 }
 export async function verifyGamingSupplierFundingPayment(env:WorkerEnv,value:Record<string,unknown>|undefined,idempotencyKey:string,requestId:string,correlationId:string,staff:{accountId:string;staffUserId:string}){
   const paymentId=requiredText(value?.paymentId,"paymentId",160);const binanceOrderId=requiredText(value?.binanceOrderId,"binanceOrderId",200);
-  return callGaming<GamingFundingRecord>(env,{path:`/v1/gaming/admin/supplier/fazercards/funding/payments/${encodeURIComponent(paymentId)}/verify`,token:env.GAMING_CMS_SUPPLIER_FUNDING_TOKEN,body:{binanceOrderId},idempotencyKey,requestId,correlationId,...fundingStaff(staff)});
+  const downstreamIdempotencyKey=await scopedGamingIdempotencyKey("funding-verify",idempotencyKey);
+  return callGaming<GamingFundingRecord>(env,{path:`/v1/gaming/admin/supplier/fazercards/funding/payments/${encodeURIComponent(paymentId)}/verify`,token:env.GAMING_CMS_SUPPLIER_FUNDING_TOKEN,body:{binanceOrderId},idempotencyKey:downstreamIdempotencyKey,requestId,correlationId,...fundingStaff(staff)});
 }

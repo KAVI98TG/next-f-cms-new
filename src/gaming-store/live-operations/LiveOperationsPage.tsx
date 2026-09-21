@@ -4,7 +4,7 @@ import { Button, Card, ConfirmDialog, DataTable, Drawer, FormField, KeyValueList
 import { useToast } from "../../shared/feedback/ToastProvider";
 import { GamingStatus } from "../shared/GamingStatus";
 import { gamingDate, gamingLkr } from "../shared/format";
-import { completeGamingRefund, createGamingRefund, decideGamingRefund, decideGamingRisk, loadGamingOperationsSnapshot, markGamingRefundSent, retryGamingFulfillment, retryGamingNotification, reviewGamingPayment, type LiveFulfillmentJob, type LiveGamingEvent, type LiveGamingOperationsSnapshot, type LiveGamingOrder, type LiveNotificationRecord, type LivePaymentProof, type LiveRefundRecord, type LiveRiskAssessment } from "./operations";
+import { completeGamingRefund, createGamingRefund, decideGamingRefund, decideGamingRisk, loadGamingNotificationHealth, loadGamingOperationsSnapshot, markGamingRefundSent, retryGamingFulfillment, retryGamingNotification, reviewGamingPayment, type LiveFulfillmentJob, type GamingNotificationHealth, type LiveGamingEvent, type LiveGamingOperationsSnapshot, type LiveGamingOrder, type LiveNotificationRecord, type LivePaymentProof, type LiveRefundRecord, type LiveRiskAssessment } from "./operations";
 
 const eventLabel=(value:string)=>value.toLowerCase().replace(/_/g," ").replace(/(^|\s)\S/g,(c)=>c.toUpperCase());
 const providerLabel=(value?:string)=>!value?"Not assigned":value==="manual_bank"?"Manual bank":value==="ezycash"?"eZ Cash":value==="payhere"?"PayHere":value.replace(/_/g," ");
@@ -23,6 +23,7 @@ type RefundSentDraft={providerReference:string;sentAt:string;destinationConfirme
 export function LiveOperationsPage(){
   const {notify}=useToast();
   const [snapshot,setSnapshot]=useState<LiveGamingOperationsSnapshot>();
+  const [notificationHealth,setNotificationHealth]=useState<GamingNotificationHealth>();
   const [error,setError]=useState("");
   const [loading,setLoading]=useState(true);
   const [tab,setTab]=useState<"orders"|"payments"|"fulfillment"|"risk"|"refunds"|"notifications"|"events">("orders");
@@ -47,7 +48,7 @@ export function LiveOperationsPage(){
   const [riskError,setRiskError]=useState("");
   const [actionBusy,setActionBusy]=useState(false);
 
-  const load=async()=>{setLoading(true);setError("");try{setSnapshot(await loadGamingOperationsSnapshot());}catch(err){setError(err instanceof Error?err.message:"Live Gaming operations could not be loaded.");}finally{setLoading(false);}};
+  const load=async()=>{setLoading(true);setError("");try{const [nextSnapshot,nextHealth]=await Promise.all([loadGamingOperationsSnapshot(),loadGamingNotificationHealth().catch(()=>undefined)]);setSnapshot(nextSnapshot);setNotificationHealth(nextHealth);}catch(err){setError(err instanceof Error?err.message:"Live Gaming operations could not be loaded.");}finally{setLoading(false);}};
   useEffect(()=>{void load();},[]);
   const selectedOrder=snapshot?.orders.find((order)=>order.orderId===selectedOrderId);
   const timeline=useMemo(()=>snapshot?.events.filter((event)=>event.orderId===selectedOrderId)??[],[snapshot,selectedOrderId]);
@@ -67,7 +68,7 @@ export function LiveOperationsPage(){
   const jobs=baseJobs.filter((job)=>queueFilter==="all"||(queueFilter==="attention"?["retry","blocked","failed"].includes(job.state):job.state===queueFilter));
   const refunds=baseRefunds.filter((refund)=>queueFilter==="all"||(queueFilter==="active"?["requested","approved","sent"].includes(refund.status):refund.status===queueFilter));
   const risks=baseRisks.filter((risk)=>queueFilter==="all"||(queueFilter==="attention"?["held","review"].includes(risk.state):queueFilter==="high"?["high","critical"].includes(risk.level):risk.state===queueFilter));
-  const notifications=baseNotifications.filter((notification)=>queueFilter==="all"||(queueFilter==="attention"?["retry","blocked","failed"].includes(notification.state):notification.state===queueFilter));
+  const notifications=baseNotifications.filter((notification)=>queueFilter==="all"||(queueFilter==="attention"?["retry","blocked","failed"].includes(notification.state)||["delayed","bounced","complained","failed","suppressed"].includes(notification.delivery?.state??""):notification.state===queueFilter));
   const events=baseEvents.filter((event)=>queueFilter==="all"||event.outcome===queueFilter);
 
   const paymentAttention=(snapshot?.paymentProofs??[]).filter((proof)=>proof.status==="pending_review").length;
@@ -202,7 +203,7 @@ export function LiveOperationsPage(){
     {key:"payment",header:"Payment",render:(row)=><div className="entity-cell"><strong>{providerLabel(row.payment.providerKey)}</strong><small>{row.payment.methodLabel||row.payment.state}</small></div>},
     {key:"status",header:"Order state",render:(row)=><GamingStatus value={row.status}/>},
     {key:"fulfillment",header:"Fulfillment",render:(row)=><GamingStatus value={snapshot?.fulfillmentJobs.find((job)=>job.orderId===row.orderId)?.state??(row.status==="completed"?"completed":"not_started")}/>},
-    {key:"action",header:"",render:(row)=><Button onClick={()=>setSelectedOrderId(row.orderId)}><Eye size={13}/>View</Button>},
+    {key:"action",header:"",width:"88px",render:(row)=><Button onClick={()=>setSelectedOrderId(row.orderId)}><Eye size={13}/>View</Button>},
   ];
   const paymentColumns:DataTableColumn<LivePaymentProof>[]= [
     {key:"order",header:"Order",render:(row)=><div className="entity-cell"><strong>{row.orderNumber}</strong><small>{row.proofId}</small></div>},
@@ -211,7 +212,7 @@ export function LiveOperationsPage(){
     {key:"amount",header:"Amount",render:(row)=><strong>{gamingLkr(row.amountLkr)}</strong>},
     {key:"status",header:"Review state",render:(row)=><GamingStatus value={row.status}/>},
     {key:"submitted",header:"Submitted",render:(row)=><span className="muted-cell">{gamingDate(row.submittedAt)}</span>},
-    {key:"action",header:"",render:(row)=>row.status==="pending_review"?<Button variant="primary" disabled={!snapshot?.capabilities.paymentReview||actionBusy} onClick={()=>openPaymentReview(row)}>Review</Button>:<span className="muted-cell">Reviewed</span>},
+    {key:"action",header:"",width:"110px",render:(row)=>row.status==="pending_review"?<Button variant="primary" disabled={!snapshot?.capabilities.paymentReview||actionBusy} onClick={()=>openPaymentReview(row)}>Review</Button>:<span className="muted-cell">Reviewed</span>},
   ];
   const fulfillmentColumns:DataTableColumn<LiveFulfillmentJob>[]= [
     {key:"job",header:"Job",render:(row)=><div className="entity-cell"><strong>{row.jobId}</strong><small>{snapshot?.orders.find((order)=>order.orderId===row.orderId)?.orderNumber??row.orderId}</small></div>},
@@ -220,7 +221,7 @@ export function LiveOperationsPage(){
     {key:"attempts",header:"Attempts",render:(row)=><strong>{row.attempts}</strong>},
     {key:"next",header:"Next check",render:(row)=><span className="muted-cell">{gamingDate(row.nextAttemptAt)}</span>},
     {key:"error",header:"Last error",render:(row)=><span className="muted-cell">{row.lastError??"—"}</span>},
-    {key:"action",header:"",render:(row)=>row.state!=="completed"?<Button disabled={!snapshot?.capabilities.fulfillmentRetry||actionBusy} onClick={()=>setRetryJob(row)}><RotateCcw size={13}/>Retry</Button>:<span className="muted-cell">Done</span>},
+    {key:"action",header:"",width:"110px",render:(row)=>row.state!=="completed"?<Button disabled={!snapshot?.capabilities.fulfillmentRetry||actionBusy} onClick={()=>setRetryJob(row)}><RotateCcw size={13}/>Retry</Button>:<span className="muted-cell">Done</span>},
   ];
   const riskColumns:DataTableColumn<LiveRiskAssessment>[]= [
     {key:"order",header:"Order",render:(row)=><div className="entity-cell"><strong>{row.orderNumber}</strong><small>{row.assessmentId}</small></div>},
@@ -229,7 +230,7 @@ export function LiveOperationsPage(){
     {key:"account",header:"Account context",render:(row)=><div className="entity-cell"><strong>{row.account.authenticated?"Signed in":"Guest checkout"}</strong><small>{row.account.ageHours===undefined?`${row.account.previousOrderCount} previous orders`:`${row.account.ageHours}h old · ${row.account.previousOrderCount} previous orders`}</small></div>},
     {key:"signals",header:"Signals",render:(row)=><span className="muted-cell">{row.signals.slice(0,2).map((signal)=>eventLabel(signal.code)).join(" · ")||"No elevated signals"}</span>},
     {key:"updated",header:"Updated",render:(row)=><span className="muted-cell">{gamingDate(row.updatedAt)}</span>},
-    {key:"action",header:"",render:(row)=>["held","review"].includes(row.state)?<Button variant={row.state==="held"?"primary":"secondary"} disabled={!snapshot?.capabilities.riskReview||actionBusy} onClick={()=>{setRiskError("");setRiskDecision("release");setRiskNote("");setRiskReview(row);}}>Review</Button>:<Button onClick={()=>setSelectedOrderId(row.orderId)}><Eye size={13}/>View</Button>},
+    {key:"action",header:"",width:"120px",render:(row)=>["held","review"].includes(row.state)?<Button variant={row.state==="held"?"primary":"secondary"} disabled={!snapshot?.capabilities.riskReview||actionBusy} onClick={()=>{setRiskError("");setRiskDecision("release");setRiskNote("");setRiskReview(row);}}>Review</Button>:<Button onClick={()=>setSelectedOrderId(row.orderId)}><Eye size={13}/>View</Button>},
   ];
   const refundColumns:DataTableColumn<LiveRefundRecord>[]= [
     {key:"refund",header:"Refund",render:(row)=><div className="entity-cell"><strong>{row.orderNumber}</strong><small>{row.refundId}</small></div>},
@@ -237,16 +238,16 @@ export function LiveOperationsPage(){
     {key:"amount",header:"Customer refund",render:(row)=><strong>{gamingLkr(row.amountLkr)}</strong>},
     {key:"status",header:"State",render:(row)=><GamingStatus value={row.status}/>},
     {key:"updated",header:"Updated",render:(row)=><span className="muted-cell">{gamingDate(row.updatedAt)}</span>},
-    {key:"action",header:"",render:(row)=>row.status==="requested"?<Button variant="primary" disabled={!snapshot?.capabilities.refundManage||actionBusy} onClick={()=>{setRefundError("");setRefundDecisionDraft({decision:"approved",note:""});setRefundDecision(row);}}>Review</Button>:row.status==="approved"?<Button disabled={!snapshot?.capabilities.refundManage||actionBusy} onClick={()=>{setRefundError("");setRefundSentDraft({providerReference:"",sentAt:localDateTime(),destinationConfirmed:false,supplierRecoveryLkr:"0",gatewayFeeRecoveredLkr:"0"});setRefundSent(row);}}>Mark sent</Button>:row.status==="sent"?<Button variant="primary" disabled={!snapshot?.capabilities.refundManage||actionBusy} onClick={()=>setCompleteRefund(row)}>Complete</Button>:<span className="muted-cell">{eventLabel(row.status)}</span>},
+    {key:"action",header:"",width:"120px",render:(row)=>row.status==="requested"?<Button variant="primary" disabled={!snapshot?.capabilities.refundManage||actionBusy} onClick={()=>{setRefundError("");setRefundDecisionDraft({decision:"approved",note:""});setRefundDecision(row);}}>Review</Button>:row.status==="approved"?<Button disabled={!snapshot?.capabilities.refundManage||actionBusy} onClick={()=>{setRefundError("");setRefundSentDraft({providerReference:"",sentAt:localDateTime(),destinationConfirmed:false,supplierRecoveryLkr:"0",gatewayFeeRecoveredLkr:"0"});setRefundSent(row);}}>Mark sent</Button>:row.status==="sent"?<Button variant="primary" disabled={!snapshot?.capabilities.refundManage||actionBusy} onClick={()=>setCompleteRefund(row)}>Complete</Button>:<span className="muted-cell">{eventLabel(row.status)}</span>},
   ];
   const notificationColumns:DataTableColumn<LiveNotificationRecord>[]= [
     {key:"notification",header:"Notification",render:(row)=><div className="entity-cell"><strong>{eventLabel(row.templateKey)}</strong><small>{row.notificationId}</small></div>},
     {key:"order",header:"Order",render:(row)=><div className="entity-cell"><strong>{row.orderNumber}</strong><small>{row.recipient.email}</small></div>},
     {key:"provider",header:"Channel",render:(row)=><div className="entity-cell"><strong>{eventLabel(row.channel)}</strong><small>{row.providerKey}</small></div>},
-    {key:"state",header:"State",render:(row)=><GamingStatus value={row.state}/>},
+    {key:"state",header:"State",render:(row)=><div className="entity-cell"><GamingStatus value={row.delivery?.state??row.state}/>{row.delivery&&<small>Provider delivery</small>}</div>},
     {key:"attempts",header:"Attempts",render:(row)=><strong>{row.attempts}</strong>},
-    {key:"updated",header:"Updated",render:(row)=><div className="entity-cell"><strong>{gamingDate(row.sentAt??row.updatedAt)}</strong><small>{row.lastError??(row.providerMessageId?`Provider ${row.providerMessageId}`:"Waiting for delivery")}</small></div>},
-    {key:"action",header:"",render:(row)=>row.state!=="sent"?<Button disabled={!snapshot?.capabilities.notificationRetry||actionBusy} onClick={()=>void submitNotificationRetry(row)}><RotateCcw size={13}/>Retry</Button>:<span className="muted-cell">Sent</span>},
+    {key:"updated",header:"Updated",render:(row)=><div className="entity-cell"><strong>{gamingDate(row.deliveredAt??row.sentAt??row.updatedAt)}</strong><small>{row.delivery?.reason??row.lastError??(row.delivery?.state==="delivered"?"Delivered to recipient":row.providerMessageId?`Provider ${row.providerMessageId}`:"Waiting for provider")}</small></div>},
+    {key:"action",header:"",width:"110px",render:(row)=>row.state!=="sent"?<Button disabled={!snapshot?.capabilities.notificationRetry||actionBusy} onClick={()=>void submitNotificationRetry(row)}><RotateCcw size={13}/>Retry</Button>:<span className="muted-cell">Sent</span>},
   ];
   const eventColumns:DataTableColumn<LiveGamingEvent>[]= [
     {key:"event",header:"Commerce event",render:(row)=><div className="entity-cell"><strong>{eventLabel(row.eventType)}</strong><small>{row.action}</small></div>},
@@ -320,6 +321,7 @@ export function LiveOperationsPage(){
         <div className="live-ops-diagnostics__grid">
           <div><span>Command bridge</span><strong>{snapshot.capabilities.paymentReview&&snapshot.capabilities.fulfillmentRetry&&snapshot.capabilities.refundManage&&snapshot.capabilities.notificationRetry?"Ready":"Partially available"}</strong><small>State-changing controls stay behind the CMS Worker and staff permissions.</small></div>
           <div><span>Payment providers</span><strong>{snapshot.paymentMethods.length?`${snapshot.paymentMethods.length} configured`:"Server defaults"}</strong><small>{snapshot.paymentMethods.length?snapshot.paymentMethods.map((method)=>`${method.label} · ${providerLabel(method.providerKey)}`).join(" • "):"No CMS payment-method configuration is stored yet."}</small></div>
+          <div><span>Transactional email</span><strong>{notificationHealth?.configured?"Provider ready":notificationHealth?.provider==="disabled"?"Disabled":"Needs setup"}</strong><small>{notificationHealth?.configured?`${notificationHealth.provider} · ${notificationHealth.webhookConfigured?"delivery webhook ready":"delivery webhook missing"} · ${notificationHealth.counts.delivered} delivered`:"Customer email remains queued/blocked until the provider is configured."}</small></div>
         </div>
       </details>
       <Drawer open={!!selectedOrder} onClose={()=>setSelectedOrderId(null)} title={selectedOrder?.orderNumber??"Order"} description={selectedOrder?`${selectedOrder.productName} · ${selectedOrder.customer.email}`:undefined}>{selectedOrder&&<>

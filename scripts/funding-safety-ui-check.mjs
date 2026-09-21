@@ -1,0 +1,18 @@
+import fs from 'node:fs';
+const page=fs.readFileSync(new URL('../src/gaming-store/suppliers/SuppliersPage.tsx',import.meta.url),'utf8');
+const types=fs.readFileSync(new URL('../src/gaming-store/live/fazercardsFunding.ts',import.meta.url),'utf8');
+const css=fs.readFileSync(new URL('../src/css/funding-safety.css',import.meta.url),'utf8');
+const index=fs.readFileSync(new URL('../src/css/index.css',import.meta.url),'utf8');
+let failed=0;const check=(name,ok)=>{console.log(`${ok?'PASS':'FAIL'}  ${name}`);if(!ok)failed+=1;};
+check('live payment methods are selectable before invoice creation',page.includes('supplier-funding-methods')&&page.includes('setFundingMethod(method.code)')&&page.includes('aria-pressed={active}'));
+check('live provider limits are shown with each funding method',page.includes('method.minAmountUsd')&&page.includes('method.maxAmountUsd'));
+check('on-chain rails explicitly separate network fee from wallet credit',page.includes('Network fee is not part of the wallet credit')&&page.includes('sender fee is paid separately'));
+check('provider exact amount is authoritative after invoice creation',page.includes('exactProviderAmount')&&page.includes('Amount that must reach FazerCards')&&page.includes('Copy exact amount'));
+check('network and destination are visibly locked to created invoice',page.includes('network and destination are locked')&&page.includes('Locked to this invoice'));
+check('on-chain QR/copy actions require acknowledgement',page.includes('arrivalConfirmed')&&page.includes('Confirm exact-arrival safety first'));
+check('wider funding workspace has dedicated two-column layouts',page.includes('className="supplier-funding-modal"')&&page.includes('supplier-funding-create')&&page.includes('supplier-payment-layout')&&css.includes('width:min(1040px'));
+check('desktop avoids modal body scroll when viewport height permits',css.includes('@media(min-width:901px) and (min-height:900px)')&&css.includes('.supplier-funding-modal .modal__body{overflow:visible}'));
+check('mobile retains safe natural overflow fallback',css.includes('@media(max-width:900px)')&&css.includes('overflow:auto'));
+check('funding reconciliation is displayed when provider balance snapshots exist',page.includes('Funding reconciliation')&&page.includes('balanceBeforeUsd')&&page.includes('balanceAfterUsd')&&types.includes('FundingReconciliation'));
+check('funding safety stylesheet is loaded after responsive rules',index.indexOf('responsive.css')<index.indexOf('funding-safety.css'));
+if(failed){console.error(`\n${failed} funding safety UI checks failed.`);process.exit(1);}console.log('\nFunding safety UI checks passed.');

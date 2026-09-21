@@ -1,7 +1,7 @@
 {
   "name": "@next-f/admin",
   "private": true,
-  "version": "1.0.39",
+  "version": "1.0.46",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -75,10 +75,10 @@
     "check:gaming-tracking-ui": "node scripts/gaming-first-party-tracking-ui-check.mjs",
     "check:checkout-payments": "node scripts/checkout-payments-control-check.mjs",
     "check:fazercards-funding": "node scripts/fazercards-funding-check.mjs",
-    "check:gaming-finance-ui": "node scripts/gaming-finance-ui-check.mjs",
-    "check:global-data-table": "node scripts/global-data-table-check.mjs",
-    "check:global-modal-ui": "node scripts/global-modal-ui-check.mjs",
-    "check:global-control-spacing": "node scripts/global-control-spacing-check.mjs"
+    "check:funding-safety-ui": "node scripts/funding-safety-ui-check.mjs",
+    "check:gaming-funding-idempotency-boundary": "node scripts/gaming-funding-idempotency-boundary-check.mjs",
+    "check:notification-operations": "node scripts/notification-operations-inbox-check.mjs",
+    "check:media-webcrypto": "node scripts/media-webcrypto-typecheck.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

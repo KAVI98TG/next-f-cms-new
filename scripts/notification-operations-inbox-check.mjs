@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+const read=(p)=>fs.readFileSync(p,'utf8');const checks=[];const check=(n,o)=>checks.push({n,o});
+const ops=read('src/services/shared/operationsCenter.ts'),hook=read('src/services/shared/useOperationsCenter.ts'),page=read('src/platform/notifications/NotificationsPage.tsx'),control=read('infrastructure/cloudflare/src/gamingControl.ts'),staff=read('infrastructure/cloudflare/src/staff.ts');
+check('operations inbox reads live Gaming snapshot',ops.includes('loadGamingOperationsSnapshot')&&hook.includes('loadGamingOperationsNotifications'));
+check('Gaming operational exceptions reach inbox',ops.includes('Payment review required')&&ops.includes('Gaming fulfillment failed')&&ops.includes('Customer notification needs attention'));
+check('Gaming support exceptions reach inbox',ops.includes('Customer replied to Gaming support')&&ops.includes('loadGamingSupportSnapshot'));
+check('inbox refreshes periodically',hook.includes('60000')||hook.includes('60_000'));
+check('inbox deep-links to workspaces',page.includes('item.href')&&page.includes('navigate(item.href)'));
+check('acknowledgements are staff-specific',ops.includes('nextf.v0.7.operations.acknowledged.')&&staff.includes('ownOperationsAckKey'));
+check('CMS can query Gaming notification health',control.includes('/v1/gaming/admin/notifications/health')&&staff.includes('staff.gaming.notifications.health.get'));
+const failed=checks.filter(c=>!c.o);for(const c of checks)console.log(`${c.o?'PASS':'FAIL'}  ${c.n}`);console.log(`\n${checks.length-failed.length}/${checks.length} CMS notification operations checks passed.`);if(failed.length)process.exit(1);
