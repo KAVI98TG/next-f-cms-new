@@ -1,6 +1,8 @@
-# NEXT F CMS V1.0.32
+# NEXT F CMS V1.0.54
 
 Production CMS for NEXT F Platform, Digital, Website Platform, Gaming Store administration and Software operations.
+
+The canonical release is **v1.0.54** (parent v1.0.53). `RELEASE-STATE.json` is the release manifest; `FULL-RELEASE-NOTES.md` and the versioned files in `docs/` describe the release history.
 
 ## Production endpoints
 
@@ -45,6 +47,8 @@ npm run acceptance:source
 
 ## Production deployment
 
+Run `npm run release:gate` and `npm run build` before publishing. For a Pages-only UI release such as v1.0.54, deploy `dist` to `nextf-cms` on `main`; do not redeploy the API Worker unless its code or bindings changed. The full API-plus-Pages sequence is:
+
 ```powershell
 $env:VITE_NEXTF_ENVIRONMENT = "production"
 $env:VITE_NEXTF_BACKEND_MODE = "production-api"
@@ -55,7 +59,7 @@ npx wrangler@latest pages deploy dist --project-name nextf-cms --branch main
 npm run acceptance:production:final
 ```
 
-`infrastructure/cloudflare/wrangler.production.jsonc` contains non-secret production identifiers only. `TURNSTILE_SECRET_KEY`, `SERVICE_CREDENTIAL_SECRET`, `NEXTF_MAIN_SITE_INGEST_TOKEN`, `GAMING_CMS_OPERATIONS_TOKEN`, `GAMING_CMS_COMMERCE_TOKEN`, `GAMING_CMS_SUPPORT_TOKEN`, `GAMING_CMS_SUPPLIER_FUNDING_TOKEN`, `NEXTF_MEDIA_R2_ACCOUNT_ID`, `NEXTF_MEDIA_R2_ACCESS_KEY_ID` and `NEXTF_MEDIA_R2_SECRET_ACCESS_KEY` remain Cloudflare Worker Secrets and must never be committed.
+`infrastructure/cloudflare/wrangler.production.jsonc` contains non-secret production identifiers only. `TURNSTILE_SECRET_KEY`, `SERVICE_CREDENTIAL_SECRET`, `NEXTF_MAIN_SITE_INGEST_TOKEN`, `GAMING_CMS_OPERATIONS_TOKEN`, `GAMING_CMS_COMMERCE_TOKEN`, `GAMING_CMS_REVIEWS_TOKEN`, `GAMING_CMS_SUPPORT_TOKEN`, `GAMING_CMS_SUPPLIER_FUNDING_TOKEN`, `NEXTF_MEDIA_R2_ACCOUNT_ID`, `NEXTF_MEDIA_R2_ACCESS_KEY_ID` and `NEXTF_MEDIA_R2_SECRET_ACCESS_KEY` remain Cloudflare Worker Secrets and must never be committed.
 
 ## Authentication
 
@@ -66,6 +70,9 @@ Production is fail closed. The login/bootstrap UI verifies Cloudflare Access and
 - `docs/V1.0.0-PRODUCTION-RELEASE.md`
 - `docs/V1.0.0-FINAL-DEPLOYMENT.md`
 - `docs/GAMING-INTEGRATION-HANDOFF.md`
+- `docs/V1.0.52-REVIEWS-BRIDGE-RECOVERY.md`
+- `docs/V1.0.53-REVIEWS-WORKSPACE-UI.md`
+- `docs/V1.0.54-REVIEWS-LAYOUT-CONSISTENCY.md`
 - `docs/V1.0.0-NEXTF-MAIN-SITE-PROJECT-REQUEST-INGESTION.md`
 - `PROJECT-STATUS.md`
 
@@ -153,9 +160,20 @@ Fixed the customer-review moderation page to use the shared `ToastInput.descript
 
 ## v1.0.50 review bridge + non-modal moderation
 
-Moves customer-review moderation onto the existing Gaming commerce bridge, removes the review rejection modal, and replaces the status select with explicit segmented controls. Gaming v1.8.25 provides backwards-compatible operations/commerce auth during rollout. No D1 migration. See `docs/V1.0.50-REVIEW-BRIDGE-NONMODAL.md`.
+At the time, this release moved customer-review moderation onto the Gaming commerce bridge, removed the review rejection modal, and replaced the status select with explicit segmented controls. Gaming v1.8.25 provided backwards-compatible operations/commerce auth during rollout. The current bridge is the dedicated Reviews credential introduced in v1.0.52. No D1 migration. See `docs/V1.0.50-REVIEW-BRIDGE-NONMODAL.md`.
 
 ## v1.0.51 continuity + binding hardening
 
 Built forward from v1.0.50. Adds the checked-in NEXT F continuity rulebook, release-state manifest, continuity/release gates, and production `secrets.required` validation while preserving all accepted Gaming CMS workflows. No D1 migration. See `docs/V1.0.51-CONTINUITY-BINDING-HARDENING.md`.
 
+## v1.0.52 Reviews bridge recovery
+
+The CMS Reviews list and decisions use a dedicated `GAMING_CMS_REVIEWS_TOKEN` configured on both CMS and Gaming API Workers. Existing commerce and operations credentials remain unchanged. The CMS shows unavailable counts as dashes during an API error rather than misleading zeroes. See `docs/V1.0.52-REVIEWS-BRIDGE-RECOVERY.md`.
+
+## v1.0.53 Reviews workspace UI
+
+Reorganizes review metrics, moderation filters, the empty queue and verified-purchase guidance into a clearer, responsive staff workspace. Frontend-only; see `docs/V1.0.53-REVIEWS-WORKSPACE-UI.md`.
+
+## v1.0.54 Reviews layout consistency
+
+Restores the shared CMS page gutters on Reviews and adds deliberate spacing between the header, metrics, queue and policy note. Frontend-only; see `docs/V1.0.54-REVIEWS-LAYOUT-CONSISTENCY.md`.

@@ -43,3 +43,7 @@ Gaming support no longer relies on the legacy `nextf.v0.5.gaming.support` local 
 Support reads and mutations require the existing `gaming.orders.manage` permission. CMS mutations cross the server-only Gaming boundary through the dedicated `GAMING_CMS_SUPPORT_TOKEN`; do not substitute the broader operations, commerce, supplier or finance credentials.
 
 Customer-facing case messages emit Gaming commerce events and are delivered by the existing notification outbox. Binary evidence upload is intentionally deferred until the governed R2 media/evidence service is implemented.
+
+## Current verified-purchase Reviews control plane (CMS v1.0.54)
+
+CMS review listing and moderation cross the server-only Gaming API boundary with `GAMING_CMS_REVIEWS_TOKEN` on both Workers. This dedicated credential was introduced in CMS v1.0.52 / Gaming API v1.8.28; it does not authorize promotions, payments or other operations. v1.0.53 and v1.0.54 change only the CMS Reviews frontend. Do not follow the historical v1.0.50 commerce-token rollout instructions when deploying the current release. See `V1.0.52-REVIEWS-BRIDGE-RECOVERY.md` and `V1.0.54-REVIEWS-LAYOUT-CONSISTENCY.md`.

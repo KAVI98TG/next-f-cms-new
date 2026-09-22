@@ -1,9 +1,16 @@
 # NEXT F CMS — Project Status
 
-**Current source release:** V1.0.32 P4 RC — NEXT F Checkout Payments Control Center  
+**Current source release:** V1.0.54 — Reviews Layout Consistency (canonical parent V1.0.53)
 **Original production foundation:** V1.0.0 final production package  
 **Production CMS:** `https://cms.nextf.lk`  
 **Production API:** `https://cms-api.nextf.lk`
+
+## Current release status
+
+- CMS v1.0.54 is deployed to the production Pages project; the Reviews page was visually checked at `https://cms.nextf.lk/gaming-store/reviews` with the shared page gutters and section spacing restored.
+- CMS v1.0.52 introduced the dedicated server-only review bridge credential on both CMS and Gaming API Workers; v1.0.53 and v1.0.54 are frontend-only Reviews UI releases.
+- The production Reviews listing loaded an empty queue during verification. Approval/rejection could not be exercised because there were no customer reviews to moderate.
+- The release manifest is `RELEASE-STATE.json`. The release-specific records are `docs/V1.0.52-REVIEWS-BRIDGE-RECOVERY.md`, `docs/V1.0.53-REVIEWS-WORKSPACE-UI.md` and `docs/V1.0.54-REVIEWS-LAYOUT-CONSISTENCY.md`.
 
 ## Completed production foundation
 
@@ -31,7 +38,7 @@ The final source adds:
 - V1 release hygiene and production/staging leakage checks;
 - Gaming integration handoff.
 
-## Final operator gate
+## Historical V1.0.0 operator gate
 
 Run:
 
@@ -131,4 +138,3 @@ Moves customer-review moderation onto the existing Gaming commerce bridge, remov
 ## v1.0.51 continuity + binding hardening
 
 Built forward from v1.0.50. Adds the checked-in NEXT F continuity rulebook, release-state manifest, continuity/release gates, and production `secrets.required` validation while preserving all accepted Gaming CMS workflows. No D1 migration. See `docs/V1.0.51-CONTINUITY-BINDING-HARDENING.md`.
-

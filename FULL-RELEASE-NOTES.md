@@ -4,6 +4,8 @@ Canonical parent: **v1.0.53**.
 
 Restores the shared CMS page gutters on Reviews and adds consistent spacing between the header, summary, moderation queue, and policy notice. Keeps responsive spacing and the review API unchanged. No D1 migration or new secret.
 
+The release gate and production build passed; the production page displayed v1.0.54 and loaded an empty Reviews queue. No approval/rejection action could be verified without a customer review. See `docs/V1.0.54-REVIEWS-LAYOUT-CONSISTENCY.md`.
+
 ## Previous release
 
 # NEXT F CMS v1.0.53 — Reviews Workspace UI
@@ -12,6 +14,8 @@ Canonical parent: **v1.0.52**.
 
 Reworks the Customer Reviews summary, moderation toolbar, and empty state into a compact responsive workspace with clearer review flow guidance. The functioning Reviews API bridge is unchanged. No D1 migration or new secret.
 
+See `docs/V1.0.53-REVIEWS-WORKSPACE-UI.md`. The missing shared page gutters in this release were corrected in v1.0.54.
+
 ## Previous release
 
 # NEXT F CMS v1.0.52 — Reviews Bridge Recovery
@@ -19,6 +23,8 @@ Reworks the Customer Reviews summary, moderation toolbar, and empty state into a
 Canonical parent: **v1.0.51**.
 
 Reviews use a dedicated CMS-to-Gaming credential, separate from promotions and operations. Unavailable metrics no longer appear as zero. No D1 migration.
+
+See `docs/V1.0.52-REVIEWS-BRIDGE-RECOVERY.md` for the two-Worker secret and rollout sequence.
 
 ## Previous release
 

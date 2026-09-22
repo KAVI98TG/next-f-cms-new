@@ -21,7 +21,8 @@ Set using Wrangler/Cloudflare secret management, never commit values:
 - `SERVICE_CREDENTIAL_SECRET`
 - `NEXTF_MAIN_SITE_INGEST_TOKEN` — dedicated bearer credential for the `nextf.lk` server-to-server project-request receiver. Do not reuse the service credential or Turnstile secret.
 - `GAMING_CMS_OPERATIONS_TOKEN` — dedicated least-privilege server-to-server credential shared only with the Gaming API for exact payment-decision, fulfillment-retry and refund-mutation commands.
-- `GAMING_CMS_COMMERCE_TOKEN` — dedicated least-privilege server-to-server credential shared only with the Gaming API for promotion/campaign create-update commands. Do not reuse the operations token.
+- `GAMING_CMS_COMMERCE_TOKEN` — dedicated server-to-server credential for promotion/campaign create-update commands. The Gaming API also retains legacy review-route compatibility, but current CMS review calls use the narrower Reviews token. Do not reuse the operations token.
+- `GAMING_CMS_REVIEWS_TOKEN` — dedicated server-to-server credential shared with the Gaming API for customer-review listing and moderation only. It does not grant promotion or payment administration.
 - `GAMING_CMS_SUPPLIER_FUNDING_TOKEN` — dedicated least-privilege server-to-server credential shared only with the Gaming API for FazerCards funding reads/create/verify/reconciliation. Do not reuse operations, commerce or support credentials.
 
 Additional provider credentials should use separate least-privilege secrets.
@@ -66,6 +67,10 @@ The staff API now exposes `staff.gaming.analytics.snapshot.get` for bounded 7/30
 ## Gaming promotion campaign bridge
 
 `Gaming Store → Promotions` reads campaign state from the shared D1 and sends create/update commands to the existing Gaming API. Set the same `GAMING_CMS_COMMERCE_TOKEN` as a Worker secret on the CMS API Worker and Gaming API Worker. The credential never enters the browser and does not authorize payment/refund/risk/notification/supplier administration.
+
+## Gaming customer-review bridge (v1.0.52 onward)
+
+`Gaming Store → Reviews` lists and moderates verified-purchase reviews through the Gaming API. Set the same strong random `GAMING_CMS_REVIEWS_TOKEN` as a Worker secret on `nextf-cms-api` and `nextf-gaming-api` before deploying their review-bridge code. The token stays server-side and authorizes only Gaming review list/decision routes; it does not replace or widen the commerce and operations credentials. Gaming retains compatibility for previously authorized commerce/operations callers, but the current CMS sends only the Reviews token. The frontend-only v1.0.53 and v1.0.54 releases do not require Worker or secret changes.
 
 
 ### FazerCards supplier funding bridge
