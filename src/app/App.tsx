@@ -39,6 +39,7 @@ import { LiveOperationsPage as GamingLiveOperationsPage } from "../gaming-store/
 import { PricingPage as GamingPricingPage } from "../gaming-store/pricing/PricingPage";
 import { SuppliersPage as GamingSuppliersPage } from "../gaming-store/suppliers/SuppliersPage";
 import { CustomersPage as GamingCustomersPage } from "../gaming-store/customers/CustomersPage";
+import { ReviewsPage as GamingReviewsPage } from "../gaming-store/reviews/ReviewsPage";
 import { FinancePage as GamingFinancePage } from "../gaming-store/finance/FinancePage";
 import { GamingAnalyticsPage } from "../gaming-store/analytics/AnalyticsPage";
 import { PromotionsPage as GamingPromotionsPage } from "../gaming-store/promotions/PromotionsPage";
@@ -113,6 +114,7 @@ const routes: Record<string, ReactNode> = {
   "/gaming-store/pricing": <GamingPricingPage />,
   "/gaming-store/suppliers": <GamingSuppliersPage />,
   "/gaming-store/customers": <GamingCustomersPage />,
+  "/gaming-store/reviews": <GamingReviewsPage />,
   "/gaming-store/finance": <GamingFinancePage />,
   "/gaming-store/analytics": <GamingAnalyticsPage />,
   "/gaming-store/promotions": <GamingPromotionsPage />,

@@ -23,7 +23,7 @@ check("durable import utility",data.includes("file.text")&&data.includes("import
 check("global error boundary",read("src/main.tsx").includes("AppErrorBoundary"));
 check("consistent empty state",read("src/shared/components/DataTable.tsx").includes("table-empty-state")&&read("src/shared/components/StatePanel.tsx").includes('state: "empty" | "loading" | "error"'));
 check("skip navigation",shell.includes('href="#main-content"')&&shell.includes('id="main-content"'));
-check("modal accessibility hardening",read("src/shared/components/Modal.tsx").includes('aria-modal="true"')&&read("src/shared/components/Modal.tsx").includes('event.key==="Escape"'));
+check("modal accessibility hardening",read("src/shared/components/Modal.tsx").includes('aria-modal="true"')&&read("src/shared/components/Modal.tsx").includes("useOverlayFocus")&&read("src/shared/components/useOverlayFocus.ts").includes('event.key === "Escape"'));
 check("reduced motion accessibility",css.includes("prefers-reduced-motion"));
 check("responsive table hardening",css.includes("data-table-wrap")&&css.includes("overflow-x:auto"));
 check("no cloudflare setup",!fs.existsSync(path.join(root,"wrangler.jsonc"))&&!fs.existsSync(path.join(root,"worker"))&&!required.some((file)=>read(file).includes("D1Database")||read(file).includes("R2Bucket")));

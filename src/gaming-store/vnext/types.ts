@@ -93,6 +93,22 @@ export type NextFGamingHomeSection = {
   sortOrder: number;
 };
 
+export type NextFGamingHeroSlide = {
+  id: string;
+  enabled: boolean;
+  mediaType: "image" | "video";
+  productId?: string;
+  eyebrow: string;
+  title?: string;
+  description?: string;
+  mediaUrl?: string;
+  posterUrl?: string;
+  primaryCtaLabel: string;
+  secondaryCtaLabel: string;
+  sortOrder: number;
+  durationSeconds: number;
+};
+
 export type NextFGamingStorefrontConfig = {
   hero: {
     enabled: boolean;
@@ -104,6 +120,7 @@ export type NextFGamingStorefrontConfig = {
     primaryCtaLabel: string;
     secondaryCtaLabel: string;
   };
+  heroSlides?: NextFGamingHeroSlide[];
   sections: NextFGamingHomeSection[];
   updatedAt: string;
 };

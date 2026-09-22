@@ -13,7 +13,7 @@ export interface D1DatabaseLike {
 }
 export interface R2BucketLike {
   put(key: string, value: ArrayBuffer | ReadableStream | string, options?: Record<string, unknown>): Promise<unknown>;
-  get(key: string): Promise<{ body: ReadableStream; size?: number; httpEtag?: string; httpMetadata?: { contentType?: string } } | null>;
+  get(key: string, options?: { range?: { offset?: number; length?: number; suffix?: number } }): Promise<{ body: ReadableStream; size?: number; range?: { offset:number; length:number }; httpEtag?: string; httpMetadata?: { contentType?: string } } | null>;
   head(key: string): Promise<{ size: number; httpEtag?: string; httpMetadata?: { contentType?: string } } | null>;
   delete(key: string): Promise<void>;
 }

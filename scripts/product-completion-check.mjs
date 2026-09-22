@@ -5,13 +5,13 @@ const required=[
   "src/shared/feedback/ToastProvider.tsx","src/shared/validation/index.ts","src/shared/components/ConfirmDialog.tsx","src/shared/components/Drawer.tsx","src/shared/components/KeyValueList.tsx","src/app/layout/KeyboardShortcuts.tsx"
 ];
 for(const file of required)check(`file ${file}`,fs.existsSync(path.join(root,file)));
-const main=read("src/main.tsx"), shell=read("src/app/layout/AppShell.tsx"), topbar=read("src/app/layout/Topbar.tsx"), modal=read("src/shared/components/Modal.tsx"), fields=read("src/shared/components/FormField.tsx"), css=read("src/css/components.css")+read("src/css/responsive.css"), validators=read("src/shared/validation/index.ts");
+const main=read("src/main.tsx"), shell=read("src/app/layout/AppShell.tsx"), topbar=read("src/app/layout/Topbar.tsx"), modal=read("src/shared/components/Modal.tsx"), overlayFocus=read("src/shared/components/useOverlayFocus.ts"), fields=read("src/shared/components/FormField.tsx"), css=read("src/css/components.css")+read("src/css/responsive.css"), validators=read("src/shared/validation/index.ts");
 check("global toast provider mounted",main.includes("ToastProvider"));
 check("route announcer implemented",shell.includes("route-announcer")&&shell.includes('aria-live="polite"'));
 check("keyboard help shortcut implemented",shell.includes('event.key==="?"')&&shell.includes("KeyboardShortcuts"));
 check("keyboard help available in topbar",topbar.includes("onShortcuts")&&topbar.includes("HelpCircle"));
-check("modal focus is trapped",modal.includes('event.key!=="Tab"')&&modal.includes("last.focus()")&&modal.includes("first.focus()"));
-check("modal restore focus",modal.includes("previous?.focus()"));
+check("modal focus is trapped",modal.includes("useOverlayFocus")&&overlayFocus.includes('event.key !== "Tab"')&&overlayFocus.includes("last.focus()")&&overlayFocus.includes("first.focus()"));
+check("modal restore focus",modal.includes("useOverlayFocus")&&overlayFocus.includes("previous?.isConnected")&&overlayFocus.includes("previous.focus()"));
 check("form field errors accessible",fields.includes('role="alert"')&&fields.includes("form-field__error"));
 check("validation required",validators.includes("required(value"));
 check("validation email",validators.includes("email(value"));

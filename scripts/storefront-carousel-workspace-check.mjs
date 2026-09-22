@@ -1,0 +1,12 @@
+import fs from 'node:fs';
+const page=fs.readFileSync(new URL('../src/gaming-store/vnext/cms/StorefrontVNextPage.tsx',import.meta.url),'utf8');
+const css=fs.readFileSync(new URL('../src/css/components.css',import.meta.url),'utf8');
+const media=fs.readFileSync(new URL('../infrastructure/cloudflare/src/media.ts',import.meta.url),'utf8');
+let f=0;const c=(n,o)=>{console.log(`${o?'PASS':'FAIL'} ${n}`);if(!o)f++};
+c('Hero supports image/video slides',page.includes('Mixed-media hero carousel')&&page.includes('gaming_storefront_video'));
+c('Hero carousel caps at five slides',page.includes('5 slides')&&page.includes('length>=5'));
+c('Video upload supports MP4/WebM',page.includes('video/mp4,video/webm')&&media.includes('video/mp4')&&media.includes('video/webm'));
+c('Family workspace is internally scrollable',css.includes('.storefront-family-workspace{max-height:72vh;overflow-y:auto'));
+c('Family filter toolbar stays sticky',css.includes('.storefront-family-workspace .page-toolbar{position:sticky'));
+c('Media server supports byte ranges',media.includes('Accept-Ranges')||media.includes('accept-ranges'));
+if(f)process.exit(1);console.log('\nCMS storefront carousel/workspace checks passed.');

@@ -1,0 +1,33 @@
+NEXT F CONTINUITY RULES
+
+1. Follow live canonical resources first to avoid conflicts:
+   https://contracts.nextf.lk/
+
+2. MIGRATE FORWARD. NEVER BUILD BACKWARD.
+   Every new release must start from the latest validated canonical release. Never build a newer release from an older ZIP/snapshot when a newer validated baseline exists.
+
+3. New work is additive unless removal is explicitly approved. Existing accepted features and UX must not disappear because of packaging or baseline mistakes.
+
+4. Keep old source in Git tags/releases only. Old ZIPs are recovery/reference artifacts, not development baselines.
+
+5. Preserve authoritative business history: orders, payments, refunds, fulfillment, supplier funding, reviews/moderation, support/audit, price/cost snapshots, finance records, and required consent/history. Do not destructively overwrite historical facts.
+
+6. Keep current configuration with change history. Keep operational logs/webhook payloads/analytics only according to a retention policy. Expire caches/temp/UI drafts safely.
+
+7. Database migrations are forward-only and numbered. Never edit an already-production migration. Use add -> compatible deploy -> backfill -> cutover -> verify -> later cleanup.
+
+8. Legacy data that must remain must be isolated/versioned/read-only as appropriate. Never let old and new schemas become competing writable sources of truth.
+
+9. Cross-service idempotency keys must have operation/service namespaces. Never forward the same outer key into another command namespace when services share storage.
+
+10. API/contract changes are additive first and backward compatible during migration. Live contracts + checked-in release manifest are the source of truth.
+
+11. Required production bindings/secrets must be validated before deploy. Never use dummy secrets and never store secret values in release artifacts.
+
+12. A release becomes canonical only after full frontend build, Worker/API typecheck, targeted feature tests, regression tests, migration/contract checks, and release hygiene pass.
+
+13. Full ZIPs must be created only from the validated canonical tree. Packaging must fail on unexpected route/feature/file removals. Delta patches must declare and verify their exact parent version.
+
+14. Before risky production changes, preserve Git/tag, deployment IDs, migration state, relevant database backup/export, and current non-secret configuration.
+
+Golden rule: historical business data may remain, but old code or old data shapes must never become an active second source of truth.

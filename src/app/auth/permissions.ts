@@ -29,6 +29,7 @@ const routePermissions: Array<[string, Permission]> = [
   ["/gaming-store/pricing", "gaming.products.manage"],
   ["/gaming-store/suppliers", "gaming.suppliers.manage"],
   ["/gaming-store/customers", "gaming.orders.manage"],
+  ["/gaming-store/reviews", "gaming.products.manage"],
   ["/gaming-store/finance", "gaming.finance.manage"],
   ["/gaming-store", "gaming.read"],
   ["/software/products", "software.products.manage"],

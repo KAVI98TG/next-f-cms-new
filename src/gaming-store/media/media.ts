@@ -1,7 +1,7 @@
 import { ProductionBackendClient } from "../../services/production/httpClient";
 import { readProductionRuntimeConfig } from "../../services/production/runtime";
 
-export type MediaPurpose="gaming_product_artwork"|"gaming_family_artwork"|"gaming_family_hero"|"gaming_storefront_hero"|"support_evidence";
+export type MediaPurpose="gaming_product_artwork"|"gaming_family_artwork"|"gaming_family_hero"|"gaming_storefront_hero"|"gaming_storefront_video"|"support_evidence";
 export type ReadyMediaAsset={assetId:string;purpose:MediaPurpose;visibility:"public"|"private";status:"ready";objectKey:string;fileName:string;contentType:string;declaredSizeBytes:number;sizeBytes:number;etag?:string;publicUrl?:string;owner:{type:string;id:string;orderId?:string};createdAt:string;createdBy:string;uploadExpiresAt:string;finalizedAt:string};
 export type MediaOwner={ownerId:string;orderId?:string};
 const runtime=readProductionRuntimeConfig();

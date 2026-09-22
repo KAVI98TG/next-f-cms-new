@@ -4,8 +4,19 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-09-01",
   "workers_dev": false,
-  "observability": { "enabled": true },
-  "routes": [{ "pattern": "cms-api.nextf.lk", "custom_domain": true }, { "pattern": "media.nextf.lk", "custom_domain": true }],
+  "observability": {
+    "enabled": true
+  },
+  "routes": [
+    {
+      "pattern": "cms-api.nextf.lk",
+      "custom_domain": true
+    },
+    {
+      "pattern": "media.nextf.lk",
+      "custom_domain": true
+    }
+  ],
   "vars": {
     "ENVIRONMENT": "production",
     "CMS_ORIGIN": "https://cms.nextf.lk",
@@ -22,12 +33,68 @@
     "AUDIT_RETENTION_DAYS": "365",
     "OUTBOX_RETENTION_DAYS": "90"
   },
-  "d1_databases": [{ "binding": "DB", "database_name": "nextf-cms-production", "database_id": "3156cd12-fece-42d1-b26a-fa8640a6aa53", "migrations_dir": "migrations" }],
-  "r2_buckets": [{ "binding": "FILES", "bucket_name": "nextf-cms-production-files" }, { "binding": "MEDIA", "bucket_name": "nextf-media-production" }],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "nextf-cms-production",
+      "database_id": "3156cd12-fece-42d1-b26a-fa8640a6aa53",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "FILES",
+      "bucket_name": "nextf-cms-production-files"
+    },
+    {
+      "binding": "MEDIA",
+      "bucket_name": "nextf-media-production"
+    }
+  ],
   "queues": {
-    "producers": [{ "binding": "EVENTS", "queue": "nextf-cms-production-events" }],
-    "consumers": [{ "queue": "nextf-cms-production-events", "dead_letter_queue": "nextf-cms-production-events-dlq", "max_retries": 3 }]
+    "producers": [
+      {
+        "binding": "EVENTS",
+        "queue": "nextf-cms-production-events"
+      }
+    ],
+    "consumers": [
+      {
+        "queue": "nextf-cms-production-events",
+        "dead_letter_queue": "nextf-cms-production-events-dlq",
+        "max_retries": 3
+      }
+    ]
   },
-  "ratelimits": [{ "name": "PUBLIC_RATE_LIMITER", "namespace_id": "1001", "simple": { "limit": 20, "period": 60 } }],
-  "triggers": { "crons": ["15 * * * *"] }
+  "ratelimits": [
+    {
+      "name": "PUBLIC_RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": {
+        "limit": 20,
+        "period": 60
+      }
+    }
+  ],
+  "triggers": {
+    "crons": [
+      "15 * * * *"
+    ]
+  },
+  "secrets": {
+    "required": [
+      "CHECKOUT_ADMIN_TOKEN",
+      "CHECKOUT_SECRET_ADMIN_TOKEN",
+      "GAMING_CMS_COMMERCE_TOKEN",
+      "GAMING_CMS_OPERATIONS_TOKEN",
+      "GAMING_CMS_SUPPLIER_FUNDING_TOKEN",
+      "GAMING_CMS_SUPPORT_TOKEN",
+      "NEXTF_MAIN_SITE_INGEST_TOKEN",
+      "NEXTF_MEDIA_R2_ACCESS_KEY_ID",
+      "NEXTF_MEDIA_R2_ACCOUNT_ID",
+      "NEXTF_MEDIA_R2_SECRET_ACCESS_KEY",
+      "SERVICE_CREDENTIAL_SECRET",
+      "TURNSTILE_SECRET_KEY"
+    ]
+  }
 }

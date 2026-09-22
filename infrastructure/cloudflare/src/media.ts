@@ -3,7 +3,7 @@ import type { D1DatabaseLike, R2BucketLike, WorkerEnv } from "./env";
 export const MEDIA_ASSET_NS = "nextf.media.asset";
 const SUPPORT_CASE_NS = "gaming.support.case";
 
-export type MediaPurpose = "gaming_product_artwork" | "gaming_family_artwork" | "gaming_family_hero" | "gaming_storefront_hero" | "support_evidence";
+export type MediaPurpose = "gaming_product_artwork" | "gaming_family_artwork" | "gaming_family_hero" | "gaming_storefront_hero" | "gaming_storefront_video" | "support_evidence";
 export type MediaVisibility = "public" | "private";
 export type MediaAsset = {
   assetId: string;
@@ -32,6 +32,7 @@ type MediaDoc = { value:MediaAsset; version:number };
 const enc = new TextEncoder();
 const allowedImageTypes = new Set(["image/jpeg","image/png","image/webp","image/gif"]);
 const allowedEvidenceTypes = new Set([...allowedImageTypes,"application/pdf"]);
+const allowedVideoTypes = new Set(["video/mp4","video/webm"]);
 
 function has(principal:Principal, permission:string){ return principal.permissions.includes(permission); }
 function clean(value:unknown, max=180){ return String(value ?? "").trim().replace(/[\u0000-\u001f\u007f]/g, "").slice(0,max); }
@@ -42,17 +43,18 @@ function safeFileName(value:unknown){
 function mediaOrigin(env:WorkerEnv){ return (env.MEDIA_ORIGIN || "https://media.nextf.lk").replace(/\/$/,""); }
 function purposePolicy(purpose:MediaPurpose){
   if(purpose==="support_evidence") return { visibility:"private" as const, maxBytes:15*1024*1024, types:allowedEvidenceTypes, permission:"gaming.orders.manage", prefix:"private/support" };
+  if(purpose==="gaming_storefront_video") return { visibility:"public" as const, maxBytes:50*1024*1024, types:allowedVideoTypes, permission:"gaming.products.manage", prefix:"public/gaming/video" };
   return { visibility:"public" as const, maxBytes:10*1024*1024, types:allowedImageTypes, permission:"gaming.products.manage", prefix:"public/gaming" };
 }
 function validPurpose(value:unknown):MediaPurpose|undefined{
   const v=clean(value,40);
-  return ["gaming_product_artwork","gaming_family_artwork","gaming_family_hero","gaming_storefront_hero","support_evidence"].includes(v)?v as MediaPurpose:undefined;
+  return ["gaming_product_artwork","gaming_family_artwork","gaming_family_hero","gaming_storefront_hero","gaming_storefront_video","support_evidence"].includes(v)?v as MediaPurpose:undefined;
 }
 function ownerFor(purpose:MediaPurpose,input:Record<string,unknown>){
   const ownerId=clean(input.ownerId,180); if(!ownerId) throw new Error("MEDIA_OWNER_REQUIRED");
   if(purpose==="gaming_product_artwork") return {type:"gaming_product" as const,id:ownerId};
   if(purpose==="gaming_family_artwork"||purpose==="gaming_family_hero") return {type:"gaming_family" as const,id:ownerId};
-  if(purpose==="gaming_storefront_hero") return {type:"gaming_storefront" as const,id:ownerId};
+  if(purpose==="gaming_storefront_hero"||purpose==="gaming_storefront_video") return {type:"gaming_storefront" as const,id:ownerId};
   return {type:"support_case" as const,id:ownerId,orderId:clean(input.orderId,180)||undefined};
 }
 async function getAsset(db:D1DatabaseLike, assetId:string):Promise<MediaDoc|null>{
@@ -123,9 +125,17 @@ export async function getReadyMediaAsset(db:D1DatabaseLike,assetId:string){ cons
 
 export async function servePublicMedia(request:Request,env:WorkerEnv,assetId:string){
   const asset=await getReadyMediaAsset(env.DB,assetId); if(!asset||asset.visibility!=="public") return new Response("Not found",{status:404,headers:{"cache-control":"no-store"}});
-  const object=await env.MEDIA.get(asset.objectKey); if(!object) return new Response("Not found",{status:404,headers:{"cache-control":"no-store"}});
-  const headers=new Headers(); headers.set("content-type",asset.contentType); headers.set("cache-control","public, max-age=31536000, immutable"); headers.set("x-content-type-options","nosniff"); headers.set("cross-origin-resource-policy","cross-origin"); headers.set("access-control-allow-origin","*"); if(object.httpEtag)headers.set("etag",object.httpEtag);
-  return new Response(request.method==="HEAD"?null:object.body,{status:200,headers});
+  const head=await env.MEDIA.head(asset.objectKey); if(!head) return new Response("Not found",{status:404,headers:{"cache-control":"no-store"}});
+  const total=Number(head.size||asset.sizeBytes||0); const rangeHeader=request.headers.get("range"); let status=200; let object; let contentLength=total; let contentRange:string|undefined;
+  if(rangeHeader&&/^bytes=\d*-\d*$/.test(rangeHeader)&&total>0){
+    const raw=rangeHeader.slice(6); const [a,b]=raw.split("-"); let start=a?Number(a):NaN; let end=b?Number(b):NaN;
+    if(Number.isNaN(start)&&!Number.isNaN(end)){const suffix=Math.min(total,end);start=Math.max(0,total-suffix);end=total-1;} else {if(Number.isNaN(start))start=0;if(Number.isNaN(end)||end>=total)end=total-1;}
+    if(start<0||end<start||start>=total)return new Response(null,{status:416,headers:{"content-range":`bytes */${total}`,"accept-ranges":"bytes"}});
+    const length=end-start+1; object=await env.MEDIA.get(asset.objectKey,{range:{offset:start,length}}); status=206; contentLength=length; contentRange=`bytes ${start}-${end}/${total}`;
+  } else object=await env.MEDIA.get(asset.objectKey);
+  if(!object)return new Response("Not found",{status:404,headers:{"cache-control":"no-store"}});
+  const headers=new Headers(); headers.set("content-type",asset.contentType); headers.set("cache-control","public, max-age=31536000, immutable"); headers.set("x-content-type-options","nosniff"); headers.set("cross-origin-resource-policy","cross-origin"); headers.set("access-control-allow-origin","*"); headers.set("accept-ranges","bytes"); if(contentLength>0)headers.set("content-length",String(contentLength)); if(contentRange)headers.set("content-range",contentRange); if(object.httpEtag||head.httpEtag)headers.set("etag",object.httpEtag||head.httpEtag||"");
+  return new Response(request.method==="HEAD"?null:object.body,{status,headers});
 }
 
 export async function servePrivateMedia(env:WorkerEnv,principal:Principal,assetId:string){

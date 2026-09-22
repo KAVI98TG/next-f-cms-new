@@ -32,7 +32,9 @@ check("production D1 is exact production binding",prod.includes('"database_name"
 check("production R2 binding",prod.includes('"bucket_name": "nextf-cms-production-files"'));
 check("production Queue binding",prod.includes('"queue": "nextf-cms-production-events"')&&prod.includes('"dead_letter_queue": "nextf-cms-production-events-dlq"'));
 check("production retention policy configured",prod.includes('"AUDIT_RETENTION_DAYS": "365"')&&prod.includes('"OUTBOX_RETENTION_DAYS": "90"'));
-check("production config contains no Worker secret values",!prod.includes('"TURNSTILE_SECRET_KEY"')&&!prod.includes('"SERVICE_CREDENTIAL_SECRET"'));
+const prodJson=JSON.parse(prod);
+const declaredRequiredSecrets=new Set(prodJson.secrets?.required||[]);
+check("production config declares secret names without putting them in vars",declaredRequiredSecrets.has("TURNSTILE_SECRET_KEY")&&declaredRequiredSecrets.has("SERVICE_CREDENTIAL_SECRET")&&!Object.prototype.hasOwnProperty.call(prodJson.vars||{},"TURNSTILE_SECRET_KEY")&&!Object.prototype.hasOwnProperty.call(prodJson.vars||{},"SERVICE_CREDENTIAL_SECRET"));
 check("secret env files are ignored",gitignore.includes(".env")||gitignore.includes(".env.*"));
 check("production frontend env is committed and canonical",productionEnv.includes("VITE_NEXTF_ENVIRONMENT=production")&&productionEnv.includes("VITE_NEXTF_BACKEND_MODE=production-api")&&productionEnv.includes("VITE_NEXTF_API_BASE_URL=https://cms-api.nextf.lk")&&gitignore.includes("!.env.production"));
 

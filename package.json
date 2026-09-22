@@ -1,7 +1,7 @@
 {
   "name": "@next-f/admin",
   "private": true,
-  "version": "1.0.46",
+  "version": "1.0.51",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -78,7 +78,16 @@
     "check:funding-safety-ui": "node scripts/funding-safety-ui-check.mjs",
     "check:gaming-funding-idempotency-boundary": "node scripts/gaming-funding-idempotency-boundary-check.mjs",
     "check:notification-operations": "node scripts/notification-operations-inbox-check.mjs",
-    "check:media-webcrypto": "node scripts/media-webcrypto-typecheck.mjs"
+    "check:media-webcrypto": "node scripts/media-webcrypto-typecheck.mjs",
+    "check:review-moderation": "node scripts/review-moderation-check.mjs",
+    "check:storefront-carousel-workspace": "node scripts/storefront-carousel-workspace-check.mjs",
+    "check:overlay-focus": "node scripts/overlay-focus-stability-check.mjs",
+    "check:review-ui-build-contract": "node scripts/review-ui-build-contract-check.mjs",
+    "check:review-bridge-auth": "node scripts/review-bridge-auth-check.mjs",
+    "check:continuity": "node scripts/continuity-check.mjs",
+    "release:gate": "npm run check:continuity && npm run check:review-bridge-auth && npm run check:review-moderation && npm run check:review-ui-build-contract && npm run check:overlay-focus && npm run check:global-ui && npm run check:fazercards-funding && npm run check:gaming-funding-idempotency-boundary && npm run check:production-purity && npm run check:release-hygiene",
+    "predeploy": "npm run release:gate",
+    "predeploy:api:production": "npm run release:gate && npx tsc -p infrastructure/cloudflare/tsconfig.json --noEmit"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

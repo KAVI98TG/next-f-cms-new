@@ -35,6 +35,7 @@ import {
   ShieldCheck,
   ShieldAlert,
   Store,
+  Star,
   Trash2,
   Tags,
   UsersRound,
@@ -322,6 +323,12 @@ export const domains: DomainDefinition[] = [
         path: "/gaming-store/customers",
         icon: UsersRound,
         description: "Customer 360, purchase history and marketing consent.",
+      },
+      {
+        label: "Reviews",
+        path: "/gaming-store/reviews",
+        icon: Star,
+        description: "Moderate verified-purchase customer reviews before public publication.",
       },
       {
         label: "Finance",

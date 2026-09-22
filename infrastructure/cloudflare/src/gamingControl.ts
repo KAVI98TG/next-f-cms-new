@@ -8,7 +8,7 @@ type UpstreamEnvelope<T> = { ok:true; data:T } | { ok:false; problem?:{ code?:st
 
 function cleanText(value:unknown, max:number){ return typeof value==="string"?value.trim().slice(0,max):""; }
 function requiredText(value:unknown, field:string, max=200){ const out=cleanText(value,max); if(!out) throw new GamingControlError(400,"VALIDATION_FAILED",`${field} is required`); return out; }
-async function scopedGamingIdempotencyKey(scope:"funding-create"|"funding-verify",sourceKey:string){
+async function scopedGamingIdempotencyKey(scope:"funding-create"|"funding-verify"|"review-decision",sourceKey:string){
   if(!sourceKey.trim()) throw new GamingControlError(400,"IDEMPOTENCY_KEY_REQUIRED","Funding command requires an idempotency key");
   const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(sourceKey));
   const fingerprint=[...new Uint8Array(digest)].map((byte)=>byte.toString(16).padStart(2,"0")).join("");
@@ -271,4 +271,20 @@ export async function verifyGamingSupplierFundingPayment(env:WorkerEnv,value:Rec
   const paymentId=requiredText(value?.paymentId,"paymentId",160);const binanceOrderId=requiredText(value?.binanceOrderId,"binanceOrderId",200);
   const downstreamIdempotencyKey=await scopedGamingIdempotencyKey("funding-verify",idempotencyKey);
   return callGaming<GamingFundingRecord>(env,{path:`/v1/gaming/admin/supplier/fazercards/funding/payments/${encodeURIComponent(paymentId)}/verify`,token:env.GAMING_CMS_SUPPLIER_FUNDING_TOKEN,body:{binanceOrderId},idempotencyKey:downstreamIdempotencyKey,requestId,correlationId,...fundingStaff(staff)});
+}
+
+export type GamingCustomerReview = {
+  reviewId:string;accountId:string;orderId:string;orderNumber:string;productId?:string;productName?:string;rating:number;title:string;text:string;publicName:string;badge:"Verified purchase";status:"pending"|"approved"|"rejected";submittedAt:string;moderatedAt?:string;moderatedBy?:string;moderationNote?:string;publishedAt?:string;
+};
+export async function listGamingReviews(env:WorkerEnv,status:string,requestId:string,correlationId:string,staff:{accountId:string;staffUserId:string}){
+  const normalized=["all","pending","approved","rejected"].includes(status)?status:"all";
+  return callGaming<{reviews:GamingCustomerReview[]}>(env,{path:`/v1/gaming/admin/reviews?status=${encodeURIComponent(normalized)}`,token:env.GAMING_CMS_COMMERCE_TOKEN,method:"GET",requestId,correlationId,staffAccountId:staff.accountId,staffUserId:staff.staffUserId});
+}
+export async function decideGamingReview(env:WorkerEnv,value:Record<string,unknown>|undefined,idempotencyKey:string,requestId:string,correlationId:string,staff:{accountId:string;staffUserId:string}){
+  const reviewId=requiredText(value?.reviewId,"reviewId",160);
+  const decision=value?.decision;
+  if(decision!=="approved"&&decision!=="rejected") throw new GamingControlError(400,"REVIEW_DECISION_INVALID","Review decision must be approved or rejected");
+  const note=cleanText(value?.note,500);
+  const downstreamIdempotencyKey=await scopedGamingIdempotencyKey("review-decision",idempotencyKey);
+  return callGaming<GamingCustomerReview>(env,{path:`/v1/gaming/admin/reviews/${encodeURIComponent(reviewId)}/decision`,token:env.GAMING_CMS_COMMERCE_TOKEN,body:{decision,...(note?{note}:{})},idempotencyKey:downstreamIdempotencyKey,requestId,correlationId,staffAccountId:staff.accountId,staffUserId:staff.staffUserId});
 }

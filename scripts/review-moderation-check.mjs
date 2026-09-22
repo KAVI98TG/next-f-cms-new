@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+const gc=fs.readFileSync(new URL('../infrastructure/cloudflare/src/gamingControl.ts',import.meta.url),'utf8');
+const staff=fs.readFileSync(new URL('../infrastructure/cloudflare/src/staff.ts',import.meta.url),'utf8');
+const page=fs.readFileSync(new URL('../src/gaming-store/reviews/ReviewsPage.tsx',import.meta.url),'utf8');
+const nav=fs.readFileSync(new URL('../src/app/navigation.ts',import.meta.url),'utf8');
+let f=0;const c=(n,o)=>{console.log(`${o?'PASS':'FAIL'} ${n}`);if(!o)f++};
+c('CMS lists Gaming reviews through commerce bridge',gc.includes('/v1/gaming/admin/reviews?status=')&&gc.includes('token:env.GAMING_CMS_COMMERCE_TOKEN')&&staff.includes('staff.gaming.reviews.list'));
+c('CMS moderation uses separate downstream idempotency namespace',gc.includes('scopedGamingIdempotencyKey("review-decision"'));
+c('Approval and rejection are available without modal moderation',page.includes('Approve & publish')&&page.includes('Reject review')&&!page.includes('<Modal')&&!page.includes('SelectInput'));
+c('Reviews are present in Gaming navigation',nav.includes('/gaming-store/reviews'));
+if(f)process.exit(1);console.log('\nCMS review moderation checks passed.');

@@ -8,7 +8,7 @@ import { gamingAnalyticsSnapshot } from "./gamingAnalytics";
 import { gamingPromotionsSnapshot } from "./gamingPromotions";
 import { gamingSupportSnapshot } from "./gamingSupport";
 import { gamingCustomersSnapshot } from "./gamingCustomers";
-import { GamingControlError, commandGamingSupportCase, completeGamingRefund, createGamingPromotion, createGamingRefund, createGamingSupportCase, createGamingSupplierFundingPayment, decideGamingRefund, decideGamingRisk, getGamingSupplierFundingPayment, getGamingSupplierFundingSnapshot, getGamingNotificationHealth, markGamingRefundSent, reviewGamingPayment, retryGamingFulfillment, retryGamingNotification, updateGamingPromotion, verifyGamingSupplierFundingPayment } from "./gamingControl";
+import { GamingControlError, commandGamingSupportCase, completeGamingRefund, createGamingPromotion, createGamingRefund, createGamingSupportCase, createGamingSupplierFundingPayment, decideGamingRefund, decideGamingRisk, getGamingSupplierFundingPayment, getGamingSupplierFundingSnapshot, getGamingNotificationHealth, listGamingReviews, decideGamingReview, markGamingRefundSent, reviewGamingPayment, retryGamingFulfillment, retryGamingNotification, updateGamingPromotion, verifyGamingSupplierFundingPayment } from "./gamingControl";
 import { createMediaUpload, finalizeMediaUpload } from "./media";
 import { CheckoutControlError, checkoutPaymentsSnapshot, checkCheckoutProviderHealth, rotateCheckoutSecret, updateCheckoutBusiness, updateCheckoutBusinessRule, updateCheckoutMarketRule, updateCheckoutProvider } from "./checkoutControl";
 
@@ -156,6 +156,12 @@ export async function handleStaffQuery(input:{operation:string;body:StaffRequest
   if(input.operation==="staff.gaming.customers.snapshot.get"){
     if(!hasPermission(input.principal,"gaming.orders.manage")) throw new StaffApiError(403,"FORBIDDEN","Gaming order management permission is required");
     return gamingCustomersSnapshot(input.env.DB,input.principal);
+  }
+  if(input.operation==="staff.gaming.reviews.list"){
+    if(!hasPermission(input.principal,"gaming.read")) throw new StaffApiError(403,"FORBIDDEN","Gaming read permission is required");
+    const query=input.body.input as Record<string,unknown>|undefined; const status=typeof query?.status==="string"?query.status:"all";
+    try{return await listGamingReviews(input.env,status,input.requestId,input.correlationId,{accountId:input.principal.accountId,staffUserId:input.principal.staffUserId});}
+    catch(error){if(error instanceof GamingControlError)throw new StaffApiError(error.status,error.code,error.message);throw error;}
   }
   if(input.operation==="staff.gaming.supplier.funding.snapshot.get"){
     if(!hasPermission(input.principal,"gaming.suppliers.manage")||!hasPermission(input.principal,"gaming.finance.manage")) throw new StaffApiError(403,"FORBIDDEN","Gaming supplier and finance permissions are required");
@@ -369,6 +375,15 @@ export async function handleStaffCommand(input:{operation:string;body:StaffReque
       const response=await verifyGamingSupplierFundingPayment(input.env,commandInput,input.idempotencyKey,input.requestId,input.correlationId,{accountId:input.principal.accountId,staffUserId:input.principal.staffUserId});
       await idempotency.complete(input.idempotencyKey,JSON.stringify(response));
       await recordAudit(input.env.DB,{id:crypto.randomUUID(),action:input.operation,principalKind:"staff",principalId:input.principal.accountId,organizationId:input.principal.organizationId,targetType:"gaming.supplier.funding",targetId:String(response.intentId||""),outcome:String(response.state||"pending"),requestId:input.requestId,correlationId:input.correlationId,detail:JSON.stringify({providerKey:"fazercards",externalPaymentId:String(response.externalPaymentId||"")||undefined,verifyAttempts:Number((response.payment as Record<string,unknown>|undefined)?.verifyAttempts||0)})});
+      return response;
+    }
+    if(input.operation==="staff.gaming.review.decision"){
+      if(!hasPermission(input.principal,"gaming.products.manage")) throw new StaffApiError(403,"FORBIDDEN","Gaming product management permission is required");
+      if(claim.outcome==="replay"){try{return {...JSON.parse(claim.record.response_reference) as Record<string,unknown>,replayed:true};}catch{throw new StaffApiError(409,"IDEMPOTENCY_REPLAY_RESULT_UNAVAILABLE","The completed review moderation result cannot be replayed safely");}}
+      let response:Record<string,unknown>;
+      try{response=await decideGamingReview(input.env,commandInput,input.idempotencyKey,input.requestId,input.correlationId,{accountId:input.principal.accountId,staffUserId:input.principal.staffUserId}) as unknown as Record<string,unknown>;}catch(error){if(error instanceof GamingControlError)throw new StaffApiError(error.status,error.code,error.message);throw error;}
+      await idempotency.complete(input.idempotencyKey,JSON.stringify(response));
+      await recordAudit(input.env.DB,{id:crypto.randomUUID(),action:input.operation,principalKind:"staff",principalId:input.principal.accountId,organizationId:input.principal.organizationId,targetType:"gaming.customer.review",targetId:String(response.reviewId||commandInput?.reviewId||""),outcome:String(response.status||commandInput?.decision||"moderated"),requestId:input.requestId,correlationId:input.correlationId,detail:JSON.stringify({decision:commandInput?.decision,note:commandInput?.note||undefined})});
       return response;
     }
     if(input.operation==="staff.gaming.fulfillment.retry"){

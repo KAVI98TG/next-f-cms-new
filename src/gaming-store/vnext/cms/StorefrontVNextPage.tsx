@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, ChevronDown, ChevronUp, Eye, Image, ImageOff, LayoutTemplate, Monitor, Palette, Plus, Save, Sparkles } from "lucide-react";
+import { CheckCircle2, ChevronDown, ChevronUp, Eye, Film, Image, ImageOff, LayoutTemplate, Monitor, Palette, Plus, Save, Sparkles, Trash2 } from "lucide-react";
 import { Badge, Button, Card, FormField, Modal, PageToolbar, SectionHeader, SearchSelectInput, SelectInput, TextInput, Toggle } from "../../../shared/components";
 import { flushDurableWrites, readExternalCapability } from "../../../services/production";
 import { MediaUploadButton } from "../../media/MediaUploadButton";
 import { GamingKindBadge } from "../../shared/GamingKindBadge";
 import { gamingVNextStore } from "../runtime/store";
 import { useVNextStore } from "../runtime/useVNextStore";
-import type { NextFGamingGameFamily, NextFGamingHomeSection, NextFGamingProduct, NextFGamingStorefrontConfig } from "../types";
+import type { NextFGamingGameFamily, NextFGamingHeroSlide, NextFGamingHomeSection, NextFGamingProduct, NextFGamingStorefrontConfig } from "../types";
 
 const storefrontCapability=readExternalCapability("gaming.public-storefront");
 const kinds = ["topup","gift_card","game_key","steam","telegram","subscription","other"] as const;
@@ -37,6 +37,7 @@ export function StorefrontVNextPage(){
   const current=useVNextStore(gamingVNextStore.getStorefront);
   const [draft,setDraft]=useState<NextFGamingStorefrontConfig>(current);
   const [editingFamily,setEditingFamily]=useState<NextFGamingGameFamily>();
+  const [editingHeroSlide,setEditingHeroSlide]=useState<NextFGamingHeroSlide>();
   const [editingSection,setEditingSection]=useState<NextFGamingHomeSection>();
   const [manualProductChoice,setManualProductChoice]=useState("");
   const [error,setError]=useState("");
@@ -47,6 +48,7 @@ export function StorefrontVNextPage(){
   const [familyVisibility,setFamilyVisibility]=useState<"all" | "enabled" | "disabled">("all");
 
   const storefrontDirty=useMemo(()=>JSON.stringify(draft)!==JSON.stringify(current),[draft,current]);
+  const heroSlides=useMemo(()=>[...(draft.heroSlides??[])].sort((a,b)=>a.sortOrder-b.sortOrder),[draft.heroSlides]);
   const heroProductOptions=useMemo(()=>[
     {value:"",label:"Automatic featured product",meta:"Uses the current featured product",keywords:"automatic featured"},
     ...products.filter((product)=>product.enabled).map((product)=>{
@@ -137,9 +139,16 @@ export function StorefrontVNextPage(){
   const saveStorefront=async()=>{
     const heroUrl=draft.hero.backgroundArtworkUrl?.trim();
     if(heroUrl&&!safeHttps(heroUrl)){setError("Hero background must be a valid HTTPS URL.");return;}
+    if((draft.heroSlides?.length??0)>5){setError("The storefront hero supports up to 5 slides.");return;}
+    for(const slide of draft.heroSlides??[]){
+      if(slide.mediaUrl&&!safeHttps(slide.mediaUrl)){setError(`Hero slide ${slide.id} media must use HTTPS.`);return;}
+      if(slide.posterUrl&&!safeHttps(slide.posterUrl)){setError(`Hero slide ${slide.id} poster must use HTTPS.`);return;}
+      if(slide.mediaType==="video"&&!safeHttps(slide.mediaUrl)){setError("Video slides require an uploaded HTTPS MP4/WebM asset.");return;}
+    }
     setError("");
     setSaving(true);
-    const next={...draft,hero:{...draft.hero,backgroundArtworkUrl:safeHttps(heroUrl)},updatedAt:new Date().toISOString()};
+    const normalizedSlides=(draft.heroSlides??[]).map((slide)=>({...slide,mediaUrl:safeHttps(slide.mediaUrl),posterUrl:safeHttps(slide.posterUrl),durationSeconds:Math.max(4,Math.min(20,Number(slide.durationSeconds)||7))}));
+    const next={...draft,hero:{...draft.hero,backgroundArtworkUrl:safeHttps(heroUrl)},heroSlides:normalizedSlides,updatedAt:new Date().toISOString()};
     gamingVNextStore.updateStorefront(next);
     setDraft(next);
     try{await flushDurableWrites();}catch(e){setError(e instanceof Error?e.message:"Could not save storefront merchandising.");}
@@ -154,6 +163,11 @@ export function StorefrontVNextPage(){
     [rows[index],rows[target]]=[rows[target],rows[index]];
     setDraft({...draft,sections:rows.map((row,rowIndex)=>({...row,sortOrder:(rowIndex+1)*10}))});
   };
+  const moveHeroSlide=(id:string,direction:-1|1)=>{
+    const rows=[...heroSlides];const index=rows.findIndex((row)=>row.id===id);const target=index+direction;if(index<0||target<0||target>=rows.length)return;[rows[index],rows[target]]=[rows[target],rows[index]];setDraft({...draft,heroSlides:rows.map((row,rowIndex)=>({...row,sortOrder:(rowIndex+1)*10}))});
+  };
+  const removeHeroSlide=(id:string)=>setDraft({...draft,heroSlides:heroSlides.filter((row)=>row.id!==id).map((row,index)=>({...row,sortOrder:(index+1)*10}))});
+
   const sectionProductCount=(section:NextFGamingHomeSection)=>{
     if(section.source==="manual") return section.productIds?.length??0;
     if(section.source==="featured") return Math.min(section.limit,products.filter((product)=>product.enabled&&product.featured).length);
@@ -173,7 +187,10 @@ export function StorefrontVNextPage(){
     </div>
 
     <Card className="storefront-hero-builder">
-      <div className="storefront-builder-heading"><div><span>Homepage hero</span><h3>Primary merchandising banner</h3><p>Edit the content on the left and see the customer-facing result immediately.</p></div><div className="storefront-builder-heading__status"><Badge tone={draft.hero.enabled?"success":"neutral"}>{draft.hero.enabled?"Live":"Hidden"}</Badge><Toggle checked={draft.hero.enabled} onChange={(enabled)=>setDraft({...draft,hero:{...draft.hero,enabled}})}/></div></div>
+      <div className="storefront-builder-heading"><div><span>Homepage hero</span><h3>Mixed-media hero carousel</h3><p>Add up to five image or video slides. The existing hero below stays as the safe fallback when no carousel slide is active.</p></div><div className="storefront-builder-heading__status"><Badge tone={draft.hero.enabled?"success":"neutral"}>{draft.hero.enabled?"Live":"Hidden"}</Badge><Toggle checked={draft.hero.enabled} onChange={(enabled)=>setDraft({...draft,hero:{...draft.hero,enabled}})}/></div></div>
+      <div className="storefront-hero-slide-toolbar"><div><strong>{heroSlides.length} / 5 slides</strong><small>{heroSlides.length?"Public storefront rotates enabled slides automatically.":"No carousel slides yet · fallback hero is active."}</small></div><Button disabled={heroSlides.length>=5} onClick={()=>setEditingHeroSlide({id:`hero-${crypto.randomUUID().slice(0,8)}`,enabled:true,mediaType:"image",eyebrow:"FEATURED NOW",primaryCtaLabel:"View product",secondaryCtaLabel:"Browse shop",sortOrder:(Math.max(0,...heroSlides.map((row)=>row.sortOrder))+10),durationSeconds:7})}><Plus size={14}/> Add hero slide</Button></div>
+      {heroSlides.length?<div className="storefront-hero-slide-grid">{heroSlides.map((slide,index)=>{const product=slide.productId?products.find((row)=>row.id===slide.productId):undefined;return <article className={`storefront-hero-slide-card ${slide.enabled?"":"is-disabled"}`} key={slide.id}><div className="storefront-hero-slide-card__visual" style={slide.mediaType==="image"&&safeHttps(slide.mediaUrl)?{backgroundImage:`url(${safeHttps(slide.mediaUrl)})`}:slide.mediaType==="video"&&safeHttps(slide.posterUrl)?{backgroundImage:`url(${safeHttps(slide.posterUrl)})`}:undefined}>{slide.mediaType==="video"?<Film size={22}/>:<Image size={22}/>}<span>{slide.mediaType}</span></div><div className="storefront-hero-slide-card__body"><div><span>{String(index+1).padStart(2,"0")}</span><strong>{slide.title||product?.displayName||product?.name||"Automatic featured product"}</strong></div><small>{slide.eyebrow||"FEATURED NOW"} · {slide.durationSeconds||7}s</small><div><Badge tone={slide.enabled?"success":"neutral"}>{slide.enabled?"Enabled":"Hidden"}</Badge><Badge tone={slide.mediaType==="video"?"info":"neutral"}>{slide.mediaType==="video"?"Video":"Image"}</Badge></div></div><div className="storefront-hero-slide-card__actions"><button type="button" disabled={index===0} onClick={()=>moveHeroSlide(slide.id,-1)} aria-label="Move slide up"><ChevronUp size={14}/></button><button type="button" disabled={index===heroSlides.length-1} onClick={()=>moveHeroSlide(slide.id,1)} aria-label="Move slide down"><ChevronDown size={14}/></button><Button onClick={()=>setEditingHeroSlide({...slide})}>Edit</Button><button type="button" className="storefront-hero-slide-delete" onClick={()=>removeHeroSlide(slide.id)} aria-label="Delete slide"><Trash2 size={14}/></button></div></article>})}</div>:null}
+      <div className="storefront-fallback-label"><span>Fallback hero</span><small>Used whenever the carousel has no enabled slides or media cannot be loaded.</small></div>
       <div className="storefront-hero-layout">
         <div className="storefront-hero-controls gaming-storefront-hero-form">
           <FormField label="Hero product"><SearchSelectInput value={draft.hero.productId??""} options={heroProductOptions} searchPlaceholder="Search products…" emptyText="No matching products." onValueChange={(value)=>setDraft({...draft,hero:{...draft.hero,productId:value||undefined}})}/></FormField>
@@ -212,6 +229,8 @@ export function StorefrontVNextPage(){
         </article>})}</div>:<div className="storefront-family-empty"><Image size={20}/><div><strong>No game families match these filters</strong><small>Clear or change the filters to view the artwork workspace.</small></div></div>}
       </Card>
     </section>
+
+    <Modal open={!!editingHeroSlide} onClose={()=>setEditingHeroSlide(undefined)} title="Edit hero carousel slide" description="Create a NEXT F-owned image or video slide. Video is muted/inline on the public storefront and should include a poster image for safe fallback.">{editingHeroSlide&&<><div className="form-grid form-grid--two"><FormField label="Media type"><SelectInput value={editingHeroSlide.mediaType} onChange={(e)=>setEditingHeroSlide({...editingHeroSlide,mediaType:e.target.value as "image"|"video"})}><option value="image">Image</option><option value="video">Video</option></SelectInput></FormField><FormField label="Status"><SelectInput value={editingHeroSlide.enabled?"enabled":"hidden"} onChange={(e)=>setEditingHeroSlide({...editingHeroSlide,enabled:e.target.value==="enabled"})}><option value="enabled">Enabled</option><option value="hidden">Hidden</option></SelectInput></FormField><FormField label="Hero product"><SearchSelectInput value={editingHeroSlide.productId??""} options={heroProductOptions} searchPlaceholder="Search products…" emptyText="No matching products." onValueChange={(value)=>setEditingHeroSlide({...editingHeroSlide,productId:value||undefined})}/></FormField><FormField label="Slide duration (seconds)"><TextInput type="number" min="4" max="20" value={editingHeroSlide.durationSeconds} onChange={(e)=>setEditingHeroSlide({...editingHeroSlide,durationSeconds:Math.max(4,Math.min(20,Number(e.target.value)||7))})}/></FormField><FormField label="Eyebrow"><TextInput value={editingHeroSlide.eyebrow} onChange={(e)=>setEditingHeroSlide({...editingHeroSlide,eyebrow:e.target.value})}/></FormField><FormField label="Headline override"><TextInput value={editingHeroSlide.title??""} placeholder="Use product name" onChange={(e)=>setEditingHeroSlide({...editingHeroSlide,title:e.target.value||undefined})}/></FormField><FormField label="Description"><TextInput value={editingHeroSlide.description??""} placeholder="Use product description" onChange={(e)=>setEditingHeroSlide({...editingHeroSlide,description:e.target.value||undefined})}/></FormField><FormField label="Primary CTA"><TextInput value={editingHeroSlide.primaryCtaLabel} onChange={(e)=>setEditingHeroSlide({...editingHeroSlide,primaryCtaLabel:e.target.value})}/></FormField><FormField label="Secondary CTA"><TextInput value={editingHeroSlide.secondaryCtaLabel} onChange={(e)=>setEditingHeroSlide({...editingHeroSlide,secondaryCtaLabel:e.target.value})}/></FormField><FormField label={editingHeroSlide.mediaType==="video"?"Video URL":"Image URL"}><TextInput value={editingHeroSlide.mediaUrl??""} placeholder="https://media.nextf.lk/a/..." onChange={(e)=>setEditingHeroSlide({...editingHeroSlide,mediaUrl:e.target.value})}/><MediaUploadButton purpose={editingHeroSlide.mediaType==="video"?"gaming_storefront_video":"gaming_storefront_hero"} owner={{ownerId:editingHeroSlide.id}} accept={editingHeroSlide.mediaType==="video"?"video/mp4,video/webm":"image/jpeg,image/png,image/webp,image/gif"} label={editingHeroSlide.mediaType==="video"?"Upload video":"Upload image"} onUploaded={(asset)=>setEditingHeroSlide((value)=>value?{...value,mediaUrl:asset.publicUrl}:value)} onError={setError}/></FormField>{editingHeroSlide.mediaType==="video"?<FormField label="Video poster / fallback image"><TextInput value={editingHeroSlide.posterUrl??""} placeholder="https://media.nextf.lk/a/..." onChange={(e)=>setEditingHeroSlide({...editingHeroSlide,posterUrl:e.target.value})}/><MediaUploadButton purpose="gaming_storefront_hero" owner={{ownerId:`${editingHeroSlide.id}-poster`}} label="Upload poster" onUploaded={(asset)=>setEditingHeroSlide((value)=>value?{...value,posterUrl:asset.publicUrl}:value)} onError={setError}/></FormField>:null}</div><div className="modal-actions"><Button onClick={()=>setEditingHeroSlide(undefined)}>Cancel</Button><Button variant="primary" onClick={()=>{const media=editingHeroSlide.mediaUrl?.trim(),poster=editingHeroSlide.posterUrl?.trim();if(media&&!safeHttps(media)){setError("Hero slide media must use HTTPS.");return;}if(poster&&!safeHttps(poster)){setError("Video poster must use HTTPS.");return;}if(editingHeroSlide.mediaType==="video"&&!safeHttps(media)){setError("Upload a video before applying this slide.");return;}const row={...editingHeroSlide,mediaUrl:safeHttps(media),posterUrl:safeHttps(poster)};const rows=[...heroSlides.filter((item)=>item.id!==row.id),row].sort((a,b)=>a.sortOrder-b.sortOrder);setDraft({...draft,heroSlides:rows});setEditingHeroSlide(undefined);}}>Apply slide</Button></div></>}</Modal>
 
     <Modal open={!!editingFamily} onClose={()=>setEditingFamily(undefined)} title="Edit game-family artwork" description="Use one visual identity across product variants without duplicating artwork on every product.">{editingFamily&&<><div className="form-grid form-grid--two"><FormField label="Family name"><TextInput value={editingFamily.name} onChange={(e)=>setEditingFamily({...editingFamily,name:e.target.value,slug:slugify(e.target.value)})}/></FormField><FormField label="Slug"><TextInput value={editingFamily.slug} onChange={(e)=>setEditingFamily({...editingFamily,slug:slugify(e.target.value)})}/></FormField><FormField label="Card artwork URL"><TextInput value={editingFamily.artworkUrl??""} placeholder="https://media.nextf.lk/a/..." onChange={(e)=>setEditingFamily({...editingFamily,artworkUrl:e.target.value})}/><MediaUploadButton purpose="gaming_family_artwork" owner={{ownerId:editingFamily.id}} label="Upload card artwork" onUploaded={(asset)=>setEditingFamily((value)=>value?{...value,artworkUrl:asset.publicUrl}:value)} onError={setError}/></FormField><FormField label="Hero artwork URL"><TextInput value={editingFamily.heroArtworkUrl??""} placeholder="https://media.nextf.lk/a/..." onChange={(e)=>setEditingFamily({...editingFamily,heroArtworkUrl:e.target.value})}/><MediaUploadButton purpose="gaming_family_hero" owner={{ownerId:editingFamily.id}} label="Upload hero artwork" onUploaded={(asset)=>setEditingFamily((value)=>value?{...value,heroArtworkUrl:asset.publicUrl}:value)} onError={setError}/></FormField></div><div className="modal-actions"><Button onClick={()=>setEditingFamily(undefined)}>Cancel</Button><Button variant="primary" onClick={async()=>{const artwork=editingFamily.artworkUrl?.trim(),hero=editingFamily.heroArtworkUrl?.trim();if((artwork&&!safeHttps(artwork))||(hero&&!safeHttps(hero))){setError("Family artwork URLs must use HTTPS.");return;}const row={...editingFamily,artworkUrl:safeHttps(artwork),heroArtworkUrl:safeHttps(hero),updatedAt:new Date().toISOString()};gamingVNextStore.setGameFamilies([...catalogFamilies.filter((item)=>item.id!==row.id),row]);try{await flushDurableWrites();setEditingFamily(undefined);}catch(e){setError(e instanceof Error?e.message:"Could not save family artwork.");}}}>Save family</Button></div></>}</Modal>
 
