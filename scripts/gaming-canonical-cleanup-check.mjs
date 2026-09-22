@@ -17,7 +17,7 @@ check('customer snapshot derives commerce and marketing intelligence',customers.
 check('customer UI reads production backend',customerClient.includes('staff.gaming.customers.snapshot.get')&&!customerUi.includes('gamingStore.getCustomers'));
 check('customer UI separates transactional and marketing consent',customerUi.includes('Transactional order, payment, delivery, refund and support messages remain separate'));
 check('production dashboard uses canonical live snapshots',dashboard.includes('loadGamingOperationsSnapshot')&&dashboard.includes('loadGamingAnalyticsSnapshot')&&dashboard.includes('runtime.isProduction?<LiveGamingDashboard/>'));
-check('supplier page removed placeholder local registry',!suppliers.includes('gamingStore')&&!suppliers.includes('addSupplier(')&&suppliers.includes('No placeholder provider registry'));
+check('supplier page removed placeholder local registry',!suppliers.includes('gamingStore')&&!suppliers.includes('addSupplier(')&&suppliers.includes('saveFazerConfig')&&suppliers.includes('queueFazerCommand')&&!suppliers.includes('apiSecret'));
 const livePricing=pricing.split('function LocalPricingPage')[0];
 check('production pricing no longer mirrors into legacy settings',!livePricing.includes('gamingStore.saveSettings')&&!livePricing.includes('gamingStore.getSettings'));
 check('catalog no longer depends on legacy supplier registry',!catalog.includes('gamingStore')&&catalog.includes('Catalog & Supplier Routing'));

@@ -113,13 +113,13 @@ export function BillingPage() {
   const downloadInvoice=(invoice:DigitalInvoice)=>notify({title:"Invoice export prepared",description:`${invoice.number} PDF action recorded locally.`,tone:"success"});
 
   return <div className="page">
-    <SectionHeader eyebrow="NEXT F Digital" title="Billing & Renewals" description="Manage service invoices, recurring revenue and renewals without tying the product to a payment gateway yet." />
+    <SectionHeader eyebrow="NEXT F Digital" title="Billing & Renewals" description="Manage service invoices, recurring revenue and renewals." />
     <div className="compact-metrics">
-      <MetricCard label="Invoiced" value={formatLkr(total)} detail={`${invoices.length} invoices`} icon={ReceiptText} />
-      <MetricCard label="Collected" value={formatLkr(paid)} detail="Recorded payments" icon={WalletCards} />
-      <MetricCard label="Outstanding" value={formatLkr(outstanding)} detail="Still to collect" icon={CircleDollarSign} />
-      <MetricCard label="Recurring base" value={formatLkr(recurring)} detail={`${subscriptions.filter((item) => item.status === "active").length} active services`} icon={RefreshCw} />
-      <MetricCard label="Adjustments" value={formatLkr(Math.abs(netAdjustments))} detail={netAdjustments > 0 ? "Net fees" : "Net credits / discounts"} icon={CircleDollarSign} />
+      <MetricCard label="Invoiced" value={formatLkr(total)} icon={ReceiptText} />
+      <MetricCard label="Collected" value={formatLkr(paid)} icon={WalletCards} />
+      <MetricCard label="Outstanding" value={formatLkr(outstanding)} icon={CircleDollarSign} />
+      <MetricCard label="Recurring base" value={formatLkr(recurring)} icon={RefreshCw} />
+      <MetricCard label="Adjustments" value={formatLkr(Math.abs(netAdjustments))} icon={CircleDollarSign} />
     </div>
 
     <Card className="operation-section">

@@ -163,6 +163,6 @@ export function getBackendBoundaryReadiness() {
     productionIdentityProviderConnected: false,
     managedSiteAdapterRegistryConnected: false,
     publicSiteReadiness: publicSiteIntegrationStore.getReadiness(),
-    note: "V0.24 adds the D1-backed staff durable-state transport and durable idempotency implementation. Production Access identity provisioning, deployment bindings, managed-site adapters and exact live-site route wiring remain separate go-live phases.",
+    note: "Production staff-state transport and durable idempotency are connected. Identity and managed-site adapters are tracked separately.",
   };
 }

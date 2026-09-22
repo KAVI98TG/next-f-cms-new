@@ -264,9 +264,9 @@ export function CatalogVNextPage() {
   ];
 
   return <div className="page catalog-control-page">
-    <SectionHeader eyebrow="Gaming Store" title="Catalog & Supplier Routing" description="Manage hundreds of NEXT F products and thousands of supplier offers from one searchable workspace. Filter, review and bulk-update catalog visibility without opening every record." action={<Button variant="primary" className={storefrontCapability.available ? "storefront-action" : "storefront-action storefront-action--unavailable"} disabled={!storefrontCapability.available} title={storefrontCapability.detail} onClick={() => storefrontCapability.href && window.open(storefrontCapability.href, "_blank", "noopener,noreferrer")}><Eye size={15}/> {storefrontCapability.available ? "Open storefront" : "Storefront unavailable"}</Button>} />
-    <div className="compact-metrics"><MetricCard label="Public products" value={String(products.filter((product) => product.enabled).length)} detail={`${attentionProducts.length} need routing review`} icon={Store}/><MetricCard label="Retail offers" value={String(offers.filter((offer) => offer.enabled).length)} detail={`${offers.length.toLocaleString()} total offers`} icon={Boxes}/><MetricCard label="Active supplier routes" value={String(activeMappings.length)} detail="Available + enabled mappings" icon={Waypoints}/><MetricCard label="Quoted offers" value={String(estimated.length)} detail="Currently routeable" icon={ArrowUpDown}/></div>
-    <Card className="gaming-vnext-notice"><div><strong>Supplier-agnostic contract</strong><p>FazerCards is Supplier #1, not the storefront model. Add future suppliers by mapping them to the same NEXT F offers. {runtime.isProduction && storefrontCapability.available ? "The production storefront is connected while this catalog remains supplier-agnostic." : runtime.isProduction ? "The storefront destination is not configured in this CMS build." : ""}</p></div>{runtime.isLocal&&<Button onClick={() => { if (confirm("Reset the vNext local sandbox catalog to its seeded state?")) gamingVNextStore.reset(); }}><RotateCcw size={14}/> Reset local sandbox</Button>}</Card>
+    <SectionHeader eyebrow="Gaming Store" title="Catalog & Supplier Routing" description="Search, review and bulk-manage NEXT F products and supplier offers." action={<Button variant="primary" className={storefrontCapability.available ? "storefront-action" : "storefront-action storefront-action--unavailable"} disabled={!storefrontCapability.available} title={storefrontCapability.detail} onClick={() => storefrontCapability.href && window.open(storefrontCapability.href, "_blank", "noopener,noreferrer")}><Eye size={15}/> {storefrontCapability.available ? "Open storefront" : "Storefront unavailable"}</Button>} />
+    <div className="compact-metrics"><MetricCard label="Public products" value={String(products.filter((product) => product.enabled).length)} icon={Store}/><MetricCard label="Retail offers" value={String(offers.filter((offer) => offer.enabled).length)} icon={Boxes}/><MetricCard label="Active supplier routes" value={String(activeMappings.length)} icon={Waypoints}/><MetricCard label="Quoted offers" value={String(estimated.length)} icon={ArrowUpDown}/></div>
+    {runtime.isLocal&&<div className="section-actions"><Button onClick={() => { if (confirm("Reset the local catalog to its seeded state?")) gamingVNextStore.reset(); }}><RotateCcw size={14}/> Reset local catalog</Button></div>}
 
     <div className="segmented-nav catalog-tabs"><button className={tab === "products" ? "is-active" : ""} onClick={() => setTab("products")}>Products <span>{products.length.toLocaleString()}</span></button><button className={tab === "offers" ? "is-active" : ""} onClick={() => setTab("offers")}>Offers <span>{offers.length.toLocaleString()}</span></button><button className={tab === "routing" ? "is-active" : ""} onClick={() => setTab("routing")}>Supplier routing <span>{mappings.length.toLocaleString()}</span></button></div>
 
@@ -293,7 +293,7 @@ export function CatalogVNextPage() {
 
       <div className="catalog-list-meta">
         <div><strong>{currentRows.length.toLocaleString()}</strong><span>matching {tab === "products" ? "products" : tab === "offers" ? "offers" : "routes"}</span>{(query || kindFilter !== "all" || productView !== "all" || productOfferFilter !== "all" || productRouteFilter !== "all" || offerStateFilter !== "all" || routeStateFilter !== "all") && <Button variant="ghost" className="catalog-clear-filters" onClick={() => { setQueryState(""); setKindFilterState("all"); setProductViewState("all"); setProductOfferFilterState("all"); setProductRouteFilterState("all"); setOfferStateFilterState("all"); setRouteStateFilterState("all"); resetListing(); }}>Clear filters</Button>}</div>
-        <div className="catalog-page-size"><span>Rows</span><SelectInput value={String(pageSize)} onChange={(event) => { setPageSizeState(Number(event.target.value) as (typeof PAGE_SIZES)[number]); setPage(1); }}>{PAGE_SIZES.map((size) => <option key={size} value={size}>{size}</option>)}</SelectInput></div>
+        <div className="catalog-page-size"><SelectInput aria-label="Rows per page" value={String(pageSize)} onChange={(event) => { setPageSizeState(Number(event.target.value) as (typeof PAGE_SIZES)[number]); setPage(1); }}>{PAGE_SIZES.map((size) => <option key={size} value={size}>{size} rows</option>)}</SelectInput></div>
       </div>
 
       {selectedCount > 0 && <div className="catalog-bulk-bar">
@@ -321,7 +321,7 @@ export function CatalogVNextPage() {
       open={!!selectedProduct}
       onClose={() => setSelectedProduct(undefined)}
       title="Edit NEXT F product"
-      description="Manage the public identity and storefront artwork without changing supplier-owned source data."
+      description="Manage storefront identity and artwork."
       className="modal--wide gaming-product-modal"
       footer={selectedProduct ? <>
         <Button onClick={() => setSelectedProduct(undefined)}>Cancel</Button>
@@ -369,11 +369,11 @@ export function CatalogVNextPage() {
               </FormField>
               <FormField label="Game family">
                 <TextInput value={selectedProduct.gameFamily ?? ""} placeholder="Free Fire, PUBG Mobile, Call of Duty Mobile" onChange={(event) => setSelectedProduct({ ...selectedProduct, gameFamily: event.target.value })}/>
-                <small className="form-note">Shared family artwork can be inherited by related products.</small>
+                
               </FormField>
               <FormField label="Short description">
                 <TextInput value={publicDescription(selectedProduct)} onChange={(event) => setSelectedProduct({ ...selectedProduct, merchandisingDescription: event.target.value })}/>
-                <small className="form-note">NEXT F-owned storefront copy; supplier sync will not overwrite it.</small>
+                
               </FormField>
             </div>
           </section>
@@ -383,7 +383,7 @@ export function CatalogVNextPage() {
               <span>Supplier source</span>
               <strong>{selectedProduct.sourceName ?? selectedProduct.name}</strong>
             </div>
-            <small>Supplier identity can refresh during sync while NEXT F public overrides remain protected.</small>
+            
           </div>
         </div>
 
@@ -423,7 +423,7 @@ export function CatalogVNextPage() {
                 ? <img src={normalizeArtworkUrl(selectedProduct.artworkUrl)} alt={`${publicName(selectedProduct)} artwork preview`} referrerPolicy="no-referrer" onError={() => setArtworkPreviewFailed(true)}/>
                 : <div className="gaming-artwork-preview__empty">
                     <strong>{artworkPreviewFailed ? "Artwork could not be loaded" : "No artwork configured"}</strong>
-                    <small>The storefront will use the product-icon fallback until valid artwork is saved.</small>
+                    
                   </div>}
             </div>
           </section>
@@ -431,7 +431,7 @@ export function CatalogVNextPage() {
         {productSaveError && <div className="form-error gaming-product-editor__error">{productSaveError}</div>}
       </div>}
     </Modal>
-    <Modal open={!!selectedOffer} onClose={() => setSelectedOffer(undefined)} title="Edit retail offer" description="Price and customer-facing purchase configuration.">{selectedOffer && <><div className="form-grid form-grid--two"><FormField label="Offer label"><TextInput value={selectedOffer.name} onChange={(event) => setSelectedOffer({ ...selectedOffer, name: event.target.value })}/></FormField><FormField label="Pricing mode"><SelectInput value={selectedOffer.pricingMode} onChange={(event) => setSelectedOffer({ ...selectedOffer, pricingMode: event.target.value as NextFGamingOffer["pricingMode"] })}><option value="fixed">Fixed</option><option value="supplier_quote">Supplier quote</option><option value="amount_based">Amount based</option></SelectInput></FormField><FormField label="Selling price LKR"><TextInput type="number" disabled={selectedOffer.pricingMode !== "fixed"} value={selectedOffer.sellingPriceLkr ?? ""} onChange={(event) => setSelectedOffer({ ...selectedOffer, sellingPriceLkr: Number(event.target.value) || undefined })}/></FormField><FormField label="Region warning"><TextInput value={selectedOffer.regionRule.label ?? ""} onChange={(event) => setSelectedOffer({ ...selectedOffer, regionRule: { ...selectedOffer.regionRule, label: event.target.value } })}/></FormField></div><p className="form-note">Customer fields are supplier-derived capabilities normalized into NEXT F field schemas. Purchase field schemas are contract-bound and remain read-only here to avoid breaking purchase contracts.</p><div className="modal-actions"><Button onClick={() => setSelectedOffer(undefined)}>Cancel</Button><Button variant="primary" onClick={() => { gamingVNextStore.updateOffer(selectedOffer.id, selectedOffer); setSelectedOffer(undefined); }}>Save offer</Button></div></>}</Modal>
-    <Modal open={!!selectedMapping} onClose={() => setSelectedMapping(undefined)} title="Edit supplier route" description="Set priority and cost for this supplier mapping.">{selectedMapping && <><div className="form-grid form-grid--two"><FormField label="Supplier"><TextInput value={supplierLabel(selectedMapping.supplierId)} disabled/><span className="form-note">Supplier identity is controlled by the canonical provider mapping. A real supplier selector will return with multi-supplier onboarding.</span></FormField><FormField label="Priority"><TextInput type="number" min="1" value={selectedMapping.priority} onChange={(event) => setSelectedMapping({ ...selectedMapping, priority: Math.max(1, Number(event.target.value) || 1) })}/></FormField><FormField label="Supplier cost"><TextInput type="number" step="0.0001" value={selectedMapping.supplierCost} onChange={(event) => setSelectedMapping({ ...selectedMapping, supplierCost: Number(event.target.value) || 0 })}/></FormField><FormField label="Currency"><TextInput value={selectedMapping.supplierCurrency} onChange={(event) => setSelectedMapping({ ...selectedMapping, supplierCurrency: event.target.value.toUpperCase() })}/></FormField></div><div className="modal-actions"><Button onClick={() => setSelectedMapping(undefined)}>Cancel</Button><Button variant="primary" onClick={() => { gamingVNextStore.updateMapping(selectedMapping.id, selectedMapping); setSelectedMapping(undefined); }}>Save route</Button></div></>}</Modal>
+    <Modal open={!!selectedOffer} onClose={() => setSelectedOffer(undefined)} title="Edit retail offer" description="Price and customer-facing purchase configuration.">{selectedOffer && <><div className="form-grid form-grid--two"><FormField label="Offer label"><TextInput value={selectedOffer.name} onChange={(event) => setSelectedOffer({ ...selectedOffer, name: event.target.value })}/></FormField><FormField label="Pricing mode"><SelectInput value={selectedOffer.pricingMode} onChange={(event) => setSelectedOffer({ ...selectedOffer, pricingMode: event.target.value as NextFGamingOffer["pricingMode"] })}><option value="fixed">Fixed</option><option value="supplier_quote">Supplier quote</option><option value="amount_based">Amount based</option></SelectInput></FormField><FormField label="Selling price LKR"><TextInput type="number" disabled={selectedOffer.pricingMode !== "fixed"} value={selectedOffer.sellingPriceLkr ?? ""} onChange={(event) => setSelectedOffer({ ...selectedOffer, sellingPriceLkr: Number(event.target.value) || undefined })}/></FormField><FormField label="Region warning"><TextInput value={selectedOffer.regionRule.label ?? ""} onChange={(event) => setSelectedOffer({ ...selectedOffer, regionRule: { ...selectedOffer.regionRule, label: event.target.value } })}/></FormField></div><div className="modal-actions"><Button onClick={() => setSelectedOffer(undefined)}>Cancel</Button><Button variant="primary" onClick={() => { gamingVNextStore.updateOffer(selectedOffer.id, selectedOffer); setSelectedOffer(undefined); }}>Save offer</Button></div></>}</Modal>
+    <Modal open={!!selectedMapping} onClose={() => setSelectedMapping(undefined)} title="Edit supplier route" description="Set priority and cost for this supplier mapping.">{selectedMapping && <><div className="form-grid form-grid--two"><FormField label="Supplier"><TextInput value={supplierLabel(selectedMapping.supplierId)} disabled/></FormField><FormField label="Priority"><TextInput type="number" min="1" value={selectedMapping.priority} onChange={(event) => setSelectedMapping({ ...selectedMapping, priority: Math.max(1, Number(event.target.value) || 1) })}/></FormField><FormField label="Supplier cost"><TextInput type="number" step="0.0001" value={selectedMapping.supplierCost} onChange={(event) => setSelectedMapping({ ...selectedMapping, supplierCost: Number(event.target.value) || 0 })}/></FormField><FormField label="Currency"><TextInput value={selectedMapping.supplierCurrency} onChange={(event) => setSelectedMapping({ ...selectedMapping, supplierCurrency: event.target.value.toUpperCase() })}/></FormField></div><div className="modal-actions"><Button onClick={() => setSelectedMapping(undefined)}>Cancel</Button><Button variant="primary" onClick={() => { gamingVNextStore.updateMapping(selectedMapping.id, selectedMapping); setSelectedMapping(undefined); }}>Save route</Button></div></>}</Modal>
   </div>;
 }

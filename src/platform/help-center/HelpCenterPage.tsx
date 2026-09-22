@@ -21,7 +21,7 @@ export function HelpCenterPage() {
     ["overview","Overview",undefined],["knowledge","Knowledge",articles.length],["announcements","Announcements",undefined],["requests","Requests",openRequests],["replies","Saved Replies",undefined],["feedback","Feedback",feedback.length],["settings","Settings",undefined]
   ];
   return <div className="page">
-    <SectionHeader eyebrow="Platform" title="Customer Help Center" description="One shared NEXT F customer-help system for knowledge, announcements, requests, routing, agent replies and feedback while Digital, Gaming and Software keep their own operational support workflows." />
+    <SectionHeader eyebrow="Platform" title="Customer Help Center" description="Knowledge, announcements, customer requests, routing, replies and feedback." />
     <Card className="help-center-nav"><div className="segmented-nav" role="tablist" aria-label="Help Center sections">{tabs.map(([id,label,count])=><button key={id} className={view===id?"is-active":""} onClick={()=>setView(id)}>{id==="overview"&&<Waypoints size={14}/>} {id==="knowledge"&&<BookOpen size={14}/>} {id==="announcements"&&<Megaphone size={14}/>} {id==="requests"&&<LifeBuoy size={14}/>} {id==="replies"&&<MessageSquareReply size={14}/>} {id==="feedback"&&<ThumbsUp size={14}/>} {id==="settings"&&<Settings2 size={14}/>} {label}{count!==undefined&&<span>{count}</span>}</button>)}</div></Card>
     {view==="overview"&&<OverviewPanel/>}
     {view==="knowledge"&&<KnowledgePanel/>}

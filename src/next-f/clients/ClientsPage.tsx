@@ -43,11 +43,11 @@ export function ClientsPage() {
   const customerWorkspace = selected ? customerWorkspaces.find((item) => item.clientId === selected.id && item.status !== "closed") : undefined;
 
   return <div className="page">
-    <SectionHeader eyebrow="NEXT F Digital" title="Clients" description="A single client record for commercial history, delivery status and billing context." />
+    <SectionHeader eyebrow="NEXT F Digital" title="Clients" description="Client records with commercial, delivery and billing context." />
     <div className="compact-metrics">
-      <MetricCard label="Active clients" value={String(clients.filter((client) => client.status === "active").length)} detail={`${clients.length} total records`} icon={UsersRound} />
-      <MetricCard label="Active delivery" value={String(projects.filter((project) => ["active", "awaiting_client", "blocked"].includes(project.status)).length)} detail="Projects currently in motion" icon={FolderKanban} />
-      <MetricCard label="Outstanding" value={formatLkr(invoices.reduce((sum, invoice) => sum + Math.max(0, invoice.amount - invoice.paidAmount), 0))} detail="Across all Digital clients" icon={CircleDollarSign} />
+      <MetricCard label="Active clients" value={String(clients.filter((client) => client.status === "active").length)} icon={UsersRound} />
+      <MetricCard label="Active delivery" value={String(projects.filter((project) => ["active", "awaiting_client", "blocked"].includes(project.status)).length)} icon={FolderKanban} />
+      <MetricCard label="Outstanding" value={formatLkr(invoices.reduce((sum, invoice) => sum + Math.max(0, invoice.amount - invoice.paidAmount), 0))} icon={CircleDollarSign} />
     </div>
     <div className="client-layout">
       <Card>

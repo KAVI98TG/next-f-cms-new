@@ -14,7 +14,7 @@ check('control validates campaign mode discount schedule and limits',control.inc
 check('frontend uses staff API without exposing commerce secret',service.includes('staff.gaming.promotions.snapshot.get')&&service.includes('staff.gaming.promotion.create')&&!service.includes('GAMING_CMS_COMMERCE_TOKEN'));
 check('CMS page exposes campaign state and usage metrics',page.includes('promotion-overview-grid')&&page.includes('Active')&&page.includes('Scheduled')&&page.includes('Draft')&&page.includes('Redemptions')&&page.includes('Discount granted'));
 check('CMS editor supports coupon automatic schedule scope and limits',page.includes('Coupon code')&&page.includes('Automatic campaign')&&page.includes('Starts at')&&page.includes('Product IDs')&&page.includes('Per-customer limit'));
-check('CMS communicates protected margin behavior',page.includes('Discounts cannot bypass margin protection')&&page.includes('Margin floor'));
+check('CMS keeps concise protected margin guidance',page.includes('Global pricing floor still applies.')&&page.includes('Margin floor')&&!page.includes('Discounts cannot bypass margin protection'));
 check('CMS route and navigation are registered',app.includes('/gaming-store/promotions')&&nav.includes('/gaming-store/promotions'));
 check('campaign actions are disabled in read-only mode',page.includes('snapshot.capabilities.manage')&&page.includes('Read only'));
 const failed=checks.filter(c=>!c.ok);for(const c of checks)console.log(`${c.ok?'PASS':'FAIL'}  ${c.name}`);console.log(`\n${checks.length-failed.length}/${checks.length} Gaming promotion checks passed.`);if(failed.length)process.exit(1);

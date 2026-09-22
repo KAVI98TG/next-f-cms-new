@@ -93,7 +93,7 @@ check("staff shows canonical maximum",page.includes("Canonical maximum:"));
 check("staff shows field restrictions",page.includes("Field-level customer restrictions"));
 check("staff shows privacy security restrictions",page.includes("Privacy & security restrictions"));
 check("staff role exact permission UI",page.includes("Exact canonical Permission ID"));
-check("staff UI says no invented IDs",page.includes("This release seeds no invented Module, Capability, field or Permission IDs."));
+check("staff UI keeps canonical IDs exact",page.includes("does not invent or translate missing identifiers")&&page.includes("Exact canonical Permission ID"));
 check("master plan most restrictive rule preserved",scope.includes("most restrictive result winning") && scope.includes("Canonical contract maximum"));
 const semverAtLeast016=(value)=>{const [a=0,b=0,c=0]=String(value).split(".").map(Number);return a>0||(a===0&&(b>16||(b===16&&c>=0)));};
 check("package version remains V0.16+",semverAtLeast016(pkg.version));

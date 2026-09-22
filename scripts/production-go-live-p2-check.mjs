@@ -12,7 +12,7 @@ check("production session client exists",exists("src/services/production/staffSe
 check("production session validates Access assurance",sessionClient.includes('row.assurance !== "cloudflare-access"')&&sessionClient.includes('assurance: "cloudflare-access"'));
 check("production session filters known permissions",sessionClient.includes("filter(isPermission)"));
 check("bootstrap authenticates before durable state",main.includes("ProductionBootstrap")&&productionBootstrap.indexOf("await initializeProductionStaffSession()")>=0&&productionBootstrap.indexOf("await initializeProductionStaffSession()")<productionBootstrap.indexOf("await initializeDurableStorage()"));
-check("bootstrap fails closed for identity",productionBootstrap.includes("Fail closed")&&productionBootstrap.includes("Session verification needs attention"));
+check("bootstrap fails closed for identity",productionBootstrap.includes("Session verification needs attention")&&productionBootstrap.includes('if (state === "error") return <LoginPanel')&&productionBootstrap.includes("return children;"));
 check("session provider selects production verified principal",session.includes("getProductionStaffSession")&&session.includes('runtime.mode === "production-api" ? readProductionSessionUser() : readLocalSessionUser()'));
 check("production session permissions come from server principal",session.includes("permissions: principal.permissions"));
 check("production impersonation is not exposed",session.includes('...(runtime.mode === "local-prototype" ? { assumeUser } : {})'));

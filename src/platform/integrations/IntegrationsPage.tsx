@@ -13,7 +13,7 @@ export function IntegrationsPage() {
   const ready = relevant.filter((item) => item.status === "ready").length;
 
   return <div className="page">
-    <SectionHeader eyebrow="Platform" title="Integrations" description="Shared integration registry. Production actions stay unavailable until their real provider adapter reports ready." />
+    <SectionHeader eyebrow="Platform" title="Integrations" description="Integration status and connected provider controls." />
     <div className="compact-metrics">
       <Card><span><Blocks size={17}/>Adapters</span><strong>{relevant.length}</strong></Card>
       <Card><span><CheckCircle2 size={17}/>Ready</span><strong>{ready}</strong></Card>
@@ -25,6 +25,6 @@ export function IntegrationsPage() {
       <h3>{item.name}</h3><p>{item.description}</p>
       <footer><span>{item.category}</span><strong>{item.environment === "local" ? "Local sandbox" : "Production adapter"}</strong></footer>
     </Card>)}</div>
-    {!relevant.length&&<Card><p className="empty-copy">No production integration records are configured. External operations will remain gated until a real adapter is connected.</p></Card>}
+    {!relevant.length&&<Card><p className="empty-copy">No production integrations are configured.</p></Card>}
   </div>;
 }

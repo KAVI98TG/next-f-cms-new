@@ -33,7 +33,7 @@ check("No Admin worker runtime", !fs.existsSync(path.join(root, "worker")));
 check("Global CSS entry exists", fs.existsSync(path.join(src, "css", "index.css")));
 check("Infrastructure-independent repository exists", fs.existsSync(path.join(src, "services", "data", "localRepository.ts")));
 check("Command palette exists", fs.existsSync(path.join(src, "app", "layout", "CommandPalette.tsx")));
-check("Page guide exists", fs.existsSync(path.join(src, "app", "layout", "PageGuide.tsx")));
+check("Global page guide removed", !fs.existsSync(path.join(src, "app", "layout", "PageGuide.tsx")) && !sourceFiles.some((file) => /\.(ts|tsx)$/.test(file) && fs.readFileSync(file, "utf8").includes("PageGuide")));
 check("No old admin namespace", !sourceFiles.some((file) => file.includes(`${path.sep}src${path.sep}admin${path.sep}`)));
 
 console.log(`NEXT F CMS V0.5.0 architecture regression check`);

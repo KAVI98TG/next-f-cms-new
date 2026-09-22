@@ -26,9 +26,9 @@ function LoginPanel({ error, onRetry }: { error: string; onRetry: () => void }) 
       </div>
       <div className="auth-assurance">
         <div><ShieldCheck size={16}/><span><strong>Cloudflare Access</strong><small>MFA and application policy remain the authentication boundary.</small></span></div>
-        <div><CheckCircle2 size={16}/><span><strong>Fail closed</strong><small>No local staff impersonation or prototype data fallback is permitted in production.</small></span></div>
+        <div><CheckCircle2 size={16}/><span><strong>Production staff access</strong><small>Authentication is required before the CMS loads.</small></span></div>
       </div>
-      <footer><span>{runtime.environment.toUpperCase()}</span><span>{runtime.apiBaseUrl || "Local prototype"}</span></footer>
+      <footer><span>{runtime.environment.toUpperCase()}</span><span>{runtime.apiBaseUrl || "Local development"}</span></footer>
     </section>
   </main>;
 }

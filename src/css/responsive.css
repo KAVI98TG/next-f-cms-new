@@ -15,7 +15,7 @@
 }
 @media (max-width: 680px) {
   .page { padding:22px 16px 42px; }
-  .topbar { padding:0 13px; }
+  .topbar { padding:0 14px; }
   .topbar__context { display:none; }
   .command-trigger { width:38px;padding:0;justify-content:center; }
   .command-trigger span,.command-trigger kbd { display:none; }

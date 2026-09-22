@@ -21,5 +21,5 @@ export function ActivityPanel({ items = [] }: { items?: DashboardActivityItem[] 
 }
 
 export function ReadinessPanel({ rows }: { rows: { label: string; value: string; state: "good" | "pending" }[] }) {
-  return <Card><SectionHeader title="Foundation readiness" description="Runtime and product readiness for the current environment." /><div className="readiness-list">{rows.map((row) => <div className="readiness-row" key={row.label}><span>{row.state === "good" ? <CheckCircle2 size={17} /> : <Clock3 size={17} />}{row.label}</span><strong>{row.value}</strong></div>)}</div></Card>;
+  return <Card><SectionHeader title="System readiness" /><div className="readiness-list">{rows.map((row) => <div className="readiness-row" key={row.label}><span>{row.state === "good" ? <CheckCircle2 size={17} /> : <Clock3 size={17} />}{row.label}</span><strong>{row.value}</strong></div>)}</div></Card>;
 }

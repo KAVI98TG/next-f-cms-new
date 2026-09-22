@@ -17,38 +17,41 @@ function walk(dir){
 
 for(const file of walk(src)){
   if(!file.endsWith('.css')) continue;
+  if(path.basename(file)==='gaming-public.css') continue; // Public storefront has a separate visual system.
   const text=fs.readFileSync(file,'utf8');
   for(const match of text.matchAll(/font-size\s*:\s*([^;}{]+)/g)){
     declarations++;
     const expr=match[1].trim();
     for(const px of expr.matchAll(/([0-9]*\.?[0-9]+)px/g)){
-      if(Number(px[1])<10) failures.push(`${path.relative(root,file)}: font-size ${expr}`);
+      const value=Number(px[1]);
+      if(value<12) failures.push(`${path.relative(root,file)}: font-size ${expr}`);
+      if(value===13) failures.push(`${path.relative(root,file)}: 13px is outside the CMS type scale; use 12px microcopy or 14px readable copy`);
     }
     for(const rem of expr.matchAll(/([0-9]*\.?[0-9]+)rem/g)){
-      if(Number(rem[1])<0.625) failures.push(`${path.relative(root,file)}: font-size ${expr}`);
+      if(Number(rem[1])<0.75) failures.push(`${path.relative(root,file)}: font-size ${expr}`);
     }
   }
 }
 
 const tokens=fs.readFileSync(tokenFile,'utf8');
-if(!tokens.includes('--text-min: 10px;')) failures.push('src/css/tokens.css: missing --text-min: 10px design token');
+if(!tokens.includes('--text-min: 12px;')) failures.push('src/css/tokens.css: missing --text-min: 12px design token');
+if(!tokens.includes('--text-xs: 14px;')) failures.push('src/css/tokens.css: missing 14px shared secondary-copy token');
 
-// Inline font-size declarations are intentionally prohibited below the same floor.
 for(const file of walk(src)){
   if(!/\.(tsx?|jsx?)$/.test(file)) continue;
   const text=fs.readFileSync(file,'utf8');
   for(const match of text.matchAll(/fontSize\s*:\s*["'`]([0-9]*\.?[0-9]+)px["'`]/g)){
-    if(Number(match[1])<10) failures.push(`${path.relative(root,file)}: inline fontSize ${match[1]}px`);
+    if(Number(match[1])<12) failures.push(`${path.relative(root,file)}: inline fontSize ${match[1]}px`);
   }
 }
 
-console.log('NEXT F global typography floor check');
-console.log(`Scanned ${declarations} CSS font-size declarations.`);
+console.log('NEXT F internal CMS typography floor check');
+console.log(`Scanned ${declarations} internal CMS CSS font-size declarations.`);
 if(failures.length){
   for(const failure of failures) console.error(`FAIL  ${failure}`);
   console.error(`\n${failures.length} typography-floor violation${failures.length===1?'':'s'} found.`);
   process.exit(1);
 }
-console.log('PASS  minimum UI font size is 10px');
-console.log('PASS  --text-min design token is 10px');
+console.log('PASS  minimum internal CMS font size is 12px');
+console.log('PASS  normal secondary-copy token is 14px');
 console.log('\n2/2 typography-floor checks passed.');

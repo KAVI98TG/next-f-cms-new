@@ -19,7 +19,7 @@ check("shared account normalization",read("src/services/shared/commerceCenter.ts
 check("unified payment shape",read("src/services/shared/commerceCenter.ts").includes("SharedPayment")&&read("src/services/shared/commerceCenter.ts").includes("getSharedPayments"));
 check("cross-business operations notifications",notifications.includes("useOperationsCenter")&&read("src/services/shared/operationsCenter.ts").includes("digitalStore.getSites")&&read("src/services/shared/operationsCenter.ts").includes("softwareStore.getLicenses")&&!read("src/services/shared/operationsCenter.ts").includes("gamingStore"));
 check("durable export utility",data.includes("exportDurableStorageRecords")&&data.includes("Export data")&&data.includes("nextf-cms-durable-backup"));
-check("durable import utility",data.includes("file.text")&&data.includes("importDurableStorageRecords")&&data.includes("Import disabled")&&data.includes("Production application-data import is intentionally unavailable"));
+check("durable import utility",data.includes("file.text")&&data.includes("importDurableStorageRecords")&&data.includes("Import disabled")&&data.includes('disabled={runtime.mode==="production-api"}')&&data.includes("ConfirmDialog"));
 check("global error boundary",read("src/main.tsx").includes("AppErrorBoundary"));
 check("consistent empty state",read("src/shared/components/DataTable.tsx").includes("table-empty-state")&&read("src/shared/components/StatePanel.tsx").includes('state: "empty" | "loading" | "error"'));
 check("skip navigation",shell.includes('href="#main-content"')&&shell.includes('id="main-content"'));

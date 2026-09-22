@@ -25,7 +25,7 @@ export function SettingsPage() {
   };
 
   return <div className="page">
-    <SectionHeader eyebrow="Platform" title="Settings" description="Global organization and admin behavior. Business-specific settings stay inside their own domains." action={<Button variant="primary" onClick={save}><Save size={16}/>{saved ? "Saved" : "Save changes"}</Button>} />
+    <SectionHeader eyebrow="Platform" title="Settings" description="Global admin and organization settings." action={<Button variant="primary" onClick={save}><Save size={16}/>{saved ? "Saved" : "Save changes"}</Button>} />
     <div className="settings-layout">
       <Card>
         <div className="settings-section-title"><Building2 size={18}/><div><strong>Organization</strong><small>Shared identity and defaults used across the CMS.</small></div></div>
@@ -44,10 +44,10 @@ export function SettingsPage() {
         </div>
       </Card>
       <Card>
-        <div className="settings-section-title"><ShieldCheck size={18}/><div><strong>Administrative security</strong><small>{runtime.mode==="production-api"?"Cloudflare Access is the authoritative staff authentication and session control plane.":"Local prototype security defaults for development."}</small></div></div>
-        {runtime.mode==="production-api"?<div className="settings-rows"><div className="settings-row"><span><strong>Authentication authority</strong><small>MFA, Access policies and session duration are managed in Cloudflare Zero Trust, not by this CMS form.</small></span><Badge tone="success">Cloudflare Access</Badge></div></div>:<div className="settings-rows"><div className="settings-row"><span><strong>Require MFA for administrators</strong><small>Prototype policy only. Production MFA is enforced by Cloudflare Access.</small></span><Toggle checked={settings.requireMfaForAdmins} onChange={(value) => setSettings({ ...settings, requireMfaForAdmins: value })}/></div><FormField label="Prototype session timeout (minutes)"><TextInput type="number" min={15} max={1440} value={settings.sessionTimeoutMinutes} onChange={(event) => setSettings({ ...settings, sessionTimeoutMinutes: Number(event.target.value) })}/></FormField></div>}
+        <div className="settings-section-title"><ShieldCheck size={18}/><div><strong>Administrative security</strong><small>{runtime.mode==="production-api"?"Cloudflare Access is the authoritative staff authentication and session control plane.":"Local security defaults for development."}</small></div></div>
+        {runtime.mode==="production-api"?<div className="settings-rows"><div className="settings-row"><span><strong>Authentication authority</strong><small>MFA, Access policies and session duration are managed in Cloudflare Zero Trust, not by this CMS form.</small></span><Badge tone="success">Cloudflare Access</Badge></div></div>:<div className="settings-rows"><div className="settings-row"><span><strong>Require MFA for administrators</strong><small>Local-only setting. Production MFA is enforced by Cloudflare Access.</small></span><Toggle checked={settings.requireMfaForAdmins} onChange={(value) => setSettings({ ...settings, requireMfaForAdmins: value })}/></div><FormField label="Local session timeout (minutes)"><TextInput type="number" min={15} max={1440} value={settings.sessionTimeoutMinutes} onChange={(event) => setSettings({ ...settings, sessionTimeoutMinutes: Number(event.target.value) })}/></FormField></div>}
       </Card>
-      {runtime.isLocal&&<Card className="danger-zone"><div><strong>Reset local prototype data</strong><p>Clears browser-backed local prototype records and restores local seeds. This control is never rendered in staging or production.</p></div><Button variant="ghost" onClick={reset}><RotateCcw size={16}/>Reset local data</Button></Card>}
+      {runtime.isLocal&&<Card className="danger-zone"><div><strong>Reset local data</strong><p>Clears browser-backed local records and restores local seeds.</p></div><Button variant="ghost" onClick={reset}><RotateCcw size={16}/>Reset local data</Button></Card>}
     </div>
   </div>;
 }

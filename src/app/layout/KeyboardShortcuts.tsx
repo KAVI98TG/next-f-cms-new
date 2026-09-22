@@ -1,3 +1,0 @@
-import { Command, HelpCircle, Search, X } from "lucide-react";
-import { Modal } from "../../shared/components";
-export function KeyboardShortcuts({ open, onClose }: { open:boolean; onClose:()=>void }) { return <Modal open={open} onClose={onClose} title="Keyboard shortcuts" description="Use these shortcuts anywhere in the CMS when focus is not inside a form field."><div className="shortcut-list"><div><span><Search size={16}/>Global search</span><kbd>Ctrl / ⌘ K</kbd></div><div><span><HelpCircle size={16}/>Shortcut help</span><kbd>?</kbd></div><div><span><X size={16}/>Close overlay</span><kbd>Esc</kbd></div><div><span><Command size={16}/>Navigate results</span><kbd>↑ ↓ Enter</kbd></div></div></Modal>; }

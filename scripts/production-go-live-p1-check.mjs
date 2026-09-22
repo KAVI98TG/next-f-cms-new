@@ -28,7 +28,7 @@ check("P1 baseline retained at V0.24+", (major > 0 || (major === 0 && minor >= 2
 check("post-P1 release label is defined", /APP_RELEASE = "[^"]+"/.test(version));
 check("P1 QA wired", pkg.scripts?.["check:go-live-p1"] === "node scripts/production-go-live-p1-check.mjs");
 check("durable storage bridge exists", exists("src/services/production/durableStorage.ts") && durable.includes("initializeDurableStorage") && durable.includes("readDurableValue") && durable.includes("writeDurableValue"));
-check("production bootstrap awaits durable state", main.includes("ProductionBootstrap") && productionBootstrap.includes("await initializeProductionStaffSession()") && productionBootstrap.includes("await initializeDurableStorage()") && productionBootstrap.includes("Fail closed"));
+check("production bootstrap awaits durable state", main.includes("ProductionBootstrap") && productionBootstrap.includes("await initializeProductionStaffSession()") && productionBootstrap.includes("await initializeDurableStorage()") && productionBootstrap.includes('if (state === "error") return <LoginPanel') && productionBootstrap.includes("return children;"));
 check("production fixtures do not seed collections", durable.includes("if (Array.isArray(seed)) return [] as T"));
 check("production writes are idempotent", durable.includes("idempotencyKey: `staff-state-put:") && durable.includes("idempotencyKey: `staff-state-delete:"));
 check("production writes use optimistic versions", durable.includes("expectedVersion: versions.get(key)"));

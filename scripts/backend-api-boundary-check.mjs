@@ -135,10 +135,10 @@ check("local readiness says identity provider false",local.includes("productionI
 check("local readiness says adapter registry false",local.includes("managedSiteAdapterRegistryConnected: false"));
 check("local harness calls itself prototype",local.includes('runtimeMode: "local-prototype"'));
 
-check("staff UI exposes backend API boundary",page.includes('key: "backend-api"') && page.includes('label: "Backend / API"') && page.includes("Shared V1 operation registry"));
-check("staff UI says shared backend authoritative",page.includes("One authoritative backend") && page.includes("same governed API boundary"));
-check("staff UI says browser scope not enough",page.includes("Workspace scope comes from authenticated membership"));
-check("staff UI does not fake production server",page.includes("not a fake production server"));
+check("staff UI exposes backend API boundary",page.includes('key: "backend-api"') && page.includes('label: "Backend / API"') && page.includes("API operation registry"));
+check("staff UI exposes governed backend boundary",page.includes("API operation registry") && page.includes("authorized server-side") && page.includes("Fail closed"));
+check("staff UI keeps server-authorized scope boundary",page.includes("authorized server-side")&&page.includes("trusted server principals"));
+check("staff UI reports backend readiness from runtime truth",page.includes("getBackendBoundaryReadiness")&&page.includes("backendReadiness.productionTransportConnected")&&page.includes("Production adapter readiness"));
 check("staff UI marks production adapters pending",page.includes("Pending adapter"));
 
 check("scope says customer workspace separate frontend",scope.includes("Customer Workspace should be a separate frontend"));

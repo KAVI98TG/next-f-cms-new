@@ -38,7 +38,7 @@ check("production config declares secret names without putting them in vars",dec
 check("secret env files are ignored",gitignore.includes(".env")||gitignore.includes(".env.*"));
 check("production frontend env is committed and canonical",productionEnv.includes("VITE_NEXTF_ENVIRONMENT=production")&&productionEnv.includes("VITE_NEXTF_BACKEND_MODE=production-api")&&productionEnv.includes("VITE_NEXTF_API_BASE_URL=https://cms-api.nextf.lk")&&gitignore.includes("!.env.production"));
 
-check("production login UI is fail closed",bootstrap.includes("Secure staff access")&&bootstrap.includes("Continue with secure login")&&bootstrap.includes("Fail closed"));
+check("production login UI is fail closed",bootstrap.includes("await initializeProductionStaffSession()")&&bootstrap.includes("await initializeDurableStorage()")&&bootstrap.includes('if (state === "error") return <LoginPanel')&&bootstrap.includes("return children;"));
 check("API login completion route exists",worker.includes('url.pathname==="/auth/complete"')&&worker.includes("resolveStaffPrincipal"));
 check("public exact replay is resolved before Turnstile",worker.indexOf("idempotency.get(idempotencyKey)")>=0&&worker.indexOf("idempotency.get(idempotencyKey)")<worker.indexOf("if(!(await verifyTurnstile"));
 check("public idempotency conflict is fail closed",worker.includes("IDEMPOTENCY_CONFLICT")&&worker.includes("IDEMPOTENCY_IN_PROGRESS"));

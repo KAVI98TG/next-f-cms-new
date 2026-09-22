@@ -35,7 +35,7 @@ const labels: Record<ExternalCapability,string> = {
 export function readExternalCapability(capability: ExternalCapability): CapabilityReadiness {
   const runtime=readRuntimeTruth();
   if(runtime.allowsSimulation){
-    return { capability, available:true, simulation:true, label:labels[capability], detail:"Local sandbox simulation", href: capability === "gaming.public-storefront" ? "/gaming" : undefined };
+    return { capability, available:true, simulation:true, label:labels[capability], detail:"Local simulation", href: capability === "gaming.public-storefront" ? "/gaming" : undefined };
   }
   if(capability === "gaming.public-storefront") {
     const configured=(import.meta.env as Record<string,string|undefined>).VITE_GAMING_STOREFRONT_URL?.trim();

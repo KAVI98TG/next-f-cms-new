@@ -133,9 +133,9 @@ check("public API handler routes conversions through idempotent boundary",public
 check("public API responses do not echo lead PII",publicApi.includes("data: { leadId: lead.id, received: true as const }") && !publicApi.includes("lead.email") && !publicApi.includes("lead.phone") && !publicApi.includes("lead.enquiryDetail"));
 
 check("staff UI has nextf.lk integration tab",page.includes('key: "public-site"') && page.includes('label: "nextf.lk"'));
-check("staff UI says first party not customer tenant",page.includes("nextf.lk stays first-party public") && page.includes("never receive Customer Workspace tenancy"));
+check("staff UI keeps public and customer APIs separate",page.includes("Public API surfaces registered in V1") && page.includes("separate from Customer Workspace APIs"));
 check("staff UI says no direct DB reads",page.includes("No direct DB reads"));
-check("staff UI exposes route inventory blocker",page.includes("Exact live-site wiring intentionally blocked"));
+check("staff UI exposes route inventory blocker",page.includes("!publicSiteReadiness.liveRouteWiringComplete")&&page.includes("Live-site wiring incomplete")&&page.includes("publicSiteReadiness.blocker"));
 check("staff UI exposes public projection rules",page.includes("Public projection rules"));
 check("staff UI exposes conversion registry",page.includes("First-party conversion event registry"));
 check("staff UI exposes public API operations",page.includes("Public API surfaces registered in V1"));

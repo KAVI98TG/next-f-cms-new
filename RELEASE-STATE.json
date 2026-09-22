@@ -1,7 +1,7 @@
 {
   "application": "NEXT F CMS",
-  "version": "1.0.54",
-  "baseline": "1.0.53",
+  "version": "1.0.59",
+  "baseline": "1.0.57",
   "releaseDate": "2026-09-22",
   "schemaOwner": "NEXT F CMS / shared production D1",
   "schemaVersion": "current-production",
@@ -24,7 +24,11 @@
     "global-custom-form-controls",
     "global-overlay-focus-stability",
     "nonmodal-review-moderation",
-    "funding-idempotency-boundary"
+    "funding-idempotency-boundary",
+    "global-ui-content-hygiene",
+    "metric-card-no-footer",
+    "summary-card-no-footer",
+    "gaming-operator-copy-hygiene"
   ],
   "requiredSecretNames": [
     "CHECKOUT_ADMIN_TOKEN",
@@ -41,5 +45,12 @@
     "SERVICE_CREDENTIAL_SECRET",
     "TURNSTILE_SECRET_KEY"
   ],
-  "migrationIds": []
+  "migrationIds": [],
+  "releaseStatus": "canonical",
+  "validation": {
+    "sourceRegressionChecks": "passed",
+    "releaseGate": "passed",
+    "frontendBuild": "passed",
+    "workerTypecheck": "passed"
+  }
 }

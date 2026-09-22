@@ -55,7 +55,7 @@ const services=read("src/next-f/services/ServicesPage.tsx"), sites=read("src/nex
 check("digital service validation",services.includes("validators.positive")&&services.includes("already exists")&&services.includes("useToast"));
 check("digital site URL/domain validation",sites.includes("validators.url")&&sites.includes("validDomain")&&sites.includes("aria-invalid"));
 check("digital maintenance guarded",sites.includes("ConfirmDialog")&&sites.includes("Record maintenance mode"));
-check("supplier page uses canonical production control plane",suppliers.includes("No placeholder provider registry")&&!suppliers.includes("gamingStore"));
+check("supplier page uses canonical production control plane",!suppliers.includes("gamingStore")&&!suppliers.includes("addSupplier(")&&suppliers.includes("saveFazerConfig")&&suppliers.includes("queueFazerCommand")&&!suppliers.includes("FAZERCARDS_API_KEY")&&!suppliers.includes("apiSecret"));
 check("supplier placeholder registry retired",!suppliers.includes("addSupplier(")&&!suppliers.includes("getSuppliers("));
 check("software product slug validation",swProducts.includes("validators.slug")&&swProducts.includes("slug already exists"));
 check("software edition value validation",swProducts.includes("validators.positive")&&swProducts.includes("Activation limit"));

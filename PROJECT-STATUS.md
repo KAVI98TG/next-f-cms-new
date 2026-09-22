@@ -1,16 +1,19 @@
 # NEXT F CMS — Project Status
 
-**Current source release:** V1.0.54 — Reviews Layout Consistency (canonical parent V1.0.53)
+**Current source release:** V1.0.59 — Gaming UI Clarity Build Fix (canonical parent V1.0.57; canonical status is recorded in `RELEASE-STATE.json`)
 **Original production foundation:** V1.0.0 final production package  
 **Production CMS:** `https://cms.nextf.lk`  
 **Production API:** `https://cms-api.nextf.lk`
 
 ## Current release status
 
-- CMS v1.0.54 is deployed to the production Pages project; the Reviews page was visually checked at `https://cms.nextf.lk/gaming-store/reviews` with the shared page gutters and section spacing restored.
-- CMS v1.0.52 introduced the dedicated server-only review bridge credential on both CMS and Gaming API Workers; v1.0.53 and v1.0.54 are frontend-only Reviews UI releases.
-- The production Reviews listing loaded an empty queue during verification. Approval/rejection could not be exercised because there were no customer reviews to moderate.
-- The release manifest is `RELEASE-STATE.json`. The release-specific records are `docs/V1.0.52-REVIEWS-BRIDGE-RECOVERY.md`, `docs/V1.0.53-REVIEWS-WORKSPACE-UI.md` and `docs/V1.0.54-REVIEWS-LAYOUT-CONSISTENCY.md`.
+- v1.0.59 is distributed from canonical v1.0.57 as a Pages/frontend Gaming UI clarity build fix candidate. `npm run release:finalize` marks it canonical only after the full source regression suite, release gate, frontend build and Worker/API typecheck pass; deployment remains a separate operator action.
+- v1.0.59 audits the full Gaming CMS and removes developer/architecture explanations from operator workflows while retaining dynamic state, validation, permission boundaries and financial/destructive safety information.
+- Pricing, Live Operations, Suppliers and Promotions receive the largest simplification; Analytics, Finance, Dashboard, Catalog, Storefront, Customers, Orders, Settings and Support also receive copy cleanup where implementation detail was leaking into daily UI.
+- v1.0.57 remains the summary-card cleanup baseline; v1.0.56 removed the shared `MetricCard` footer/detail/trend contract.
+- v1.0.55 remains the broader UI clarity baseline: guide/help clutter and sidebar microcopy were removed, internal typography was raised, and the permanent UI content standard was introduced.
+- CMS v1.0.52 introduced the dedicated server-only review bridge credential; v1.0.59 does not change that review API boundary.
+- The release manifest is `RELEASE-STATE.json`. Current release records are `docs/V1.0.59-GAMING-UI-CLARITY-BUILD-FIX.md` and `docs/CMS-UI-CONTENT-AND-TYPOGRAPHY-STANDARD.md`.
 
 ## Completed production foundation
 

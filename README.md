@@ -1,8 +1,8 @@
-# NEXT F CMS V1.0.54
+# NEXT F CMS V1.0.59
 
 Production CMS for NEXT F Platform, Digital, Website Platform, Gaming Store administration and Software operations.
 
-The canonical release is **v1.0.54** (parent v1.0.53). `RELEASE-STATE.json` is the release manifest; `FULL-RELEASE-NOTES.md` and the versioned files in `docs/` describe the release history.
+Version **v1.0.59** is built from canonical **v1.0.57** and is distributed as a non-canonical candidate. `RELEASE-STATE.json` is the status authority: `npm run release:finalize` changes it to canonical only after the full static regression suite, release gate, frontend build and Worker/API typecheck pass. `FULL-RELEASE-NOTES.md` and the versioned files in `docs/` describe the release history.
 
 ## Production endpoints
 
@@ -47,7 +47,7 @@ npm run acceptance:source
 
 ## Production deployment
 
-Run `npm run release:gate` and `npm run build` before publishing. For a Pages-only UI release such as v1.0.54, deploy `dist` to `nextf-cms` on `main`; do not redeploy the API Worker unless its code or bindings changed. The full API-plus-Pages sequence is:
+Run `npm run release:finalize` before publishing. It runs the full static regression suite, release gate, frontend build and Worker/API typecheck, then marks the release manifest canonical only after they pass. For a Pages-only UI release such as v1.0.59, deploy `dist` to `nextf-cms` on `main`; do not redeploy the API Worker unless its code or bindings changed. The full API-plus-Pages sequence is:
 
 ```powershell
 $env:VITE_NEXTF_ENVIRONMENT = "production"
@@ -72,6 +72,12 @@ Production is fail closed. The login/bootstrap UI verifies Cloudflare Access and
 - `docs/GAMING-INTEGRATION-HANDOFF.md`
 - `docs/V1.0.52-REVIEWS-BRIDGE-RECOVERY.md`
 - `docs/V1.0.53-REVIEWS-WORKSPACE-UI.md`
+- `docs/V1.0.59-GAMING-UI-CLARITY-BUILD-FIX.md`
+- `docs/V1.0.57-SUMMARY-CARD-CLEANUP.md`
+- `docs/V1.0.56-METRIC-CARD-CLEANUP.md`
+- `docs/V1.0.55-CMS-UI-CLARITY-SYSTEM.md`
+- `docs/V1.0.55-UI-INSPECTION-AUDIT.md`
+- `docs/CMS-UI-CONTENT-AND-TYPOGRAPHY-STANDARD.md`
 - `docs/V1.0.54-REVIEWS-LAYOUT-CONSISTENCY.md`
 - `docs/V1.0.0-NEXTF-MAIN-SITE-PROJECT-REQUEST-INGESTION.md`
 - `PROJECT-STATUS.md`
@@ -173,6 +179,23 @@ The CMS Reviews list and decisions use a dedicated `GAMING_CMS_REVIEWS_TOKEN` co
 ## v1.0.53 Reviews workspace UI
 
 Reorganizes review metrics, moderation filters, the empty queue and verified-purchase guidance into a clearer, responsive staff workspace. Frontend-only; see `docs/V1.0.53-REVIEWS-WORKSPACE-UI.md`.
+
+
+## v1.0.59 Gaming UI clarity build fix
+
+Audits the Gaming CMS as an operator surface and removes implementation/developer explanations from daily workflows. Pricing, Live Operations, Suppliers, Promotions, Analytics, Finance, Catalog, Storefront, Support and related Gaming pages now prioritize business controls, state and safety-critical information. Adds a Gaming operator-copy hygiene guard so D1/Worker/API/canonical/phase terminology does not drift back into normal UI. Frontend-only; see `docs/V1.0.59-GAMING-UI-CLARITY-BUILD-FIX.md`.
+
+## v1.0.57 Summary card cleanup
+
+Finishes the no-footer summary-card rule across feature-local Gaming KPI strips that do not use the shared `MetricCard`, tightens those cards, normalizes the Live Operations dashboard action, and simplifies the Catalog rows-per-page control. Frontend-only; see `docs/V1.0.57-SUMMARY-CARD-CLEANUP.md`.
+
+## v1.0.56 Metric card cleanup
+
+Removes the shared `MetricCard` footer/detail/trend contract globally. Shared metric cards use label + value + icon only, with a tighter shared height and a UI-hygiene guard that blocks the shared footer contract from returning. Frontend-only; see `docs/V1.0.56-METRIC-CARD-CLEANUP.md`.
+
+## v1.0.55 CMS UI clarity system
+
+Removes non-operational guide/microcopy noise, raises internal CMS readability, simplifies verbose developer-facing notices and adds automated UI-content/typography checks plus the global UI standard. Frontend-only; see `docs/V1.0.55-CMS-UI-CLARITY-SYSTEM.md`.
 
 ## v1.0.54 Reviews layout consistency
 

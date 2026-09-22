@@ -54,7 +54,7 @@ check("staff UI has demo requests view",page.includes('key: "demo-requests"') &&
 check("staff UI has demo environments view",page.includes('key: "demo-environments"') && page.includes('label: "Demo environments"'));
 check("staff UI has provisioning activity view",page.includes('key: "activity"') && page.includes('Provisioning activity'));
 check("staff UI explains registration does not activate workspace",page.includes("A client profile is not itself the tenant") && page.includes("activation is allowed"));
-check("contract boundary remains fail closed",page.includes("Contracts stay fail-closed") && page.includes("Site Manifest"));
+check("contract boundary remains fail closed",page.includes("Canonical capability resolution remains fail-closed") && page.includes("Site Manifest evidence"));
 check("package version keeps V0.14+ foundation",Number(pkg.version.split(".")[0])>0||Number(pkg.version.split(".")[1])>=14);
 check("V0.14 QA script wired",pkg.scripts?.["check:provisioning-demo"]==="node scripts/provisioning-demo-check.mjs");
 

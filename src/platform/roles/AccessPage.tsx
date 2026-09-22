@@ -42,7 +42,7 @@ export function AccessPage() {
   };
 
   return <div className="page">
-    <SectionHeader eyebrow="Platform" title="Roles & permissions" description="Domain-scoped access control keeps Digital, Gaming Store, Software and Platform responsibilities separated." action={<Button variant="primary" onClick={() => setOpen(true)}><Plus size={16}/>New role</Button>} />
+    <SectionHeader eyebrow="Platform" title="Roles & permissions" description="Control staff permissions across Platform, Digital, Gaming and Software." action={<Button variant="primary" onClick={() => setOpen(true)}><Plus size={16}/>New role</Button>} />
     <Card className="permission-preview"><div><span className="section-header__eyebrow">{mode === "production-access" ? "Verified production session" : "Local permission preview"}</span><strong>Active session: {sessionUser.name} · {sessionUser.role}</strong><small>{mode === "production-access" ? "Identity and permissions are bound to the verified Cloudflare Access principal. Staff impersonation is disabled in production." : "Switch between active staff accounts to test route and navigation enforcement during local development."}</small></div>{mode === "local-development" && assumeUser && <div className="table-actions">{users.filter((item)=>item.status==="active").map((item)=><Button key={item.id} variant={sessionUser.id===item.id?"primary":"ghost"} onClick={()=>assumeUser(item.id)}>{item.name}</Button>)}</div>}</Card>
     <div className="access-layout">
       <Card className="role-list-card">

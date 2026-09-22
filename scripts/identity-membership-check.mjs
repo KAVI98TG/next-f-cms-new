@@ -38,7 +38,7 @@ check("customer roles separate catalog",customerAccess.includes("Owner") && cust
 check("contract website permission bindings fail closed",customerAccess.includes("contractPermissionBindings: []"));
 check("legacy migration is assessment only",website.includes("getLegacyPortalMigrationAssessments") && website.includes("Email matching alone is not enough") && !website.includes("migrateLegacyPortalAccess"));
 check("legacy active status is not copied",website.includes("legacy portal state is not copied automatically"));
-check("Shared Accounts clarified as non-auth identity",sharedAccounts.includes("not the NEXT F Account authentication identity directory"));
+check("Shared Accounts clarified as non-auth identity",sharedAccounts.includes("Customer profiles do not grant CMS access")&&sharedAccounts.includes("NEXT F Accounts"));
 check("NEXT F Accounts route",app.includes('"/platform/identity": <IdentityPage />'));
 check("NEXT F Accounts navigation",nav.includes('label: "NEXT F Accounts"') && nav.includes('path: "/platform/identity"'));
 check("identity searchable",search.includes('type: "NEXT F Account"'));

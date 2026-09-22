@@ -1,7 +1,7 @@
 {
   "name": "@next-f/admin",
   "private": true,
-  "version": "1.0.54",
+  "version": "1.0.59",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -85,9 +85,12 @@
     "check:review-ui-build-contract": "node scripts/review-ui-build-contract-check.mjs",
     "check:review-bridge-auth": "node scripts/review-bridge-auth-check.mjs",
     "check:continuity": "node scripts/continuity-check.mjs",
-    "release:gate": "npm run check:continuity && npm run check:review-bridge-auth && npm run check:review-moderation && npm run check:review-ui-build-contract && npm run check:overlay-focus && npm run check:global-ui && npm run check:fazercards-funding && npm run check:gaming-funding-idempotency-boundary && npm run check:production-purity && npm run check:release-hygiene",
+    "release:gate": "npm run check:continuity && npm run check:review-bridge-auth && npm run check:review-moderation && npm run check:review-ui-build-contract && npm run check:overlay-focus && npm run check:global-ui && npm run check:font-floor && npm run check:ui-hygiene && npm run check:fazercards-funding && npm run check:gaming-funding-idempotency-boundary && npm run check:production-purity && npm run check:release-hygiene",
     "predeploy": "npm run release:gate",
-    "predeploy:api:production": "npm run release:gate && npx tsc -p infrastructure/cloudflare/tsconfig.json --noEmit"
+    "predeploy:api:production": "npm run release:gate && npx tsc -p infrastructure/cloudflare/tsconfig.json --noEmit",
+    "check:ui-hygiene": "node scripts/ui-content-hygiene-check.mjs",
+    "check:all-static": "node scripts/all-static-checks.mjs",
+    "release:finalize": "node scripts/finalize-release.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

@@ -43,5 +43,5 @@ check("durable idempotency repository",idem.includes("class D1IdempotencyReposit
 check("production runtime does not fallback when selected without URL",runtime.includes("production backend mode is enabled")&&runtime.includes("throw new Error"));
 check("HTTP client requires idempotency on commands",client.includes("Production commands require an idempotency key"));
 check("HTTP client sends credentials",client.includes('credentials:"include"'));
-check("Infrastructure UI exposes production foundation",page.includes("Cloudflare Worker + D1 handlers")&&page.includes("fails closed"));
+check("Infrastructure UI exposes production readiness",page.includes('runtime.mode === "production-api"')&&["Workers API","D1","R2","Queues","Cloudflare Access","Secrets"].every((label)=>page.includes(label))&&page.includes("Production requirements"));
 console.log("NEXT F CMS V0.21.0 Production Infrastructure Foundation check"); for(const x of pass)console.log(`PASS  ${x}`);for(const x of fail)console.error(`FAIL  ${x}`);console.log(`\n${pass.length} passed, ${fail.length} failed`);if(fail.length)process.exit(1);

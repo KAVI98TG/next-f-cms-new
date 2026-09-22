@@ -21,7 +21,7 @@ check("backup lifecycle",ops.includes("createBackup")&&ops.includes("restoreBack
 check("retention lifecycle",ops.includes("saveRetention")&&ops.includes("previewCleanup")&&ops.includes("runCleanup"));
 check("retention covers audit",ops.includes("removedAudit")&&ops.includes("saveAudit"));
 check("retention covers notifications",ops.includes("removedNotifications")&&ops.includes("saveNotifications"));
-check("cleanup UI explains all retained operational records",cleanup.includes("audit")&&cleanup.includes("notifications")&&cleanup.includes("backups"));
+check("cleanup UI exposes destructive retention scope",cleanup.includes("removedAudit")&&cleanup.includes("removedLogs")&&cleanup.includes("removedNotifications")&&cleanup.includes("removedBackups")&&cleanup.includes("ConfirmDialog"));
 check("digital add-ons",digitalAdmin.includes("addAddon")&&digitalAdmin.includes("updateAddon"));
 check("digital project templates",digitalAdmin.includes("addTemplate")&&digitalAdmin.includes("updateTemplate"));
 check("digital billing adjustments",digitalAdmin.includes("addAdjustment")&&digitalAdmin.includes("getInvoiceAdjustedTotal"));

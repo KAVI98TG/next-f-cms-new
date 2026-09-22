@@ -1,3 +1,46 @@
+# NEXT F CMS v1.0.59 — Gaming UI Clarity Build Fix
+
+Canonical parent: **v1.0.57**. The v1.0.58 candidate did not become canonical because its frontend TypeScript build failed. v1.0.59 carries forward the Gaming UI clarity work and fixes that compile error.
+
+The Support case commerce-context UI referenced `orderContext.paymentProvider`, but the canonical Support order-context type exposes `paymentState` and does not expose a payment-provider field. The unsupported helper line has been removed, leaving the canonical payment state.
+
+This remains a Pages/frontend-only change. No D1 migration, Worker/API contract change, binding, or secret is required.
+
+See `docs/V1.0.59-GAMING-UI-CLARITY-BUILD-FIX.md` and `docs/CMS-UI-CONTENT-AND-TYPOGRAPHY-STANDARD.md`.
+
+## Previous release
+
+
+# NEXT F CMS v1.0.57 — Summary Card Cleanup
+
+Canonical parent: **v1.0.56**. The package begins as a non-canonical candidate; `npm run release:finalize` marks it canonical only after the full static suite, release gate, frontend build and Worker/API typecheck pass.
+
+Finishes the metric-card cleanup across feature-local summary/KPI strips that do not use the shared `MetricCard`. Removes the helper/footer line from Gaming Dashboard, Live Operations, Storefront Merchandising, Promotions, Analytics, Customers, Support and Reviews summary cards, plus Platform health and Website Platform header stats; tightens their card heights; normalizes the Dashboard “Open Live Operations” action; and simplifies the Catalog rows-per-page control. The UI hygiene gate now blocks local summary-card footers from returning. No D1 migration, Worker contract change or new secret.
+
+See `docs/V1.0.57-SUMMARY-CARD-CLEANUP.md` and `docs/CMS-UI-CONTENT-AND-TYPOGRAPHY-STANDARD.md`.
+
+## Previous release
+
+# NEXT F CMS v1.0.56 — Metric Card Cleanup
+
+Canonical parent: **v1.0.55**. The package begins as a non-canonical candidate; `npm run release:finalize` marks it canonical only after the full static suite, release gate, frontend build and Worker/API typecheck pass.
+
+Removes the shared metric-card footer/detail/trend area across the CMS. Shared `MetricCard` instances show only label, value and icon, with the global card height tightened to match the cleaner operational UI standard. `check:ui-hygiene` prevents the shared footer contract from returning. No D1 migration, Worker contract change or new secret.
+
+See `docs/V1.0.56-METRIC-CARD-CLEANUP.md` and `docs/CMS-UI-CONTENT-AND-TYPOGRAPHY-STANDARD.md`.
+
+## Previous release
+
+# NEXT F CMS v1.0.55 — CMS UI Clarity System
+
+Canonical parent: **v1.0.54**. The distributed patch begins non-canonical; `npm run release:finalize` marks the manifest canonical only after the full static suite, release gate, frontend build and Worker/API typecheck pass.
+
+Cleans the CMS as an operational surface: removes global guide/help chrome and sidebar microcopy, raises internal typography, shortens developer-facing UI text, trims tutorial-style Website Platform content, makes metric detail optional, and adds permanent UI content/typography guardrails for future features. No D1 migration, Worker contract change or new secret.
+
+See `docs/V1.0.55-CMS-UI-CLARITY-SYSTEM.md`, `docs/V1.0.55-UI-INSPECTION-AUDIT.md` and `docs/CMS-UI-CONTENT-AND-TYPOGRAPHY-STANDARD.md`.
+
+## Previous release
+
 # NEXT F CMS v1.0.54 — Reviews Layout Consistency
 
 Canonical parent: **v1.0.53**.
@@ -49,3 +92,7 @@ No D1 migration. No historical business data is changed or removed. No secret va
 ## Deployment
 
 Run the release gate and Worker typecheck, then deploy the CMS API and frontend. Existing required secret names must already be configured on `nextf-cms-api`.
+
+## v1.0.59 build correction
+
+The v1.0.58 candidate failed TypeScript compilation because `SupportPage.tsx` referenced `orderContext.paymentProvider`, which is not part of the canonical support order-context type. v1.0.59 removes that unsupported helper field and keeps the payment-state display only. This is a frontend-only correction; no Worker or D1 deployment is required.

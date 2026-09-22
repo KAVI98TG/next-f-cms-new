@@ -72,11 +72,11 @@ check("publishing receipt requires adapter evidence",flow.includes("Publishing a
 check("publishing receipt modeled",flow.includes("PublishingReceiptRecord"));
 check("publish audit records publication reference",flow.includes("Website revision published") && flow.includes("publicationReference"));
 check("staff approvals publishing view",page.includes('key: "approvals-publishing"') && page.includes('label: "Approvals & publishing"'));
-check("staff UI states approval application publishing split",page.includes("Approval is not publication") && page.includes("application and publication are separate auditable events"));
-check("staff UI shows concurrency rule",page.includes("Optimistic concurrency is mandatory"));
+check("staff UI states approval application publishing split",page.includes("approval only authorizes a later adapter application") && page.includes("Publishing is independent from editing and change approval"));
+check("staff UI shows revision conflict protection",page.includes("Revision conflict protection")&&page.includes("older site revision require review again"));
 check("staff UI has customer change queue",page.includes("Customer change requests"));
 check("staff UI has publication governance queue",page.includes("Publication governance"));
-check("staff UI says website remains authoritative",page.includes("website stays authoritative"));
+check("staff UI says website remains authoritative",page.includes("authoritative website state"));
 check("scope supports change request workflow",scope.includes("proper **change request or approval workflow**"));
 check("scope requires base revision",scope.includes("reference the version or revision they were based on"));
 check("scope requires conflict handling",scope.includes("detect the stale proposal"));

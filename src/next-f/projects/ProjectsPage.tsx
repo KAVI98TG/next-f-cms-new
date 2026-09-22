@@ -44,12 +44,12 @@ export function ProjectsPage() {
   };
 
   return <div className="page">
-    <SectionHeader eyebrow="NEXT F Digital" title="Projects & Delivery" description="Run delivery from one place with milestones, tasks, deliverables and client approvals tied to each project." />
+    <SectionHeader eyebrow="NEXT F Digital" title="Projects & Delivery" description="Manage milestones, tasks, deliverables and client approvals." />
     <div className="compact-metrics">
-      <MetricCard label="Active" value={String(projects.filter((project) => project.status === "active").length)} detail="Currently being delivered" icon={FolderKanban} />
-      <MetricCard label="Open tasks" value={String(tasks.filter((task) => task.status !== "done").length)} detail="Across all projects" icon={ClipboardCheck} />
-      <MetricCard label="Client approvals" value={String(approvals.filter((item) => item.status === "pending").length)} detail="Waiting for response" icon={TimerReset} />
-      <MetricCard label="Deliverables" value={String(deliverables.length)} detail="Managed delivery records" icon={FileCheck2} />
+      <MetricCard label="Active" value={String(projects.filter((project) => project.status === "active").length)} icon={FolderKanban} />
+      <MetricCard label="Open tasks" value={String(tasks.filter((task) => task.status !== "done").length)} icon={ClipboardCheck} />
+      <MetricCard label="Client approvals" value={String(approvals.filter((item) => item.status === "pending").length)} icon={TimerReset} />
+      <MetricCard label="Deliverables" value={String(deliverables.length)} icon={FileCheck2} />
     </div>
     <Card>
       <PageToolbar query={query} onQueryChange={setQuery} placeholder="Search projects…"><SelectInput value={filter} onChange={(e) => setFilter(e.target.value)}><option value="all">All statuses</option><option value="planned">Planned</option><option value="active">Active</option><option value="awaiting_client">Awaiting client</option><option value="completed">Completed</option></SelectInput></PageToolbar>

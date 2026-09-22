@@ -16,13 +16,13 @@ check('CMS uses canonical supplier config key',control.includes('nextf.vnext.gam
 check('CMS uses canonical pricing key',control.includes('nextf.vnext.gaming.pricing.fazercards'));
 check('CMS uses command/status control documents',control.includes('nextf.vnext.gaming.supplier-command.fazercards')&&control.includes('nextf.vnext.gaming.supplier-status.fazercards'));
 check('pricing page edits live FazerCards policy',pricing.includes('saveFazerPricing')&&pricing.includes('gatewayFeePercent')&&pricing.includes('minimumProfitLkr'));
-check('pricing UI no longer requires supplier resync after normal changes',pricing.includes('no supplier API resync is required')&&pricing.includes('Save pricing policy'));
+check('pricing save remains independent of supplier sync',pricing.includes('saveFazerPricing')&&pricing.includes('Save pricing policy')&&!pricing.includes('queueFazerCommand')&&!pricing.includes("run('sync')"));
 check('pricing UI requires FX and markup for sellable supplier quotes',pricing.includes('policyReady')&&pricing.includes('USD → LKR and Default markup % are required'));
 check('pricing page does not ask for supplier secret',!pricing.match(/api.?key|apiSecret/i));
 check('supplier page can save live supplier settings',suppliers.includes('saveFazerConfig')&&suppliers.includes('maxCategoriesPerSync'));
 check('supplier page queues health preview and sync',suppliers.includes("run('health')")&&suppliers.includes("run('preview')")&&suppliers.includes("run('sync')"));
 check('supplier page automatically polls Worker status',suppliers.includes('waitForCommand')&&suppliers.includes('lastProcessedCommandId'));
-check('supplier page explicitly keeps API key server-side',suppliers.includes('FAZERCARDS_API_KEY')&&suppliers.includes('Server-side only'));
+check('supplier page does not expose supplier API credentials',!suppliers.includes('FAZERCARDS_API_KEY')&&!suppliers.includes('apiSecret'));
 check('supplier settings labels use shared stacked row styles',components.includes('.settings-stack')&&components.includes('.setting-row > div')&&components.includes('flex-direction:column'));
 check('supplier settings rows preserve toggle space responsively',components.includes('.setting-row > :last-child')&&responsive.includes('.setting-row { align-items:flex-start; }'));
 check('no admin token is embedded in CMS frontend',!control.includes('GAMING_SUPPLIER_ADMIN_TOKEN')&&!suppliers.includes('GAMING_SUPPLIER_ADMIN_TOKEN'));

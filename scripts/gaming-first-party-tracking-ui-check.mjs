@@ -7,10 +7,10 @@ check('tracking snapshot includes top landing pages',backend.includes('landingPa
 check('order attribution is summarized by source medium campaign',backend.includes("const source=text(attribution?.source)||'direct'")&&backend.includes("const medium=text(attribution?.medium)||'none'")&&backend.includes("const campaign=text(attribution?.campaign)||'—'"));
 check('acquisition revenue remains finance permission gated',backend.includes("...(finance?{}:{grossCollectedLkr:undefined,estimatedMarginLkr:undefined})"));
 check('CMS shows first-party Tracking Health',page.includes('First-party measurement')&&page.includes('Tracking health'));
-check('CMS shows page search filter offer and support interaction counts',page.includes('snapshot.tracking.pageViews')&&page.includes('snapshot.tracking.searches')&&page.includes('snapshot.tracking.filterUses')&&page.includes('snapshot.tracking.offerSelections')&&page.includes('snapshot.tracking.supportOpens'));
+check('CMS shows primary page search and offer interaction counts without helper footers',page.includes('snapshot.tracking.pageViews')&&page.includes('snapshot.tracking.searches')&&page.includes('snapshot.tracking.offerSelections')&&!page.includes('detail={`${snapshot.tracking.filterUses} filter interactions`}')&&!page.includes('detail={`${snapshot.tracking.supportOpens} support opens`}'));
 check('CMS shows campaign and source performance table',page.includes('Campaign & source performance')&&page.includes('snapshot.acquisition')&&page.includes('Order → paid'));
-check('CMS explains GTM is not source of truth',page.includes('GTM is not required as the measurement source of truth'));
+check('CMS keeps GTM/source-of-truth implementation guidance out of operator UI',!page.includes('GTM is not required as the measurement source of truth')&&!page.includes('source of truth'));
 check('tracking UI has responsive SaaS layout',css.includes('.analytics-tracking-panel')&&css.includes('.analytics-tracking-health')&&css.includes('.analytics-tracking-state')&&css.includes('@media(max-width:720px)'));
-check('tracking UI respects 10px minimum',!css.match(/\.analytics-(?:tracking|landing|acquisition)[^{}]*\{[^{}]*font-size:\s*[1-9]px/));
+check('tracking UI respects CMS typography floor',!css.match(/\.analytics-(?:tracking|landing|acquisition)[^{}]*\{[^{}]*font-size:\s*(?:[1-9]|1[01])px/));
 check('permanent tracking UI check is wired',pkg.scripts?.['check:gaming-tracking-ui']==='node scripts/gaming-first-party-tracking-ui-check.mjs');
 const failed=checks.filter(x=>!x.ok); for(const c of checks) console.log(`${c.ok?'PASS':'FAIL'}  ${c.name}`); console.log(`\n${checks.length-failed.length}/${checks.length} Gaming first-party tracking UI checks passed.`); if(failed.length) process.exit(1);

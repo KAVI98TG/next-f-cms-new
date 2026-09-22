@@ -12,8 +12,8 @@ check("attention filters exist for fulfillment risk refunds and notifications",p
 check("queue table uses compact sticky high-volume layout",css.includes('.live-ops-table .data-table th{position:sticky')&&css.includes('max-height:min(58vh,680px)'));
 check("empty queue copy is contextual",page.includes('Payment review is clear. No proofs are waiting.')&&page.includes('No refund workflow is currently active.'));
 check("recent operational activity is visible outside the Events queue",page.includes('Recent operational events')&&page.includes('recentActivity'));
-check("technical bridge and provider details moved into collapsible diagnostics",page.includes('<details className="live-ops-diagnostics">')&&page.includes('Command bridge')&&page.includes('Payment providers'));
-check("diagnostics styling is responsive",css.includes('.live-ops-diagnostics__grid')&&css.includes('@media(max-width:900px)'));
+check("technical diagnostics are removed from operator workspace",!page.includes('live-ops-diagnostics')&&!page.includes('Command bridge')&&!page.includes('Payment providers'));
+check("core live operations workspace remains responsive",css.includes('.live-ops-workspace')&&css.includes('@media(max-width:900px)'));
 check("existing action dialogs remain present",page.includes('Review payment')&&page.includes('Start refund')&&page.includes('Retry fulfillment?')&&page.includes('Risk review'));
 const failed=checks.filter((entry)=>!entry.ok);
 for(const entry of checks) console.log(`${entry.ok?"PASS":"FAIL"}  ${entry.name}`);

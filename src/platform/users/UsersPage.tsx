@@ -65,7 +65,7 @@ export function UsersPage() {
   const invited = users.filter((user) => user.status === "invited").length;
 
   return <div className="page">
-    <SectionHeader eyebrow="Platform" title="Users" description="Manage staff access to the NEXT F CMS without mixing customer accounts into the admin identity layer." action={<Button variant="primary" onClick={() => { setAttempted(false); setOpen(true); }}><Plus size={16}/>Invite user</Button>} />
+    <SectionHeader eyebrow="Platform" title="Users" description="Manage staff access to the CMS." action={<Button variant="primary" onClick={() => { setAttempted(false); setOpen(true); }}><Plus size={16}/>Invite user</Button>} />
     <div className="compact-metrics">
       <Card><span><UsersRound size={17}/>Total users</span><strong>{users.length}</strong></Card>
       <Card><span><UserCheck size={17}/>Active</span><strong>{active}</strong></Card>
@@ -80,7 +80,7 @@ export function UsersPage() {
       </PageToolbar>
       <DataTable columns={columns} rows={filtered} getKey={(user) => user.id} empty="No users match this filter." />
     </Card>
-    <Modal open={open} onClose={() => setOpen(false)} title="Invite admin user" description="Creates a browser-persistent development record. Production invitations will be connected later." footer={<><Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button><Button variant="primary" onClick={create}>Create invitation</Button></>}>
+    <Modal open={open} onClose={() => setOpen(false)} title="Invite admin user" description="Create an admin invitation record." footer={<><Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button><Button variant="primary" onClick={create}>Create invitation</Button></>}>
       <div className="form-grid">
         <FormField label="Name" required error={nameError}><TextInput aria-invalid={!!nameError} value={name} onChange={(event) => setName(event.target.value)} placeholder="Team member name"/></FormField>
         <FormField label="Email" required error={emailError}><TextInput aria-invalid={!!emailError} type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@example.com"/></FormField>

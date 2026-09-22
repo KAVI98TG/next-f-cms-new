@@ -198,7 +198,7 @@ export function SupportPage() {
     { key: "owner", header: "Owner", width: "145px", render: (row) => <div className="support-ops-owner"><strong>{row.assignee?.accountId === staffAccountId ? "You" : row.assignee ? "Assigned" : "Unassigned"}</strong><small>{row.assignee ? shortId(row.assignee.accountId) : "Needs owner"}</small></div> },
   ];
 
-  if (loading && !snapshot) return <StatePanel state="loading" title="Loading support operations" description="Reading canonical support cases from the shared Gaming commerce database."/>;
+  if (loading && !snapshot) return <StatePanel state="loading" title="Loading support operations" description="Loading customer support cases."/>;
   if (error && !snapshot) return <StatePanel state="error" title="Support operations unavailable" description={error} action={<Button onClick={() => void refresh()}><RefreshCw size={14}/> Retry</Button>}/>;
 
   const summary = snapshot?.summary;
@@ -215,20 +215,20 @@ export function SupportPage() {
   };
 
   return <div className="page gaming-support-ops-page">
-    <SectionHeader eyebrow="Gaming Store" title="Support & Disputes" description="Operate customer cases with order context, clear ownership, SLA health, private evidence and audited customer communication." action={<div className="table-actions"><Button onClick={() => void refresh()} disabled={loading}><RefreshCw size={14}/> Refresh</Button><Button variant="primary" disabled={!snapshot?.capabilities.manage} onClick={() => setCreateOpen(true)}><Plus size={14}/> New case</Button></div>}/>
+    <SectionHeader eyebrow="Gaming Store" title="Support & Disputes" description="Manage customer cases, ownership, SLA health, evidence and replies." action={<div className="table-actions"><Button onClick={() => void refresh()} disabled={loading}><RefreshCw size={14}/> Refresh</Button><Button variant="primary" disabled={!snapshot?.capabilities.manage} onClick={() => setCreateOpen(true)}><Plus size={14}/> New case</Button></div>}/>
 
     <section className="support-ops-health" aria-label="Support queue overview">
-      <button className={queue === "active" ? "is-active" : ""} onClick={() => setQueue("active")}><span><LifeBuoy size={16}/> Active</span><strong>{queueCounts.active}</strong><small>{waitingInternal} waiting internally</small></button>
-      <button className={queue === "sla" ? "is-active is-danger" : queueCounts.sla ? "is-danger" : ""} onClick={() => setQueue("sla")}><span><Clock3 size={16}/> SLA risk</span><strong>{queueCounts.sla}</strong><small>{queueCounts.sla ? "Requires attention" : "No breached cases"}</small></button>
-      <button className={queue === "unassigned" ? "is-active" : ""} onClick={() => setQueue("unassigned")}><span><UsersRound size={16}/> Unassigned</span><strong>{queueCounts.unassigned}</strong><small>Needs an owner</small></button>
-      <button className={queue === "waiting_customer" ? "is-active" : ""} onClick={() => setQueue("waiting_customer")}><span><MessageSquareText size={16}/> Waiting customer</span><strong>{queueCounts.waiting_customer}</strong><small>Customer response pending</small></button>
-      <button className={queue === "resolved" ? "is-active" : ""} onClick={() => setQueue("resolved")}><span><CheckCircle2 size={16}/> Resolved</span><strong>{queueCounts.resolved}</strong><small>Resolved or closed</small></button>
+      <button className={queue === "active" ? "is-active" : ""} onClick={() => setQueue("active")}><span><LifeBuoy size={16}/> Active</span><strong>{queueCounts.active}</strong></button>
+      <button className={queue === "sla" ? "is-active is-danger" : queueCounts.sla ? "is-danger" : ""} onClick={() => setQueue("sla")}><span><Clock3 size={16}/> SLA risk</span><strong>{queueCounts.sla}</strong></button>
+      <button className={queue === "unassigned" ? "is-active" : ""} onClick={() => setQueue("unassigned")}><span><UsersRound size={16}/> Unassigned</span><strong>{queueCounts.unassigned}</strong></button>
+      <button className={queue === "waiting_customer" ? "is-active" : ""} onClick={() => setQueue("waiting_customer")}><span><MessageSquareText size={16}/> Waiting customer</span><strong>{queueCounts.waiting_customer}</strong></button>
+      <button className={queue === "resolved" ? "is-active" : ""} onClick={() => setQueue("resolved")}><span><CheckCircle2 size={16}/> Resolved</span><strong>{queueCounts.resolved}</strong></button>
     </section>
 
-    {!snapshot?.capabilities.manage && <Card className="support-ops-readonly"><div><LockKeyhole size={18}/><span><strong>Read-only support workspace</strong><small>Cases remain visible from shared D1. Mutations require Gaming order-management permission and the dedicated CMS support bridge credential.</small></span></div><Badge tone="warning">Read only</Badge></Card>}
+    {!snapshot?.capabilities.manage && <Card className="support-ops-readonly"><div><LockKeyhole size={18}/><span><strong>Read-only support workspace</strong><small>You can view cases, but your account cannot make changes.</small></span></div><Badge tone="warning">Read only</Badge></Card>}
 
     <Card className="support-ops-workspace">
-      <div className="support-ops-workspace__head"><div><span>Case queue</span><h3>Customer support operations</h3><p>Prioritize breached and urgent cases, assign ownership, then work the entire conversation without leaving the case.</p></div><small>{rows.length.toLocaleString()} of {allCases.length.toLocaleString()} cases</small></div>
+      <div className="support-ops-workspace__head"><div><span>Case queue</span><h3>Customer support operations</h3></div><small>{rows.length.toLocaleString()} of {allCases.length.toLocaleString()} cases</small></div>
       <div className="segmented-nav support-ops-queue-nav">
         {([['active','Active'],['mine','Mine'],['unassigned','Unassigned'],['sla','SLA risk'],['waiting_customer','Waiting customer'],['resolved','Resolved'],['all','All']] as Array<[QueueKey,string]>).map(([value, name]) => <button key={value} className={queue === value ? "is-active" : ""} onClick={() => setQueue(value)}>{name}<span>{queueCounts[value]}</span></button>)}
       </div>
@@ -238,7 +238,7 @@ export function SupportPage() {
         <SelectInput aria-label="Filter support priority" value={priorityFilter} onChange={(event) => setPriorityFilter(event.target.value)}><option value="all">All priorities</option>{priorities.map((value) => <option value={value} key={value}>{label(value)}</option>)}</SelectInput>
         <SelectInput aria-label="Filter support category" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}><option value="all">All categories</option>{categories.map(([value, name]) => <option value={value} key={value}>{name}</option>)}</SelectInput>
       </PageToolbar>
-      <DataTable rows={rows} columns={cols} getKey={(row) => row.caseId} empty={allCases.length ? "No support cases match these filters." : "No canonical Gaming support cases yet."}/>
+      <DataTable rows={rows} columns={cols} getKey={(row) => row.caseId} empty={allCases.length ? "No support cases match these filters." : "No Gaming support cases yet."}/>
     </Card>
 
     <Modal open={createOpen} onClose={() => setCreateOpen(false)} title="Create support case" description="Cases are permanently linked to the selected Gaming order." footer={<><Button onClick={() => setCreateOpen(false)}>Cancel</Button><Button variant="primary" disabled={busy || !orderId || subject.trim().length < 4} onClick={() => void create()}>Create case</Button></>}>
@@ -266,7 +266,7 @@ export function SupportPage() {
 
         <Card className="support-ops-context-card">
           <div className="operation-section__head"><div><span>Commerce context</span><h3>{selected.orderContext.productName || selected.orderContext.offerName || "Gaming order"}</h3></div><ShieldCheck size={18}/></div>
-          <div className="support-ops-context-grid"><div><small>ORDER</small><strong>{selected.orderNumber}</strong><span>{gamingLkr(selected.orderContext.amountLkr)}</span></div><div><small>ORDER STATE</small><strong>{label(selected.orderContext.orderStatus || "unknown")}</strong><span>{selected.orderContext.orderCreatedAt ? gamingDate(selected.orderContext.orderCreatedAt) : "Canonical order"}</span></div><div><small>PAYMENT</small><strong>{label(selected.orderContext.paymentState || "unknown")}</strong><span>Server-authoritative state</span></div><div><small>FULFILLMENT</small><strong>{label(selected.orderContext.fulfillmentState || "not_routed")}</strong><span>{selected.orderContext.offerName || "Offer context"}</span></div></div>
+          <div className="support-ops-context-grid"><div><small>ORDER</small><strong>{selected.orderNumber}</strong><span>{gamingLkr(selected.orderContext.amountLkr)}</span></div><div><small>ORDER STATE</small><strong>{label(selected.orderContext.orderStatus || "unknown")}</strong><span>{selected.orderContext.orderCreatedAt ? gamingDate(selected.orderContext.orderCreatedAt) : "Order record"}</span></div><div><small>PAYMENT</small><strong>{label(selected.orderContext.paymentState || "unknown")}</strong></div><div><small>FULFILLMENT</small><strong>{label(selected.orderContext.fulfillmentState || "not_routed")}</strong><span>{selected.orderContext.offerName || "Offer context"}</span></div></div>
           {selected.orderContext.risk && <div className="support-ops-context-alert"><AlertTriangle size={15}/><span><strong>Risk context</strong><small>{label(selected.orderContext.risk.level)} · {label(selected.orderContext.risk.state)} · score {selected.orderContext.risk.score}</small></span></div>}
           {selected.orderContext.refundStates.length > 0 && <div className="support-ops-context-alert"><LifeBuoy size={15}/><span><strong>Refund context</strong><small>{selected.orderContext.refundStates.map(label).join(", ")}</small></span></div>}
           <div className="table-actions"><Button onClick={() => navigate("/gaming-store/live-operations")}><ExternalLink size={14}/> Live Operations</Button><Button onClick={() => navigate("/gaming-store/customers")}><ExternalLink size={14}/> Customer 360</Button></div>

@@ -2,14 +2,14 @@ import fs from "node:fs";
 import path from "node:path";
 const root=process.cwd(), pass=[], fail=[]; const check=(name,ok)=>ok?pass.push(name):fail.push(name); const read=(file)=>fs.readFileSync(path.join(root,file),"utf8");
 const required=[
-  "src/shared/feedback/ToastProvider.tsx","src/shared/validation/index.ts","src/shared/components/ConfirmDialog.tsx","src/shared/components/Drawer.tsx","src/shared/components/KeyValueList.tsx","src/app/layout/KeyboardShortcuts.tsx"
+  "src/shared/feedback/ToastProvider.tsx","src/shared/validation/index.ts","src/shared/components/ConfirmDialog.tsx","src/shared/components/Drawer.tsx","src/shared/components/KeyValueList.tsx"
 ];
 for(const file of required)check(`file ${file}`,fs.existsSync(path.join(root,file)));
 const main=read("src/main.tsx"), shell=read("src/app/layout/AppShell.tsx"), topbar=read("src/app/layout/Topbar.tsx"), modal=read("src/shared/components/Modal.tsx"), overlayFocus=read("src/shared/components/useOverlayFocus.ts"), fields=read("src/shared/components/FormField.tsx"), css=read("src/css/components.css")+read("src/css/responsive.css"), validators=read("src/shared/validation/index.ts");
 check("global toast provider mounted",main.includes("ToastProvider"));
 check("route announcer implemented",shell.includes("route-announcer")&&shell.includes('aria-live="polite"'));
-check("keyboard help shortcut implemented",shell.includes('event.key==="?"')&&shell.includes("KeyboardShortcuts"));
-check("keyboard help available in topbar",topbar.includes("onShortcuts")&&topbar.includes("HelpCircle"));
+check("global search shortcut implemented",shell.includes('event.key.toLowerCase()==="k"')&&shell.includes("setSearchOpen(true)"));
+check("topbar keeps search without guide chrome",topbar.includes("onSearch")&&topbar.includes("command-trigger")&&!topbar.includes("onShortcuts")&&!topbar.includes("HelpCircle"));
 check("modal focus is trapped",modal.includes("useOverlayFocus")&&overlayFocus.includes('event.key !== "Tab"')&&overlayFocus.includes("last.focus()")&&overlayFocus.includes("first.focus()"));
 check("modal restore focus",modal.includes("useOverlayFocus")&&overlayFocus.includes("previous?.isConnected")&&overlayFocus.includes("previous.focus()"));
 check("form field errors accessible",fields.includes('role="alert"')&&fields.includes("form-field__error"));
@@ -21,7 +21,7 @@ check("toast live region",read("src/shared/feedback/ToastProvider.tsx").includes
 check("toast CSS",css.includes(".toast-region")&&css.includes(".toast--danger"));
 check("drawer responsive",css.includes(".detail-drawer")&&css.includes("width:100vw"));
 check("danger action style",css.includes(".button--danger"));
-const users=read("src/platform/users/UsersPage.tsx"), data=read("src/platform/data-management/DataManagementPage.tsx"), sales=read("src/next-f/sales/SalesPage.tsx"), gorders=read("src/gaming-store/orders/OrdersPage.tsx"), sorders=read("src/software/orders/OrdersPage.tsx"), licenses=read("src/software/licenses/LicensesPage.tsx"), releases=read("src/software/releases/ReleasesPage.tsx");
+const users=read("src/platform/users/UsersPage.tsx"), data=read("src/platform/data-management/DataManagementPage.tsx"), sales=read("src/next-f/sales/SalesPage.tsx"), gorders=read("src/gaming-store/orders/OrdersPage.tsx"), gorderTypes=read("src/gaming-store/data/types.ts"), gorderRepo=read("src/gaming-store/data/repositories/ordersRepository.ts"), sorders=read("src/software/orders/OrdersPage.tsx"), licenses=read("src/software/licenses/LicensesPage.tsx"), releases=read("src/software/releases/ReleasesPage.tsx");
 check("staff status action confirmed",users.includes("ConfirmDialog")&&users.includes("pendingStatusUser"));
 check("staff email validation",users.includes("validators.email")&&users.includes("already exists"));
 check("staff actions notify",users.includes("useToast")&&users.includes("notify("));
@@ -33,7 +33,7 @@ check("digital proposal amount validation",sales.includes("proposalAmountError")
 check("digital proposal acceptance confirmed",sales.includes("accepting")&&sales.includes("Accept & create operations"));
 check("digital sales feedback",sales.includes("useToast")&&sales.includes("Lead qualified"));
 check("gaming order detail drawer",gorders.includes("<Drawer")&&gorders.includes("KeyValueList"));
-check("gaming order shows idempotency",gorders.includes("Idempotency key"));
+check("gaming order keeps idempotency in the model but not operator UI",gorderTypes.includes("idempotencyKey")&&gorderRepo.includes("idempotencyKey:crypto.randomUUID()")&&!gorders.includes("Idempotency key"));
 check("gaming order shows financial reconciliation",gorders.includes("Supplier charged")&&gorders.includes("Customer paid"));
 check("gaming customer email validation",gorders.includes("validators.email"));
 check("gaming dynamic fields validation",gorders.includes("requiredFieldErrors"));

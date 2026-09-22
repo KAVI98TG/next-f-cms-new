@@ -36,9 +36,9 @@ for(const op of ["staff.lifecycle.offboarding.create","staff.lifecycle.offboardi
 check("lifecycle commands staff only",contracts.includes('name: "staff.lifecycle.offboarding.create", kind: "command", allowedPrincipals: ["staff"]'));
 check("lifecycle commands idempotent",contracts.includes('name: "staff.lifecycle.offboarding.complete", kind: "command", allowedPrincipals: ["staff"], workspaceScoped: true, idempotency: "required"'));
 check("Website Platform lifecycle tab",page.includes('{ key: "lifecycle", label:') && page.includes('view === "lifecycle"'));
-check("UI exposes no auto billing shutdown",page.includes("Billing state never automatically shuts down a managed website"));
+check("UI exposes no auto billing shutdown",page.includes("Billing state does not automatically suspend or revoke a managed website"));
 check("UI exposes acceptance ledger",page.includes("Production acceptance ledger"));
-check("UI blocks V1 without evidence",page.includes("Every critical gate must have concrete deployment/runtime evidence"));
+check("UI blocks V1 without evidence",page.includes("productionAcceptanceSummary.productionReleaseAllowed")&&page.includes("criticalPending")&&page.includes("PRODUCTION_ACCEPTANCE_GATES.map"));
 check("scheduled demo expiry event",worker.includes('"system.demo.expiry-sweep"'));
 check("scheduled retention event",worker.includes('"system.retention.cleanup"'));
 check("scheduled idempotency cleanup",worker.includes('"system.idempotency.cleanup"'));

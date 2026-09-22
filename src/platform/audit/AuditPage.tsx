@@ -33,7 +33,7 @@ export function AuditPage() {
   };
 
   return <div className="page">
-    <SectionHeader eyebrow="Platform" title="Audit trail" description="Immutable-style administrative activity view for sensitive actions across the CMS." action={<Button onClick={exportCsv}><Download size={16}/>Export CSV</Button>} />
+    <SectionHeader eyebrow="Platform" title="Audit trail" description="Administrative activity for sensitive CMS actions." action={<Button onClick={exportCsv}><Download size={16}/>Export CSV</Button>} />
     <Card className="table-card">
       <PageToolbar query={query} onQueryChange={setQuery} placeholder="Search audit events">
         <SelectInput value={domain} onChange={(event) => setDomain(event.target.value)}><option value="all">All domains</option>{domains.map((item) => <option key={item} value={item}>{item}</option>)}</SelectInput>

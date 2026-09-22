@@ -32,12 +32,12 @@ export function DigitalDashboard() {
   ].slice(0, 5);
 
   return <div className="page">
-    <SectionHeader eyebrow="NEXT F Digital" title="Business operations" description="A live view of the complete service-business lifecycle from lead capture through billing and delivery." />
+    <SectionHeader eyebrow="NEXT F Digital" title="Business operations" description="Sales, delivery and billing at a glance." />
     <div className="metric-grid">
-      <MetricCard label="Open pipeline" value={formatLkr(pipeline)} detail={`${opportunities.filter((item) => !["won", "lost"].includes(item.stage)).length} opportunities`} icon={CircleDollarSign} />
-      <MetricCard label="Active projects" value={String(activeProjects.length)} detail={`${projects.filter((item) => item.status === "awaiting_client").length} awaiting client`} icon={BriefcaseBusiness} />
-      <MetricCard label="Clients" value={String(clients.filter((client) => client.status === "active").length)} detail={`${openProposals.length} proposals awaiting decision`} icon={UsersRound} />
-      <MetricCard label="Recurring base" value={formatLkr(recurring)} detail={`${subscriptions.filter((item) => item.status === "active").length} active recurring services`} icon={RefreshCw} />
+      <MetricCard label="Open pipeline" value={formatLkr(pipeline)} icon={CircleDollarSign} />
+      <MetricCard label="Active projects" value={String(activeProjects.length)} icon={BriefcaseBusiness} />
+      <MetricCard label="Clients" value={String(clients.filter((client) => client.status === "active").length)} icon={UsersRound} />
+      <MetricCard label="Recurring base" value={formatLkr(recurring)} icon={RefreshCw} />
     </div>
 
     <div className="digital-dashboard-grid">

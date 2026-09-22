@@ -97,7 +97,7 @@
   height: 48px;
   display: grid;
   place-items: center;
-  margin-bottom: 13px;
+  margin-bottom: 14px;
   border: 1px solid var(--accent-soft);
   border-radius: 14px;
   background: var(--accent-subtle);
@@ -106,7 +106,7 @@
 
 .gaming-review-empty__eyebrow {
   color: var(--success);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 800;
   letter-spacing: .1em;
 }
@@ -117,7 +117,7 @@
 .gaming-review-empty__guide {
   display: grid;
   align-content: center;
-  gap: 13px;
+  gap: 14px;
   padding: 23px 27px;
   border-left: 1px solid var(--border);
   background: var(--surface-soft);
@@ -125,7 +125,7 @@
 
 .gaming-review-empty__guide > strong { margin-bottom: 3px; font-size: 14px; }
 .gaming-review-empty__guide > div { display: grid; grid-template-columns: 26px minmax(0, 1fr); align-items: start; gap: 10px; }
-.gaming-review-empty__guide > div span { color: var(--accent); font-size: 13px; font-weight: 800; }
+.gaming-review-empty__guide > div span { color: var(--accent); font-size: 14px; font-weight: 800; }
 .gaming-review-empty__guide p { margin: 0; color: var(--text-muted); font-size: 14px; line-height: 1.4; }
 
 .gaming-reviews-page .gaming-review-list { padding: 18px; }
@@ -136,7 +136,7 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 13px 16px;
+  padding: 14px 16px;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--surface-soft);

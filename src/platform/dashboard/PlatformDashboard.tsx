@@ -28,18 +28,18 @@ export function PlatformDashboard() {
   const activity = audit.slice(0,8).map((event)=>({id:event.id,domain:event.domain,title:event.action,detail:`${event.target} — ${event.detail}`,meta:new Date(event.timestamp).toLocaleString("en-LK"),tone:event.tone}));
 
   return <div className="page">
-    <SectionHeader eyebrow="Platform" title="Control center" description="Shared identity, access, audit and product-level operational controls across NEXT F." />
+    <SectionHeader eyebrow="Platform" title="Control center" description="Identity, access, audit and cross-business operational controls." />
     <div className="metric-grid">
-      <MetricCard label="Admin users" value={String(users.length)} detail={`${users.filter((user) => user.status === "active").length} active`} icon={ShieldCheck} />
-      <MetricCard label="Permission groups" value={String(roles.length)} detail="Domain-scoped access" icon={KeyRound} />
-      <MetricCard label="Unread alerts" value={String(unread)} detail={`${notifications.length} total notifications`} icon={BellRing} />
-      <MetricCard label="Help requests" value={String(helpRequests.filter((item) => !["resolved", "closed"].includes(item.status)).length)} detail="Shared customer queue" icon={LifeBuoy} />
-      <MetricCard label="Data mode" value={runtime.isProduction?"Production":runtime.isStaging?"Staging":"Local"} detail={runtime.mode==="production-api"?"D1 production API":"Local prototype adapter"} icon={Activity} />
+      <MetricCard label="Admin users" value={String(users.length)} icon={ShieldCheck} />
+      <MetricCard label="Permission groups" value={String(roles.length)} icon={KeyRound} />
+      <MetricCard label="Unread alerts" value={String(unread)} icon={BellRing} />
+      <MetricCard label="Help requests" value={String(helpRequests.filter((item) => !["resolved", "closed"].includes(item.status)).length)} icon={LifeBuoy} />
+      <MetricCard label="Data mode" value={runtime.isProduction?"Production":runtime.isStaging?"Staging":"Local"} icon={Activity} />
     </div>
     <div className="dashboard-grid">
       <AttentionPanel items={attention} />
       <Card>
-        <SectionHeader title="Platform Core" description="Shared identity, access, audit and control surfaces for the active runtime." />
+        <SectionHeader title="Platform Core" description="Identity, access, audit and operational controls." />
         <div className="platform-capability-list">
           {[
             ["Users", `${users.length} staff records`, "Ready"],
