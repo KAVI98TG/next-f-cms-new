@@ -1,3 +1,27 @@
+# NEXT F CMS v1.0.54 — Reviews Layout Consistency
+
+Canonical parent: **v1.0.53**.
+
+Restores the shared CMS page gutters on Reviews and adds consistent spacing between the header, summary, moderation queue, and policy notice. Keeps responsive spacing and the review API unchanged. No D1 migration or new secret.
+
+## Previous release
+
+# NEXT F CMS v1.0.53 — Reviews Workspace UI
+
+Canonical parent: **v1.0.52**.
+
+Reworks the Customer Reviews summary, moderation toolbar, and empty state into a compact responsive workspace with clearer review flow guidance. The functioning Reviews API bridge is unchanged. No D1 migration or new secret.
+
+## Previous release
+
+# NEXT F CMS v1.0.52 — Reviews Bridge Recovery
+
+Canonical parent: **v1.0.51**.
+
+Reviews use a dedicated CMS-to-Gaming credential, separate from promotions and operations. Unavailable metrics no longer appear as zero. No D1 migration.
+
+## Previous release
+
 # NEXT F CMS v1.0.51 — Continuity + Binding Hardening
 
 ## Baseline

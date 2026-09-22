@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Check, RefreshCw, ShieldCheck, Star, X } from 'lucide-react';
+import { Check, CircleCheck, Clock3, Inbox, RefreshCw, ShieldCheck, Star, X } from 'lucide-react';
+import './reviews-page.css';
 import { Badge, Button, Card, FormField, SectionHeader, StatePanel, TextInput } from '../../shared/components';
 import { useToast } from '../../shared/feedback/ToastProvider';
 import { decideGamingReview, loadGamingReviews, type LiveGamingReview } from './reviews';
@@ -46,13 +47,17 @@ export function ReviewsPage(){
     finally{setBusy('');}
   };
 
-  return <div className="page-stack gaming-reviews-page">
-    <SectionHeader eyebrow="Gaming Store" title="Customer Reviews" description="Customers with a completed purchase submit verified reviews. Nothing publishes until staff approves it here." action={<Button variant="secondary" onClick={()=>void load()} disabled={loading}><RefreshCw size={14}/>Refresh</Button>}/>
-    <div className="gaming-review-metrics"><Card><span>Pending</span><strong>{filter==='all'?summary.pending:filter==='pending'?reviews.length:'—'}</strong><small>Awaiting moderation</small></Card><Card><span>Approved</span><strong>{filter==='all'?summary.approved:filter==='approved'?reviews.length:'—'}</strong><small>Public trust proof</small></Card><Card><span>Rejected</span><strong>{filter==='all'?summary.rejected:filter==='rejected'?reviews.length:'—'}</strong><small>Never published</small></Card><Card><span>Approved rating</span><strong>{summary.avg?`${summary.avg.toFixed(1)} / 5`:'—'}</strong><small>Current loaded set</small></Card></div>
-    <Card className="gaming-review-trust-note"><ShieldCheck size={18}/><div><strong>Moderated verified-purchase workflow</strong><p>Submission → pending CMS review → approval → automatic public availability. Rejected reviews stay private; staff cannot manufacture a “Verified purchase” review.</p></div></Card>
-    <Card>
-      <div className="gaming-review-toolbar"><div><strong>Moderation queue</strong><span>{reviews.length} review{reviews.length===1?'':'s'}</span></div><div className="gaming-review-filter" role="group" aria-label="Review status filter">{FILTERS.map(item=><button type="button" key={item.value} className={filter===item.value?'is-active':''} aria-pressed={filter===item.value} onClick={()=>setFilter(item.value)}>{item.label}</button>)}</div></div>
-      {loading?<StatePanel state="loading" title="Loading reviews" description="Reading the production moderation queue."/>:error?<div className="gaming-review-error"><StatePanel state="error" title="Reviews unavailable" description={error}/><Button variant="secondary" onClick={()=>void load()}><RefreshCw size={14}/>Retry</Button></div>:reviews.length===0?<StatePanel state="empty" title="No reviews in this view" description="Customer reviews will appear here after a completed buyer submits one."/>:<div className="gaming-review-list">{reviews.map(review=><article className="gaming-review-card" key={review.reviewId}>
+  return <div className="page gaming-reviews-page">
+    <SectionHeader eyebrow="Gaming Store / Trust & safety" title="Customer Reviews" description="Moderate verified-purchase feedback before it appears on the storefront." action={<Button variant="secondary" onClick={()=>void load()} disabled={loading}><RefreshCw size={16}/>Refresh reviews</Button>}/>
+    <div className="gaming-review-metrics" aria-label="Review summary">
+      <Card className="gaming-review-metric gaming-review-metric--pending"><span className="gaming-review-metric__label"><Clock3 size={18}/>Pending</span><strong>{loading||error?'—':filter==='all'?summary.pending:filter==='pending'?reviews.length:'—'}</strong><small>Needs a decision</small></Card>
+      <Card className="gaming-review-metric gaming-review-metric--approved"><span className="gaming-review-metric__label"><CircleCheck size={18}/>Approved</span><strong>{loading||error?'—':filter==='all'?summary.approved:filter==='approved'?reviews.length:'—'}</strong><small>Visible to customers</small></Card>
+      <Card className="gaming-review-metric gaming-review-metric--rejected"><span className="gaming-review-metric__label"><X size={18}/>Rejected</span><strong>{loading||error?'—':filter==='all'?summary.rejected:filter==='rejected'?reviews.length:'—'}</strong><small>Kept private</small></Card>
+      <Card className="gaming-review-metric gaming-review-metric--rating"><span className="gaming-review-metric__label"><Star size={18}/>Approved rating</span><strong>{!loading&&!error&&summary.avg?`${summary.avg.toFixed(1)} / 5`:'—'}</strong><small>Current loaded set</small></Card>
+    </div>
+    <Card className="gaming-review-queue">
+      <div className="gaming-review-toolbar"><div><span className="gaming-review-toolbar__eyebrow">REVIEW WORKSPACE</span><strong>Moderation queue</strong><span>{loading?'Loading…':error?'Unavailable':`${reviews.length} review${reviews.length===1?'':'s'} in this view`}</span></div><div className="gaming-review-filter" role="group" aria-label="Review status filter">{FILTERS.map(item=><button type="button" key={item.value} className={filter===item.value?'is-active':''} aria-pressed={filter===item.value} onClick={()=>setFilter(item.value)}>{item.label}</button>)}</div></div>
+      {loading?<StatePanel state="loading" title="Loading reviews" description="Reading the production moderation queue."/>:error?<div className="gaming-review-error"><StatePanel state="error" title="Reviews unavailable" description={error}/><Button variant="secondary" onClick={()=>void load()}><RefreshCw size={16}/>Retry</Button></div>:reviews.length===0?<div className="gaming-review-empty"><div className="gaming-review-empty__main"><span className="gaming-review-empty__icon"><Inbox size={26}/></span><span className="gaming-review-empty__eyebrow">ALL CAUGHT UP</span><h3>{filter==='all'?'No customer reviews yet':`No ${filter} reviews`}</h3><p>{filter==='all'?'When a customer reviews a completed purchase, it will appear here for staff moderation.':`There are no ${filter} reviews in the current queue. Try another status to see more.`}</p></div><div className="gaming-review-empty__guide"><strong>How a review goes live</strong><div><span>01</span><p>Customer submits a review for a completed purchase.</p></div><div><span>02</span><p>Staff approves or rejects it here.</p></div><div><span>03</span><p>Only approved reviews appear on the storefront.</p></div></div></div>:<div className="gaming-review-list">{reviews.map(review=><article className="gaming-review-card" key={review.reviewId}>
         <div className="gaming-review-card__top"><div><div className="gaming-review-stars" aria-label={`${review.rating} out of 5 stars`}>{[1,2,3,4,5].map(i=><Star key={i} size={15} fill={i<=review.rating?'currentColor':'none'}/>)}</div><h3>{review.title}</h3><p>{review.text}</p></div><Badge tone={tone(review.status)}>{review.status}</Badge></div>
         <div className="gaming-review-meta"><span><strong>{review.publicName}</strong> · {review.badge}</span><span>{review.productName||'Gaming purchase'}</span><span>Order {review.orderNumber}</span><span>Submitted {fmt(review.submittedAt)}</span>{review.reviewedAt&&<span>Moderated {fmt(review.reviewedAt)}</span>}</div>
         {review.moderationNote&&<div className="gaming-review-note"><strong>Moderation note</strong><span>{review.moderationNote}</span></div>}
@@ -62,5 +67,6 @@ export function ReviewsPage(){
         </>}
       </article>)}</div>}
     </Card>
+    <div className="gaming-review-policy"><ShieldCheck size={18}/><span><strong>Verified-purchase protection</strong> Reviews start private. Staff can moderate customer submissions but cannot create a “Verified purchase” review.</span></div>
   </div>;
 }

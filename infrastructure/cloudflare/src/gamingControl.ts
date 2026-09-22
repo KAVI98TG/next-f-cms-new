@@ -278,7 +278,7 @@ export type GamingCustomerReview = {
 };
 export async function listGamingReviews(env:WorkerEnv,status:string,requestId:string,correlationId:string,staff:{accountId:string;staffUserId:string}){
   const normalized=["all","pending","approved","rejected"].includes(status)?status:"all";
-  return callGaming<{reviews:GamingCustomerReview[]}>(env,{path:`/v1/gaming/admin/reviews?status=${encodeURIComponent(normalized)}`,token:env.GAMING_CMS_COMMERCE_TOKEN,method:"GET",requestId,correlationId,staffAccountId:staff.accountId,staffUserId:staff.staffUserId});
+  return callGaming<{reviews:GamingCustomerReview[]}>(env,{path:`/v1/gaming/admin/reviews?status=${encodeURIComponent(normalized)}`,token:env.GAMING_CMS_REVIEWS_TOKEN,method:"GET",requestId,correlationId,staffAccountId:staff.accountId,staffUserId:staff.staffUserId});
 }
 export async function decideGamingReview(env:WorkerEnv,value:Record<string,unknown>|undefined,idempotencyKey:string,requestId:string,correlationId:string,staff:{accountId:string;staffUserId:string}){
   const reviewId=requiredText(value?.reviewId,"reviewId",160);
@@ -286,5 +286,5 @@ export async function decideGamingReview(env:WorkerEnv,value:Record<string,unkno
   if(decision!=="approved"&&decision!=="rejected") throw new GamingControlError(400,"REVIEW_DECISION_INVALID","Review decision must be approved or rejected");
   const note=cleanText(value?.note,500);
   const downstreamIdempotencyKey=await scopedGamingIdempotencyKey("review-decision",idempotencyKey);
-  return callGaming<GamingCustomerReview>(env,{path:`/v1/gaming/admin/reviews/${encodeURIComponent(reviewId)}/decision`,token:env.GAMING_CMS_COMMERCE_TOKEN,body:{decision,...(note?{note}:{})},idempotencyKey:downstreamIdempotencyKey,requestId,correlationId,staffAccountId:staff.accountId,staffUserId:staff.staffUserId});
+  return callGaming<GamingCustomerReview>(env,{path:`/v1/gaming/admin/reviews/${encodeURIComponent(reviewId)}/decision`,token:env.GAMING_CMS_REVIEWS_TOKEN,body:{decision,...(note?{note}:{})},idempotencyKey:downstreamIdempotencyKey,requestId,correlationId,staffAccountId:staff.accountId,staffUserId:staff.staffUserId});
 }
