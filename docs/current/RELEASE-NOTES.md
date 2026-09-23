@@ -1,5 +1,11 @@
 # NEXT F CMS Release Notes
 
+## v1.0.62 - Form and Content Clarity
+
+Canonical parent: **v1.0.61**. Fixes uneven/stretched modal form controls, gives long modal fields deliberate full-width rows, moves the product supplier-name reset into the field header, cleans homepage-section and hero-slide editor layouts, and removes long-dash characters from UI copy with a regression guard. Pages/frontend only; no D1 migration, Worker/API contract change, binding change, or new secret.
+
+See `docs/releases/V1.0.62-FORM-AND-CONTENT-CLARITY.md` and `docs/governance/CMS-UI-CONTENT-AND-TYPOGRAPHY-STANDARD.md`.
+
 ## v1.0.61 — Documentation Organization
 
 Canonical parent: **v1.0.60**. Reorganizes all project documentation into a single `docs/` information architecture, creates current/governance/architecture/planning/release/QA/audit/archive areas, removes duplicate root documentation, archives stale verification material, and adds `check:docs` to prevent structure drift. No D1 migration, API contract change, Worker binding change, or new secret.

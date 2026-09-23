@@ -2,7 +2,7 @@
 
 Production administration application for NEXT F Platform, Digital, Website Platform, Gaming Store, and Software.
 
-Current source version: **v1.0.61**. The checked-in release state is authoritative: see `RELEASE-STATE.json`.
+Current source version: **v1.0.62**. The checked-in release state is authoritative: see `RELEASE-STATE.json`.
 
 ## Start here
 

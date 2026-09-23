@@ -1,48 +1,39 @@
-# NEXT F CMS — Current Project Status
+# NEXT F CMS - Current Project Status
 
-**Source release:** v1.0.61 — Documentation Organization  
-**Canonical parent:** v1.0.60  
+**Source release:** v1.0.62 - Form and Content Clarity  
+**Canonical parent:** v1.0.61  
 **Release authority:** `RELEASE-STATE.json`  
 **Production CMS:** `https://cms.nextf.lk`  
 **Production API:** `https://cms-api.nextf.lk`  
-**Live Contracts Registry:** `https://contracts.nextf.lk/` — Production v1.2.0 at release preparation time
+**Live Contracts Registry:** `https://contracts.nextf.lk/` - Production v1.2.0 at release preparation time
 
 ## Current release
 
-v1.0.61 is a documentation/information-architecture cleanup built forward from v1.0.60. It does not change CMS business behavior, the production API contract, D1 schema, Worker bindings, or required secrets.
+v1.0.62 is a focused frontend UI cleanup built forward from v1.0.61. It does not change CMS business behavior, the production API contract, D1 schema, Worker bindings, or required secrets.
 
-The release:
+The release stabilizes two-column modal forms, makes long controls deliberately span both columns, cleans the Catalog product editor and Storefront section/hero editors, simplifies Pricing mode copy, and establishes a no-long-dash rule for UI content.
 
-- moves project documentation out of the repository root into a single organized `docs/` tree;
-- creates clear `current`, `governance`, `architecture`, `planning`, `releases`, `qa`, `audits`, and `archive` areas;
-- removes duplicate continuity documentation from the root;
-- converts the old `RULESE.txt` project rule file into `docs/governance/PROJECT-RULES.md`;
-- archives the stale v1.0.32 P4 verification record instead of presenting it beside current release material;
-- replaces the oversized root README with a short project entrypoint;
-- adds `docs/README.md` as the documentation index;
-- adds `check:docs` so future releases cannot scatter documentation back into the root or use old paths.
-
-The package starts as a candidate. Run `npm run release:finalize`; only a successful static suite, release gate, frontend build, and Worker/API typecheck may mark it canonical.
+Static regression **71/71 passed** and the targeted release gate passed during packaging. The package remains a candidate until `npm run release:finalize` completes the frontend production build and Worker/API typecheck.
 
 ## Current UI baseline
 
-The current production-facing UI baseline includes the v1.0.55–v1.0.60 clarity work:
-
-- no generic metric-card footer/detail/trend copy;
-- no redundant local summary-card footer copy;
-- Gaming operator screens prioritize controls, primary status, and actionable exceptions over developer explanations;
-- normal Gaming list rows hide internal IDs and redundant healthy-state metadata while retaining those identifiers for search/detail/edit flows;
+- metric and summary cards do not carry filler footer/helper copy;
+- Gaming operator screens prioritize controls, primary status, and actionable exceptions;
+- normal Gaming list rows hide internal IDs and redundant healthy-state metadata;
+- modal form controls keep their normal height even when a neighboring field has uploads or secondary actions;
+- long descriptions, media controls, and multi-item pickers use full-width modal rows where appropriate;
+- UI copy does not use em dash or en dash glyphs;
 - the permanent UI content standard lives at `docs/governance/CMS-UI-CONTENT-AND-TYPOGRAPHY-STANDARD.md`.
 
 ## Production foundation retained
 
 The release preserves the existing production foundation: Cloudflare Access, production D1/R2/Queue resources, the CMS Worker/API boundary, Gaming bridges, Checkout controls, NEXT F Media, production acceptance automation, contract validation, and current least-privilege secret boundaries.
 
-No migration is included in v1.0.61.
+No migration is included in v1.0.62.
 
 ## Deployment scope
 
-v1.0.61 is **Pages/frontend only** if deployed. The application version label changes, but there is no API Worker or database change.
+v1.0.62 is **Pages/frontend only** if deployed. The application version label changes, but there is no API Worker or database change.
 
 Use `docs/current/DEPLOYMENT.md` for the current deployment sequence.
 
@@ -54,3 +45,5 @@ Use `docs/current/DEPLOYMENT.md` for the current deployment sequence.
 - Continuity: `docs/governance/NEXT-F-CONTINUITY-RULES.md`
 - Architecture: `docs/architecture/NEXT-F-CMS-FINAL-ARCHITECTURE.md`
 - v1.0.61 record: `docs/releases/V1.0.61-DOCUMENTATION-ORGANIZATION.md`
+
+- v1.0.62 record: `docs/releases/V1.0.62-FORM-AND-CONTENT-CLARITY.md`

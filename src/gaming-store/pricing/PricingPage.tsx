@@ -64,7 +64,7 @@ function LivePricingPage(){
     <section className="pricing-field-group">
      <div className="pricing-field-group__head"><span>Core pricing</span></div>
      <div className="form-grid form-grid--two">
-      <FormField label="Pricing mode"><SelectInput value={draft.mode} onChange={(e)=>setDraft({...draft,mode:e.target.value as typeof draft.mode})}><option value="markup">Markup — show LKR catalog prices</option><option value="supplier_quote">Supplier quote — price at checkout</option></SelectInput></FormField>
+      <FormField label="Pricing mode"><SelectInput value={draft.mode} onChange={(e)=>setDraft({...draft,mode:e.target.value as typeof draft.mode})}><option value="markup">Markup (show LKR catalog prices)</option><option value="supplier_quote">Supplier quote (price at checkout)</option></SelectInput></FormField>
       <FormField label="USD to LKR" required><TextInput type="number" min="0" step="0.01" value={draft.lkrPerUsd??""} placeholder="e.g. 315" onChange={(e)=>setDraft({...draft,lkrPerUsd:e.target.value?Number(e.target.value):null})}/></FormField>
       <FormField label="Default markup %" required><TextInput type="number" min="0" step="0.1" value={draft.markupPercent??""} placeholder="e.g. 10" onChange={(e)=>setDraft({...draft,markupPercent:e.target.value?Number(e.target.value):null})}/></FormField>
       <FormField label="Minimum profit LKR"><TextInput type="number" min="0" value={draft.minimumProfitLkr} onChange={(e)=>setDraft({...draft,minimumProfitLkr:Number(e.target.value)})}/></FormField>
@@ -88,7 +88,7 @@ function LivePricingPage(){
    <Card className="pricing-preview-panel">
     <div className="operation-section__head"><div><span>Live simulator</span><h3>Customer price preview</h3></div><Badge tone="neutral">Preview only</Badge></div>
     <FormField label="Example supplier cost (USD)"><TextInput type="number" min="0" step="0.01" value={previewUsd} onChange={(e)=>setPreviewUsd(Number(e.target.value)||0)}/></FormField>
-    <div className="pricing-preview-price"><span>{draft.mode==="markup"?"Customer catalog price":"Checkout estimate"}</span><strong>{policyReady?gamingLkr(preview.retailLkr):"—"}</strong></div>
+    <div className="pricing-preview-price"><span>{draft.mode==="markup"?"Customer catalog price":"Checkout estimate"}</span><strong>{policyReady?gamingLkr(preview.retailLkr):"-"}</strong></div>
     <div className="pricing-preview-breakdown">
      <div><span>Supplier cost</span><strong>{gamingLkr(preview.supplierCostLkr)}</strong></div>
      <div><span>Profit target</span><strong>{gamingLkr(preview.targetProfit)}</strong></div>

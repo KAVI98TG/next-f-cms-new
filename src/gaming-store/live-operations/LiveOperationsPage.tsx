@@ -219,7 +219,7 @@ export function LiveOperationsPage(){
     {key:"state",header:"State",render:(row)=><GamingStatus value={row.state}/>},
     {key:"attempts",header:"Attempts",render:(row)=><strong>{row.attempts}</strong>},
     {key:"next",header:"Next check",render:(row)=><span className="muted-cell">{gamingDate(row.nextAttemptAt)}</span>},
-    {key:"error",header:"Last error",render:(row)=><span className="muted-cell">{row.lastError??"—"}</span>},
+    {key:"error",header:"Last error",render:(row)=><span className="muted-cell">{row.lastError??"-"}</span>},
     {key:"action",header:"",width:"110px",render:(row)=>row.state!=="completed"?<Button disabled={!snapshot?.capabilities.fulfillmentRetry||actionBusy} onClick={()=>setRetryJob(row)}><RotateCcw size={13}/>Retry</Button>:<span className="muted-cell">Done</span>},
   ];
   const riskColumns:DataTableColumn<LiveRiskAssessment>[]= [
@@ -250,7 +250,7 @@ export function LiveOperationsPage(){
   ];
   const eventColumns:DataTableColumn<LiveGamingEvent>[]= [
     {key:"event",header:"Commerce event",render:(row)=><div className="entity-cell"><strong>{eventLabel(row.eventType)}</strong><small>{row.action}</small></div>},
-    {key:"order",header:"Order",render:(row)=><strong>{snapshot?.orders.find((order)=>order.orderId===row.orderId)?.orderNumber??row.orderId??"—"}</strong>},
+    {key:"order",header:"Order",render:(row)=><strong>{snapshot?.orders.find((order)=>order.orderId===row.orderId)?.orderNumber??row.orderId??"-"}</strong>},
     {key:"scope",header:"Scope",render:(row)=><GamingStatus value={row.scope}/>},
     {key:"outcome",header:"Outcome",render:(row)=><GamingStatus value={row.outcome}/>},
     {key:"actor",header:"Actor",render:(row)=><div className="entity-cell"><strong>{row.principalKind}</strong><small>{row.principalId}</small></div>},

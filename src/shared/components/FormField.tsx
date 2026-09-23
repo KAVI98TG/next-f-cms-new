@@ -1,8 +1,8 @@
 import { Children, isValidElement, useEffect, useMemo, useRef, useState, type CSSProperties, type ChangeEvent, type InputHTMLAttributes, type ReactElement, type ReactNode, type SelectHTMLAttributes } from "react";
 import { createPortal } from "react-dom";
 
-export function FormField({ label, hint, error, required, children }: { label: string; hint?: string; error?: string; required?: boolean; children: ReactNode }) {
-  return <label className={`form-field ${error ? "has-error" : ""}`}><span className="form-field__label">{label}{required && <em aria-hidden="true"> *</em>}</span>{children}{error ? <small className="form-field__error" role="alert">{error}</small> : hint && <small>{hint}</small>}</label>;
+export function FormField({ label, hint, error, required, action, className="", children }: { label: string; hint?: string; error?: string; required?: boolean; action?: ReactNode; className?: string; children: ReactNode }) {
+  return <label className={`form-field ${className} ${error ? "has-error" : ""}`.trim()}>{action ? <span className="form-field__head"><span className="form-field__label">{label}{required && <em aria-hidden="true"> *</em>}</span>{action}</span> : <span className="form-field__label">{label}{required && <em aria-hidden="true"> *</em>}</span>}{children}{error ? <small className="form-field__error" role="alert">{error}</small> : hint && <small>{hint}</small>}</label>;
 }
 
 export function TextInput({ className="", ...props }: InputHTMLAttributes<HTMLInputElement>) {

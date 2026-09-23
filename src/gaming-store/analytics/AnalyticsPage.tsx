@@ -4,8 +4,8 @@ import { Button, Card, DataTable, SectionHeader, StatePanel, type DataTableColum
 import { gamingLkr } from '../shared/format';
 import { loadGamingAnalyticsSnapshot, type GamingAnalyticsAcquisition, type GamingAnalyticsDay, type GamingAnalyticsProduct, type GamingAnalyticsSnapshot, type GamingAnalyticsSupplier } from './analytics';
 
-const rate=(value:number|null|undefined)=>value===null||value===undefined?'—':`${value}%`;
-const minutes=(value:number|null)=>value===null?'—':value<60?`${Math.round(value)} min`:`${(value/60).toFixed(1)} h`;
+const rate=(value:number|null|undefined)=>value===null||value===undefined?'-':`${value}%`;
+const minutes=(value:number|null)=>value===null?'-':value<60?`${Math.round(value)} min`:`${(value/60).toFixed(1)} h`;
 const provider=(value:string)=>value==='fazercards'?'FazerCards':value==='unrouted'?'Unrouted':value.replaceAll('_',' ');
 const shortDate=(value:string)=>new Date(`${value}T00:00:00`).toLocaleDateString('en-LK',{month:'short',day:'numeric'});
 
@@ -61,7 +61,7 @@ export function GamingAnalyticsPage(){
   ];
   const supplierColumns:DataTableColumn<GamingAnalyticsSupplier>[]=[{key:'supplier',header:'Supplier route',render:(row)=><strong>{provider(row.providerKey)}</strong>},{key:'orders',header:'Orders',render:(row)=><span>{row.orders}</span>},{key:'complete',header:'Completed',render:(row)=><span>{row.completed}</span>},{key:'failed',header:'Failed',render:(row)=><span>{row.failed}</span>},{key:'success',header:'Resolved success',render:(row)=><div className="analytics-conversion-cell"><strong>{rate(row.successRate)}</strong><span><i style={{width:`${Math.max(0,Math.min(100,row.successRate??0))}%`}}/></span></div>},...(snapshot.capabilities.finance?[{key:'value',header:'Paid value',render:(row:GamingAnalyticsSupplier)=><strong>{gamingLkr(row.paidValueLkr??0)}</strong>},{key:'margin',header:'Est. margin',render:(row:GamingAnalyticsSupplier)=><strong>{gamingLkr(row.estimatedMarginLkr??0)}</strong>}]:[])];
   const acquisitionColumns:DataTableColumn<GamingAnalyticsAcquisition>[]=[
-    {key:'source',header:'Acquisition',render:(row)=><div className="entity-cell"><strong>{row.source==='direct'?'Direct / unknown':row.source}</strong><small>{row.medium}{row.campaign!=='—'?` · ${row.campaign}`:''}</small></div>},
+    {key:'source',header:'Acquisition',render:(row)=><div className="entity-cell"><strong>{row.source==='direct'?'Direct / unknown':row.source}</strong><small>{row.medium}{row.campaign!=='-'&&row.campaign!=='\u2014'?` · ${row.campaign}`:''}</small></div>},
     {key:'orders',header:'Orders',render:(row)=><strong>{row.orders}</strong>},
     {key:'verified',header:'Paid',render:(row)=><span>{row.verifiedOrders}</span>},
     {key:'fulfilled',header:'Fulfilled',render:(row)=><span>{row.fulfilledOrders}</span>},

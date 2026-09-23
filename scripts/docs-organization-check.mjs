@@ -19,7 +19,9 @@ check(
 check("continuity rulebook has one canonical location", exists("docs/governance/NEXT-F-CONTINUITY-RULES.md") && !exists("NEXT-F-CONTINUITY-RULES.md"));
 check("project rules live under governance", exists("docs/governance/PROJECT-RULES.md") && !exists("RULESE.txt"));
 check("current status docs exist", exists("docs/current/PROJECT-STATUS.md") && exists("docs/current/RELEASE-NOTES.md") && exists("docs/current/DEPLOYMENT.md"));
-check("v1.0.61 release record exists", exists("docs/releases/V1.0.61-DOCUMENTATION-ORGANIZATION.md"));
+const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
+const currentReleasePrefix = `V${pkg.version}-`;
+check("current version has a release record", fs.readdirSync(path.join(root, "docs/releases")).some((name) => name.startsWith(currentReleasePrefix)));
 
 const looseDocs = fs.readdirSync(path.join(root, "docs"), { withFileTypes: true }).filter((entry) => entry.isFile() && entry.name !== "README.md");
 check("docs root has no loose documentation files", looseDocs.length === 0, looseDocs.map((x) => x.name).join(", "));

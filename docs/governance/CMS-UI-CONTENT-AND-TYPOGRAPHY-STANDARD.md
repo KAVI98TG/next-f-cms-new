@@ -65,6 +65,14 @@ Prefer:
 
 Instead of implementation history explaining why simulated production behavior is not used.
 
+
+### Punctuation and form layout
+
+- Do not use em dash or en dash characters in CMS UI copy. Prefer a comma, colon, parentheses, or a normal hyphen for a numeric range.
+- A form control must keep its normal control height even when the neighboring field contains extra actions or upload controls.
+- In two-column modal forms, long selectors, media fields, descriptions, and multi-item pickers should use a full-width row when pairing them would create uneven or stretched controls.
+- Secondary field actions such as reset/use-source should sit in the field header instead of creating a helper-text row under the input.
+
 ## New section checklist
 
 Before merging a new section or feature:

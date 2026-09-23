@@ -10,7 +10,7 @@ const checks = [
   ["catalog has task-based product views", /Needs attention/.test(files.page) && /Featured/.test(files.page) && /Hidden/.test(files.page)],
   ["catalog search covers canonical identifiers", /Search product name, family, slug or ID/.test(files.page) && /product\.id/.test(files.page)],
   ["catalog filters use canonical kind", /kindFilter/.test(files.page) && /product\.kind/.test(files.page) && !/product\.category/.test(files.page)],
-  ["product offer-count filters exist", /No offers/.test(files.page) && /1–5 offers/.test(files.page) && /20\+ offers/.test(files.page)],
+  ["product offer-count filters exist", /No offers/.test(files.page) && /1-5 offers/.test(files.page) && /20\+ offers/.test(files.page)],
   ["routing health filters exist", /Missing live route/.test(files.page) && /Multiple suppliers/.test(files.page)],
   ["catalog pagination is bounded", /PAGE_SIZES/.test(files.page) && /Page \{currentPage\} of \{totalPages\}/.test(files.page)],
   ["visible rows support selection", /Select visible rows/.test(files.page) && /catalog-row-check/.test(files.page)],

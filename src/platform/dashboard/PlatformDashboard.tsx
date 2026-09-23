@@ -25,7 +25,7 @@ export function PlatformDashboard() {
   const readyAdapters = integrations.filter((item) => item.status === "ready" && (runtime.isLocal || item.environment === "production")).length;
   const pendingAdapters = integrations.filter((item)=>item.environment==="production"&&item.status!=="ready");
   const attention = pendingAdapters.length ? [{ title: "External integrations not connected", detail: `${pendingAdapters.length} production adapter${pendingAdapters.length===1?"":"s"} remain unavailable. Operational actions stay gated until a real integration is connected.`, tone: "warning" as const }] : [];
-  const activity = audit.slice(0,8).map((event)=>({id:event.id,domain:event.domain,title:event.action,detail:`${event.target} — ${event.detail}`,meta:new Date(event.timestamp).toLocaleString("en-LK"),tone:event.tone}));
+  const activity = audit.slice(0,8).map((event)=>({id:event.id,domain:event.domain,title:event.action,detail:`${event.target} - ${event.detail}`,meta:new Date(event.timestamp).toLocaleString("en-LK"),tone:event.tone}));
 
   return <div className="page">
     <SectionHeader eyebrow="Platform" title="Control center" description="Identity, access, audit and cross-business operational controls." />

@@ -27,10 +27,10 @@ export function FinancePage(){
 
   const orderColumns:DataTableColumn<LiveGamingOrder>[]=[
     {key:"order",header:"Order",render:(order)=><div className="entity-cell"><strong>{order.orderNumber}</strong><small>{order.customer.email} · {order.productName}</small></div>},
-    {key:"collected",header:"Collected",render:(order)=><strong>{order.payment.state==="verified"?gamingLkr(order.amountLkr):"—"}</strong>},
-    {key:"refunds",header:"Refunded",render:(order)=><strong>{refundedAmount(order.orderId)?gamingLkr(refundedAmount(order.orderId)):"—"}</strong>},
-    {key:"supplier",header:"Supplier cost",render:(order)=><span>{n(order.economics?.supplierCostLkr)?gamingLkr(n(order.economics?.supplierCostLkr)):"—"}</span>},
-    {key:"fees",header:"Gateway fee",render:(order)=><span>{n(order.economics?.gatewayFeeLkr)?gamingLkr(n(order.economics?.gatewayFeeLkr)):"—"}</span>},
+    {key:"collected",header:"Collected",render:(order)=><strong>{order.payment.state==="verified"?gamingLkr(order.amountLkr):"-"}</strong>},
+    {key:"refunds",header:"Refunded",render:(order)=><strong>{refundedAmount(order.orderId)?gamingLkr(refundedAmount(order.orderId)):"-"}</strong>},
+    {key:"supplier",header:"Supplier cost",render:(order)=><span>{n(order.economics?.supplierCostLkr)?gamingLkr(n(order.economics?.supplierCostLkr)):"-"}</span>},
+    {key:"fees",header:"Gateway fee",render:(order)=><span>{n(order.economics?.gatewayFeeLkr)?gamingLkr(n(order.economics?.gatewayFeeLkr)):"-"}</span>},
     {key:"margin",header:"Estimated margin",render:(order)=><strong>{gamingLkr(orderMargin(order))}</strong>},
     {key:"status",header:"State",render:(order)=><GamingStatus value={order.status}/>},
   ];
@@ -39,7 +39,7 @@ export function FinancePage(){
     {key:"provider",header:"Payment provider",render:(refund)=><div className="entity-cell"><strong>{providerLabel(refund.paymentProviderKey)}</strong><small>{refund.paymentMethodLabel}</small></div>},
     {key:"amount",header:"Customer refund",render:(refund)=><strong>{gamingLkr(refund.amountLkr)}</strong>},
     {key:"recoveries",header:"Recoveries",render:(refund)=><span className="muted-cell">Supplier {gamingLkr(n(refund.finance?.supplierRecoveryLkr))} · Fee {gamingLkr(n(refund.finance?.gatewayFeeRecoveredLkr))}</span>},
-    {key:"reference",header:"Payout reference",render:(refund)=><span className="muted-cell">{refund.payout?.providerReference??"—"}</span>},
+    {key:"reference",header:"Payout reference",render:(refund)=><span className="muted-cell">{refund.payout?.providerReference??"-"}</span>},
     {key:"status",header:"State",render:(refund)=><GamingStatus value={refund.status}/>},
     {key:"time",header:"Updated",render:(refund)=><span className="muted-cell">{gamingDate(refund.updatedAt)}</span>},
   ];

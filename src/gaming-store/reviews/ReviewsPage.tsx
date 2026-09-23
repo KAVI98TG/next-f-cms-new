@@ -8,7 +8,7 @@ import { decideGamingReview, loadGamingReviews, type LiveGamingReview } from './
 type Filter='all'|'pending'|'approved'|'rejected';
 const FILTERS: Array<{value:Filter;label:string}>=[{value:'all',label:'All'},{value:'pending',label:'Pending'},{value:'approved',label:'Approved'},{value:'rejected',label:'Rejected'}];
 const tone=(status:LiveGamingReview['status'])=>status==='approved'?'success':status==='rejected'?'danger':'warning';
-const fmt=(v?:string)=>v?new Date(v).toLocaleString():'—';
+const fmt=(v?:string)=>v?new Date(v).toLocaleString():'-';
 
 export function ReviewsPage(){
   const {notify}=useToast();
@@ -50,10 +50,10 @@ export function ReviewsPage(){
   return <div className="page gaming-reviews-page">
     <SectionHeader eyebrow="Gaming Store / Trust & safety" title="Customer Reviews" description="Moderate verified-purchase feedback before it appears on the storefront." action={<Button variant="secondary" onClick={()=>void load()} disabled={loading}><RefreshCw size={16}/>Refresh reviews</Button>}/>
     <div className="gaming-review-metrics" aria-label="Review summary">
-      <Card className="gaming-review-metric gaming-review-metric--pending"><span className="gaming-review-metric__label"><Clock3 size={18}/>Pending</span><strong>{loading||error?'—':filter==='all'?summary.pending:filter==='pending'?reviews.length:'—'}</strong></Card>
-      <Card className="gaming-review-metric gaming-review-metric--approved"><span className="gaming-review-metric__label"><CircleCheck size={18}/>Approved</span><strong>{loading||error?'—':filter==='all'?summary.approved:filter==='approved'?reviews.length:'—'}</strong></Card>
-      <Card className="gaming-review-metric gaming-review-metric--rejected"><span className="gaming-review-metric__label"><X size={18}/>Rejected</span><strong>{loading||error?'—':filter==='all'?summary.rejected:filter==='rejected'?reviews.length:'—'}</strong></Card>
-      <Card className="gaming-review-metric gaming-review-metric--rating"><span className="gaming-review-metric__label"><Star size={18}/>Approved rating</span><strong>{!loading&&!error&&summary.avg?`${summary.avg.toFixed(1)} / 5`:'—'}</strong></Card>
+      <Card className="gaming-review-metric gaming-review-metric--pending"><span className="gaming-review-metric__label"><Clock3 size={18}/>Pending</span><strong>{loading||error?'-':filter==='all'?summary.pending:filter==='pending'?reviews.length:'-'}</strong></Card>
+      <Card className="gaming-review-metric gaming-review-metric--approved"><span className="gaming-review-metric__label"><CircleCheck size={18}/>Approved</span><strong>{loading||error?'-':filter==='all'?summary.approved:filter==='approved'?reviews.length:'-'}</strong></Card>
+      <Card className="gaming-review-metric gaming-review-metric--rejected"><span className="gaming-review-metric__label"><X size={18}/>Rejected</span><strong>{loading||error?'-':filter==='all'?summary.rejected:filter==='rejected'?reviews.length:'-'}</strong></Card>
+      <Card className="gaming-review-metric gaming-review-metric--rating"><span className="gaming-review-metric__label"><Star size={18}/>Approved rating</span><strong>{!loading&&!error&&summary.avg?`${summary.avg.toFixed(1)} / 5`:'-'}</strong></Card>
     </div>
     <Card className="gaming-review-queue">
       <div className="gaming-review-toolbar"><div><span className="gaming-review-toolbar__eyebrow">REVIEW WORKSPACE</span><strong>Moderation queue</strong><span>{loading?'Loading…':error?'Unavailable':`${reviews.length} review${reviews.length===1?'':'s'} in this view`}</span></div><div className="gaming-review-filter" role="group" aria-label="Review status filter">{FILTERS.map(item=><button type="button" key={item.value} className={filter===item.value?'is-active':''} aria-pressed={filter===item.value} onClick={()=>setFilter(item.value)}>{item.label}</button>)}</div></div>

@@ -66,6 +66,10 @@ for(const file of walk(sourceRoot)){
       }
     }
   }
+  if(file.endsWith(".tsx") || file.endsWith(".ts")){
+    const text=fs.readFileSync(file,"utf8");
+    if(/[—–]/.test(text)) failures.push(`${rel}: long dash glyphs are not allowed in CMS UI content; use punctuation, parentheses or a normal hyphen`);
+  }
   if(file.endsWith(".tsx")){
     const text=fs.readFileSync(file,"utf8");
     for(const match of text.matchAll(/<MetricCard\b[\s\S]*?\/>/g)){
@@ -89,9 +93,21 @@ for(const file of walk(sourceRoot)){
 }
 
 
+const formField=read("src/shared/components/FormField.tsx");
+const componentCss=read("src/css/components.css");
+check("FormField supports aligned field actions",formField.includes("action?: ReactNode")&&formField.includes("form-field__head"));
+check("form fields do not stretch to match taller grid siblings",componentCss.includes("align-content:start")&&componentCss.includes("align-self:start"));
+check("two-column forms support deliberate full-width rows",componentCss.includes(".form-grid--two > .form-field--full"));
+const storefrontPage=read("src/gaming-store/vnext/cms/StorefrontVNextPage.tsx");
+check("hero slide media field spans the modal width",storefrontPage.includes('label={editingHeroSlide.mediaType==="video"?"Video URL":"Image URL"} className="form-field--full"'));
+check("homepage manual product picker spans the modal width",storefrontPage.includes('label="Manual products" className="form-field--full"'));
+const productEditorPage=read("src/gaming-store/vnext/cms/CatalogVNextPage.tsx");
+check("product supplier-name reset sits in the field header",productEditorPage.includes('label="Public name" action={<button className="inline-field-action"'));
+
 const pricingPage=read("src/gaming-store/pricing/PricingPage.tsx");
 const pricingOverview=pricingPage.match(/<div className="pricing-overview-grid">([\s\S]*?)<\/div>\s*\n\s*<div className="pricing-control-grid">/);
 check("Gaming pricing removes architecture explainer panels",!pricingPage.includes("pricing-safeguards-panel")&&!pricingPage.includes("Pricing authority & security")&&!pricingPage.includes("No supplier resync required"));
+check("Gaming pricing mode labels avoid long-dash prose",pricingPage.includes("Markup (show LKR catalog prices)")&&pricingPage.includes("Supplier quote (price at checkout)"));
 check("Gaming pricing overview avoids duplicate editable metrics",Boolean(pricingOverview)&&(pricingOverview[1].match(/<MetricCard/g)||[]).length===2&&!pricingOverview[1].includes('label="Pricing mode"')&&!pricingOverview[1].includes('label="Retail target"'));
 const liveOpsPage=read("src/gaming-store/live-operations/LiveOperationsPage.tsx");
 check("Gaming Live Operations excludes developer diagnostics",!liveOpsPage.includes("live-ops-diagnostics")&&!liveOpsPage.includes("Command bridge")&&!liveOpsPage.includes("Payment providers"));

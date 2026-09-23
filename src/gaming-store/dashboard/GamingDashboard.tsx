@@ -29,7 +29,7 @@ import { GamingStatus } from '../shared/GamingStatus';
 import { useGamingStore } from '../shared/useGamingStore';
 
 const runtime=readRuntimeTruth();
-const pct=(value:number|null|undefined)=>value===null||value===undefined?'—':`${value}%`;
+const pct=(value:number|null|undefined)=>value===null||value===undefined?'-':`${value}%`;
 
 type DashboardTone='default'|'accent'|'success'|'warning'|'danger';
 type DashboardActivity={key:string;title:string;detail:string;outcome:string;count:number;createdAt:string};
