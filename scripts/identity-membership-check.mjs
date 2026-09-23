@@ -10,7 +10,7 @@ const read=(path)=>fs.readFileSync(path,"utf8");
   "src/platform/identity/IdentityPage.tsx",
   "src/platform/customer-access/customerAccessStore.ts",
   "src/next-f/website-platform/websitePlatformStore.ts",
-  "docs/V0.13.0-IDENTITY-MEMBERSHIP-FOUNDATION.md",
+  "docs/releases/V0.13.0-IDENTITY-MEMBERSHIP-FOUNDATION.md",
 ].forEach((path)=>check(`file ${path}`,exists(path)));
 
 const identity=read("src/platform/identity/identityStore.ts");

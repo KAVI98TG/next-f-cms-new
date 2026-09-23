@@ -1,5 +1,7 @@
 # NEXT F CMS Build Roadmap
 
+> **Planning/history note.** This file is retained for architectural and release history. Current release state lives in `docs/current/PROJECT-STATUS.md` and `RELEASE-STATE.json`.
+
 1. ✅ V0.1.0 Foundation and shared SaaS shell
 2. ✅ V0.2.0 Platform Core
 3. ✅ V0.3.0 NEXT F Digital Core

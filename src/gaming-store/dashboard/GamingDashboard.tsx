@@ -106,11 +106,11 @@ function LiveGamingDashboard(){
   const viewToOrder=analytics?.funnel.overallViewToOrderRate;
   const paidToFulfilled=analytics?.funnel.stages.find((stage)=>stage.key==='fulfilled')?.conversionFromPrevious;
   const readiness=[
-    {label:'Supplier',value:supplier.connected?'Connected':'Check required',detail:supplier.connected?'FazerCards responding':supplier.lastError||'Health not confirmed',tone:supplier.connected?'success':'warning'},
-    {label:'Payment review',value:String(summary.paymentReview),detail:summary.paymentReview?'Requires finance review':'Queue clear',tone:summary.paymentReview?'warning':'success'},
-    {label:'Fulfillment',value:String(summary.fulfillmentAttention),detail:summary.fulfillmentAttention?'Jobs need attention':'Delivery queue healthy',tone:summary.fulfillmentAttention?'warning':'success'},
-    {label:'Risk holds',value:String(summary.riskHeld??0),detail:(summary.riskHeld??0)?'Orders currently held':'No active holds',tone:(summary.riskHeld??0)?'warning':'success'},
-    {label:'Notifications',value:String(summary.notificationAttention),detail:summary.notificationAttention?'Delivery needs attention':'No delivery exceptions',tone:summary.notificationAttention?'warning':'success'},
+    {label:'Supplier',value:supplier.connected?'Connected':'Check required',detail:supplier.connected?undefined:supplier.lastError||'Health not confirmed',tone:supplier.connected?'success':'warning'},
+    {label:'Payment review',value:String(summary.paymentReview),tone:summary.paymentReview?'warning':'success'},
+    {label:'Fulfillment',value:String(summary.fulfillmentAttention),tone:summary.fulfillmentAttention?'warning':'success'},
+    {label:'Risk holds',value:String(summary.riskHeld??0),tone:(summary.riskHeld??0)?'warning':'success'},
+    {label:'Notifications',value:String(summary.notificationAttention),tone:summary.notificationAttention?'warning':'success'},
   ];
   return <div className="page commerce-dashboard-page">
     <SectionHeader eyebrow="Gaming Store · Production" title="Commerce dashboard" description="Revenue, conversion, delivery health and items needing attention." action={<Button onClick={()=>void load()} disabled={loading}><RefreshCw size={14}/>Refresh</Button>}/>
@@ -126,13 +126,13 @@ function LiveGamingDashboard(){
     <div className="commerce-dashboard-primary">
       <Card className="commerce-dashboard-panel commerce-dashboard-panel--attention">
         <div className="operation-section__head"><div><span>Needs attention</span><h3>Operational exceptions</h3></div>{attentionCount?<AlertTriangle size={18}/>:<CheckCircle2 size={18}/>}</div>
-        {attention.length?<div className="commerce-dashboard-attention-list">{attention.map((item,index)=><div key={`${item.title}-${index}`}><span><strong>{item.title}</strong><small>{item.detail}</small></span><Badge tone={item.tone}>Review</Badge></div>)}</div>:<div className="commerce-dashboard-all-clear"><CheckCircle2 size={22}/><div><strong>All clear</strong><small>No payment, fulfillment, risk or notification exceptions need attention.</small></div></div>}
+        {attention.length?<div className="commerce-dashboard-attention-list">{attention.map((item,index)=><div key={`${item.title}-${index}`}><span><strong>{item.title}</strong><small>{item.detail}</small></span><Badge tone={item.tone}>Review</Badge></div>)}</div>:<div className="commerce-dashboard-all-clear"><CheckCircle2 size={22}/><div><strong>All clear</strong></div></div>}
         <Button className="commerce-dashboard-panel-action" variant="secondary" onClick={()=>window.location.assign('/gaming-store/live-operations')}>Open Live Operations <ArrowRight size={14}/></Button>
       </Card>
 
       <Card className="commerce-dashboard-panel">
         <div className="operation-section__head"><div><span>Operational readiness</span><h3>Commerce health</h3></div><Gauge size={18}/></div>
-        <div className="commerce-dashboard-readiness">{readiness.map((item)=><div key={item.label}><span className={`commerce-dashboard-readiness__dot is-${item.tone}`}/><span><strong>{item.label}</strong><small>{item.detail}</small></span><b>{item.value}</b></div>)}</div>
+        <div className="commerce-dashboard-readiness">{readiness.map((item)=><div key={item.label}><span className={`commerce-dashboard-readiness__dot is-${item.tone}`}/><span><strong>{item.label}</strong>{item.detail?<small>{item.detail}</small>:null}</span><b>{item.value}</b></div>)}</div>
         {supplier.balance?<div className="commerce-dashboard-balance"><span>Supplier balance</span><strong>{supplier.balance.amount} {supplier.balance.currency}</strong></div>:null}
       </Card>
     </div>

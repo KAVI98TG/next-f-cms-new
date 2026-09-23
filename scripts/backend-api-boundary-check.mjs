@@ -15,7 +15,7 @@ const files=[
   "src/services/backend/localPrototype.ts",
   "src/services/backend/index.ts",
   "src/next-f/website-platform/WebsitePlatformPage.tsx",
-  "docs/V0.18.0-SHARED-BACKEND-API-BOUNDARY.md",
+  "docs/releases/V0.18.0-SHARED-BACKEND-API-BOUNDARY.md",
 ];
 files.forEach((path)=>check(`file ${path}`,exists(path)));
 const types=read("src/services/backend/types.ts");
@@ -28,8 +28,8 @@ const adapter=read("src/services/backend/siteAdapter.ts");
 const audit=read("src/services/backend/audit.ts");
 const local=read("src/services/backend/localPrototype.ts");
 const page=read("src/next-f/website-platform/WebsitePlatformPage.tsx");
-const scope=read("docs/NEXT-F-CMS-SCOPE-AND-ARCHITECTURE-DIRECTION.md");
-const master=read("docs/NEXT-F-CMS-UPGRADE-MASTER-PLAN.md");
+const scope=read("docs/architecture/NEXT-F-CMS-SCOPE-AND-ARCHITECTURE-DIRECTION.md");
+const master=read("docs/planning/NEXT-F-CMS-UPGRADE-MASTER-PLAN.md");
 const pkg=JSON.parse(read("package.json"));
 const version=read("VERSION").trim();
 const appVersion=read("src/app/version.ts");
@@ -152,7 +152,7 @@ const semverAtLeast=(value,minimum)=>{const a=value.split(".").map(Number),b=min
 check("package version remains at least V0.18.0",semverAtLeast(pkg.version,"0.18.0"));
 check("VERSION remains at least V0.18.0",semverAtLeast(version,"0.18.0"));
 check("app version remains at least V0.18.0",semverAtLeast((appVersion.match(/APP_VERSION = "([^"]+)"/)||[])[1]||"0.0.0","0.18.0"));
-check("V0.18 release history remains documented",read("docs/V0.18.0-SHARED-BACKEND-API-BOUNDARY.md").includes("Shared Backend/API Boundary"));
+check("V0.18 release history remains documented",read("docs/releases/V0.18.0-SHARED-BACKEND-API-BOUNDARY.md").includes("Shared Backend/API Boundary"));
 check("V0.18 QA script wired",pkg.scripts?.["check:backend-api"]==="node scripts/backend-api-boundary-check.mjs");
 
 console.log("NEXT F CMS V0.18.0 Shared Backend/API Boundary check");

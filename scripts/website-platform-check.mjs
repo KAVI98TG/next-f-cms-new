@@ -9,8 +9,8 @@ const required=[
   "src/next-f/website-platform/WebsitePlatformPage.tsx",
   "src/next-f/website-platform/websitePlatformStore.ts",
   "src/next-f/website-platform/useWebsitePlatformStore.ts",
-  "docs/V0.12.0-WEBSITE-PLATFORM-FOUNDATION.md",
-  "docs/NEXT-F-CMS-UPGRADE-MASTER-PLAN.md",
+  "docs/releases/V0.12.0-WEBSITE-PLATFORM-FOUNDATION.md",
+  "docs/planning/NEXT-F-CMS-UPGRADE-MASTER-PLAN.md",
 ];
 required.forEach((path)=>check(`file ${path}`,exists(path)));
 

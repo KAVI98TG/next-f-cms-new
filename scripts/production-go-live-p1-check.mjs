@@ -80,8 +80,8 @@ const collectBusiness = (dir) => {
 };
 for (const root of ["src/platform","src/next-f","src/gaming","src/software"]) collectBusiness(root);
 check("business source has no direct window.localStorage", businessFiles.every((file)=>!read(file).includes("window.localStorage")));
-check("P1 release doc exists", exists("docs/V0.24.0-PRODUCTION-GO-LIVE-P1-DURABLE-BACKEND.md"));
-check("P1 QA doc exists", exists("docs/QA-V0.24.0.md"));
+check("P1 release doc exists", exists("docs/releases/V0.24.0-PRODUCTION-GO-LIVE-P1-DURABLE-BACKEND.md"));
+check("P1 QA doc exists", exists("docs/qa/QA-V0.24.0.md"));
 
 console.log("NEXT F CMS V0.24+ Production Go-Live P1 Durable Backend retained-baseline check");
 for (const item of pass) console.log(`PASS  ${item}`);

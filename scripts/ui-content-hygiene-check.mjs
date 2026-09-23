@@ -100,7 +100,7 @@ check("Gaming Suppliers excludes credential architecture explainer",!supplierPag
 const promotionsPage=read("src/gaming-store/promotions/PromotionsPage.tsx");
 check("Gaming Promotions keeps margin controls without architecture explainer",promotionsPage.includes("Campaign Margin floor LKR")&&!promotionsPage.includes("promotion-safety-panel")&&!promotionsPage.includes("promotion-margin-guard")&&!promotionsPage.includes("Server-enforced protection"));
 
-const standard="docs/CMS-UI-CONTENT-AND-TYPOGRAPHY-STANDARD.md";
+const standard="docs/governance/CMS-UI-CONTENT-AND-TYPOGRAPHY-STANDARD.md";
 check("UI content and typography standard ships with the release",exists(standard));
 if(exists(standard)){
   const doc=read(standard);
@@ -111,6 +111,26 @@ if(exists(standard)){
 }
 
 check("Support order context does not reference unsupported paymentProvider",!read("src/gaming-store/support/SupportPage.tsx").includes("orderContext.paymentProvider"));
+
+const catalogPage=read("src/gaming-store/vnext/cms/CatalogVNextPage.tsx");
+check("Catalog product rows hide slug and internal product ID",!catalogPage.includes('<small>/{product.slug} · {product.id}</small>'));
+check("Catalog offer rows hide internal offer ID",!catalogPage.includes('<small>{offer.id} ·'));
+check("Catalog supplier-route rows hide external provider IDs",!catalogPage.includes('mapping.externalOfferId ?? mapping.externalProductId'));
+check("Catalog offer counts only show public split when it differs",catalogPage.includes('publicCount !== total ? <small>{publicCount} public</small> : null'));
+check("Catalog routing helper appears only for multi-route context",catalogPage.includes('supplierCount > 1 ? <small>{supplierCount} suppliers</small> : null')&&catalogPage.includes('offerMappings.length > 1 ? <small>{active} active · {offerMappings.length} routes</small> : null'));
+
+const analyticsPage=read("src/gaming-store/analytics/AnalyticsPage.tsx");
+check("Gaming analytics product table hides internal product IDs",!analyticsPage.includes('<small>{row.productId}</small>'));
+
+const customersPage=read("src/gaming-store/customers/CustomersPage.tsx");
+check("Gaming customer directory shows primary order count only",!customersPage.includes('verifiedOrders} paid · {row.fulfilledOrders} fulfilled'));
+check("Gaming customer directory shows primary net spend only",!customersPage.includes('Avg ${gamingLkr(row.averageOrderValueLkr)}'));
+
+const dashboardPage=read("src/gaming-store/dashboard/GamingDashboard.tsx");
+for(const phrase of ["FazerCards responding","Queue clear","Delivery queue healthy","No active holds","No delivery exceptions"]){
+  check(`Gaming dashboard healthy state omits helper copy: ${phrase}`,!dashboardPage.includes(phrase));
+}
+check("Gaming dashboard all-clear state has no redundant sentence",!dashboardPage.includes("No payment, fulfillment, risk or notification exceptions need attention."));
 
 console.log("NEXT F CMS UI content hygiene check");
 for(const item of pass) console.log(`PASS  ${item}`);

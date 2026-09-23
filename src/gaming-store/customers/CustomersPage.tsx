@@ -48,8 +48,8 @@ export function CustomersPage(){
   const columns:DataTableColumn<GamingCustomer360>[]=[
     {key:'customer',header:'Customer',render:(row)=><div className="customer-identity-cell"><CustomerAvatar customer={row}/><span><strong>{row.name}</strong><small>{row.email}{row.gamerTag?` · ${row.gamerTag}`:''}</small></span></div>},
     {key:'type',header:'Account',width:'125px',render:(row)=><Badge tone={row.accountType==='google'?'success':'neutral'}>{row.accountType==='google'?'Google verified':'Guest'}</Badge>},
-    {key:'orders',header:'Orders',width:'125px',render:(row)=><div className="entity-cell"><strong>{row.orders}</strong><small>{row.verifiedOrders} paid · {row.fulfilledOrders} fulfilled</small></div>},
-    {key:'spend',header:'Net spend',width:'145px',render:(row)=><div className="entity-cell"><strong>{gamingLkr(row.netSpendLkr)}</strong><small>{row.refundedLkr?`${gamingLkr(row.refundedLkr)} refunded`:`Avg ${gamingLkr(row.averageOrderValueLkr)}`}</small></div>},
+    {key:'orders',header:'Orders',width:'125px',render:(row)=><strong>{row.orders}</strong>},
+    {key:'spend',header:'Net spend',width:'145px',render:(row)=><strong>{gamingLkr(row.netSpendLkr)}</strong>},
     {key:'last',header:'Last purchase',width:'135px',render:(row)=><span className="customer360-muted-value">{row.lastPurchaseAt?gamingDate(row.lastPurchaseAt):'—'}</span>},
     {key:'marketing',header:'Marketing',width:'120px',render:(row)=><Badge tone={row.marketing.email?'success':'neutral'}>{row.marketing.email?'Subscribed':'No consent'}</Badge>},
     {key:'lifecycle',header:'Lifecycle',width:'105px',render:(row)=><Badge tone={lifecycleTone(row.lifecycle) as any}>{lifecycleLabel(row.lifecycle)}</Badge>},

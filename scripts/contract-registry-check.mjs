@@ -9,13 +9,13 @@ const read=(path)=>fs.readFileSync(path,"utf8");
   "src/next-f/website-platform/contractRegistryStore.ts",
   "src/next-f/website-platform/websitePlatformStore.ts",
   "src/next-f/website-platform/WebsitePlatformPage.tsx",
-  "docs/V0.15.0-CONTRACT-REGISTRY-RESOLVER-FOUNDATION.md",
+  "docs/releases/V0.15.0-CONTRACT-REGISTRY-RESOLVER-FOUNDATION.md",
 ].forEach((path)=>check(`file ${path}`,exists(path)));
 
 const registry=read("src/next-f/website-platform/contractRegistryStore.ts");
 const website=read("src/next-f/website-platform/websitePlatformStore.ts");
 const page=read("src/next-f/website-platform/WebsitePlatformPage.tsx");
-const guide=read("docs/CMS-CONTRACT-INTEGRATION-GUIDE.md");
+const guide=read("docs/governance/CMS-CONTRACT-INTEGRATION-GUIDE.md");
 const pkg=JSON.parse(read("package.json"));
 const version=read("VERSION").trim();
 const appVersion=read("src/app/version.ts");

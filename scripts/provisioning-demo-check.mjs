@@ -10,7 +10,7 @@ const read=(path)=>fs.readFileSync(path,"utf8");
   "src/next-f/website-platform/WebsitePlatformPage.tsx",
   "src/next-f/website-platform/websitePlatformStore.ts",
   "src/platform/customer-access/customerAccessStore.ts",
-  "docs/V0.14.0-WORKSPACE-PROVISIONING-DEMO-GOVERNANCE.md",
+  "docs/releases/V0.14.0-WORKSPACE-PROVISIONING-DEMO-GOVERNANCE.md",
 ].forEach((path)=>check(`file ${path}`,exists(path)));
 
 const provisioning=read("src/next-f/website-platform/workspaceProvisioningStore.ts");

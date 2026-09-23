@@ -34,8 +34,8 @@ check("Worker maps Access verification errors",worker.includes("AccessVerificati
 check("active D1 binding required",staff.includes('row.status!=="active"')&&staff.includes("STAFF_IDENTITY_NOT_BOUND"));
 check("exact Access subject binding required",staff.includes('row.access_subject!==identity.subject')&&staff.includes("STAFF_SUBJECT_MISMATCH"));
 check("binding provisioning helper exists",exists("scripts/generate-staff-binding-sql.mjs")&&provision.includes("staff_identity_bindings")&&provision.includes("--subject")&&provision.includes("--super-admin"));
-check("P2 release doc exists",exists("docs/V0.25.0-PRODUCTION-GO-LIVE-P2-PRODUCTION-IDENTITY.md"));
-check("P2 QA doc exists",exists("docs/QA-V0.25.0.md"));
+check("P2 release doc exists",exists("docs/releases/V0.25.0-PRODUCTION-GO-LIVE-P2-PRODUCTION-IDENTITY.md"));
+check("P2 QA doc exists",exists("docs/qa/QA-V0.25.0.md"));
 
 const productionFiles=["src/services/production/staffSession.ts","infrastructure/cloudflare/src/access.ts","infrastructure/cloudflare/src/staff.ts"];
 check("production identity files do not use localStorage",productionFiles.every((file)=>!read(file).includes("localStorage")));

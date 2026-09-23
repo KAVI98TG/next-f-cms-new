@@ -1,5 +1,7 @@
 # Gaming / CMS continuity audit — 2026-09-22
 
+> **Historical audit snapshot.** This records the repository state on 2026-09-22. Current documentation structure and release authority are defined by `docs/README.md`, `docs/current/PROJECT-STATUS.md`, and `RELEASE-STATE.json`.
+
 ## Gaming findings
 
 1. Review-to-purchase association was ambiguous when a customer had multiple completed purchases. Fixed with an authenticated eligibility endpoint and explicit purchase selection.
@@ -19,4 +21,4 @@
 
 ## Continuity controls added
 
-Both projects now ship `NEXT-F-CONTINUITY-RULES.md`, `RULESE.txt`, `RELEASE-STATE.json`, `check:continuity`, and deploy release gates. New releases must declare their exact parent baseline and preserve critical accepted capabilities.
+Both projects now ship `docs/governance/NEXT-F-CONTINUITY-RULES.md`, `docs/governance/PROJECT-RULES.md`, `RELEASE-STATE.json`, `check:continuity`, and deploy release gates. New releases must declare their exact parent baseline and preserve critical accepted capabilities.

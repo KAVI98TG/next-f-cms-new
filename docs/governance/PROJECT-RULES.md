@@ -1,4 +1,4 @@
-NEXT F CONTINUITY RULES
+# NEXT F Project Rules
 
 1. Follow live canonical resources first to avoid conflicts:
    https://contracts.nextf.lk/

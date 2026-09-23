@@ -48,7 +48,7 @@ check("topbar theme control", topbar.includes("useTheme") && topbar.includes("to
 check("settings theme selector", settings.includes('<option value="system">System</option>') && settings.includes('<option value="light">Light</option>') && settings.includes('<option value="dark">Dark</option>'));
 check("production env template is trackable", gitignore.includes("!.env.production.example"));
 check("production frontend env template", productionEnv.includes("VITE_NEXTF_ENVIRONMENT=production") && productionEnv.includes("VITE_NEXTF_BACKEND_MODE=production-api") && /VITE_NEXTF_API_BASE_URL=https:\/\/[A-Za-z0-9.-]+/.test(productionEnv));
-check("P0 release doc exists", exists("docs/V0.23.0-PRODUCTION-GO-LIVE-P0.md"));
+check("P0 release doc exists", exists("docs/releases/V0.23.0-PRODUCTION-GO-LIVE-P0.md"));
 
 const sourceFiles = [];
 const walk = (dir) => {

@@ -1,5 +1,7 @@
 # Main CMS Completion Status
 
+> **Planning/history note.** This file is retained for architectural and release history. Current release state lives in `docs/current/PROJECT-STATUS.md` and `RELEASE-STATE.json`.
+
 ## Source roadmap
 
 - Phase 0 — baseline freeze: complete.

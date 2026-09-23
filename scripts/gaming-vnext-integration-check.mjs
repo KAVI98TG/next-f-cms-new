@@ -9,7 +9,7 @@ const files=[
  "src/gaming-store/vnext/cms/CatalogVNextPage.tsx",
  "src/gaming-store/vnext/public/PublicGamingStorefront.tsx",
  "src/css/gaming-public.css",
- "docs/gaming-store-vnext-implementation.md",
+ "docs/architecture/gaming-store-vnext-implementation.md",
 ];
 const failures=[];const passes=[];const check=(name,ok)=>(ok?passes:failures).push(name);
 for(const file of files)check(`file ${file}`,fs.existsSync(file));

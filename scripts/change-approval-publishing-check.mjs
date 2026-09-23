@@ -7,12 +7,12 @@ const read=(path)=>fs.readFileSync(path,"utf8");
   "src/next-f/website-platform/changeApprovalPublishingStore.ts",
   "src/next-f/website-platform/customerCapabilityPolicyStore.ts",
   "src/next-f/website-platform/WebsitePlatformPage.tsx",
-  "docs/V0.17.0-CHANGE-APPROVALS-REVISIONS-PUBLISHING.md",
+  "docs/releases/V0.17.0-CHANGE-APPROVALS-REVISIONS-PUBLISHING.md",
 ].forEach((path)=>check(`file ${path}`,exists(path)));
 const flow=read("src/next-f/website-platform/changeApprovalPublishingStore.ts");
 const policy=read("src/next-f/website-platform/customerCapabilityPolicyStore.ts");
 const page=read("src/next-f/website-platform/WebsitePlatformPage.tsx");
-const scope=read("docs/NEXT-F-CMS-SCOPE-AND-ARCHITECTURE-DIRECTION.md");
+const scope=read("docs/architecture/NEXT-F-CMS-SCOPE-AND-ARCHITECTURE-DIRECTION.md");
 const pkg=JSON.parse(read("package.json"));
 const version=read("VERSION").trim();
 const appVersion=read("src/app/version.ts");

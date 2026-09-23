@@ -48,7 +48,7 @@ Use existing shared components before adding local UI primitives:
 - `MetricCard` for summary values. Metric cards contain only the metric label, value and optional icon. Do not add `detail`, footer, helper or trend copy to metric cards. The same rule applies to feature-local KPI, overview, health and summary cards: label + value (+ icon) only.
 - `FormField` for labels, validation and only necessary input hints.
 - `PageToolbar` for search/filter/action rows.
-- `DataTable` for operational record sets.
+- `DataTable` for operational record sets. Normal list/table rows show the human-facing name and primary operational values. Keep internal IDs, slugs, provider IDs and diagnostic identifiers searchable or available in detail/edit views instead of rendering them under every row. Secondary row text is conditional: show it only for an exception, mismatch, multi-route/multi-supplier case, or other non-obvious state that changes the operator decision.
 - `StatePanel` for loading, error and unavailable states.
 - `Badge` / status components for state instead of explanatory paragraphs.
 - Shared `Button`, `TextInput`, `SelectInput`, checkbox and toggle styles for controls.
@@ -76,11 +76,12 @@ Before merging a new section or feature:
 5. In Gaming operator UI, keep D1, Worker, API bridge, canonical/contract-bound, credential, source-of-truth and similar implementation vocabulary out of daily workflows; keep it in engineering docs or dedicated diagnostics.
 6. Make warnings local to the risky action and state the consequence briefly.
 7. Keep every KPI/overview/summary card to label + value + optional icon. Do not recreate a local footer/helper line under the value. Put genuinely important state in the relevant operational section, badge or alert instead.
-8. Use status, badges, disabled states and concise error messages before adding paragraphs.
-9. Verify dark/light theme, responsive layout, custom controls, keyboard focus and scroll behavior through the shared styles.
-10. Run `npm run check:ui-hygiene`, `npm run check:font-floor`, `npm run check:global-ui`, the relevant feature checks, and `npm run build`.
-11. Update `VERSION`, package metadata, `RELEASE-STATE.json`, release notes and the release-specific document before packaging.
-12. Run `npm run release:finalize` before creating a full canonical ZIP; it must pass static regression, release gate, frontend build and Worker/API typecheck.
+8. Use status, badges, disabled states and concise error messages before adding paragraphs. Healthy/zero states should not carry a second line that merely restates the label or value.
+9. Keep internal IDs/slugs/provider identifiers out of normal list rows. Preserve them in search, edit/detail drawers, exports or diagnostics when operationally useful.
+10. Verify dark/light theme, responsive layout, custom controls, keyboard focus and scroll behavior through the shared styles.
+11. Run `npm run check:ui-hygiene`, `npm run check:font-floor`, `npm run check:global-ui`, the relevant feature checks, and `npm run build`.
+12. Update `VERSION`, package metadata, `RELEASE-STATE.json`, release notes and the release-specific document before packaging.
+13. Run `npm run release:finalize` before creating a full canonical ZIP; it must pass static regression, release gate, frontend build and Worker/API typecheck.
 
 ## Review rule
 

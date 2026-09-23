@@ -37,7 +37,7 @@ Staff routes verify the Cloudflare Access JWT and then require an active exact-s
 
 ## Main website project-request integration
 
-The canonical production project form uses `nextf.lk` server-side Turnstile verification and then calls `POST /v1/integrations/nextf/project-requests` with a dedicated bearer token. Cloudflare Access must bypass only that exact path; the Worker still enforces the dedicated token, live Contracts authority, payload relationships and D1 idempotency. See `docs/V1.0.0-NEXTF-MAIN-SITE-PROJECT-REQUEST-INGESTION.md`.
+The canonical production project form uses `nextf.lk` server-side Turnstile verification and then calls `POST /v1/integrations/nextf/project-requests` with a dedicated bearer token. Cloudflare Access must bypass only that exact path; the Worker still enforces the dedicated token, live Contracts authority, payload relationships and D1 idempotency. See `docs/releases/V1.0.0-NEXTF-MAIN-SITE-PROJECT-REQUEST-INGESTION.md`.
 
 
 ## v1.0.6 Gaming Live Operations Actions

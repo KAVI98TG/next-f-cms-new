@@ -8,7 +8,7 @@ const files = [
   "src/gaming-store/vnext/publicContract.ts",
   "src/gaming-store/vnext/providers/fazercards.ts",
   "src/gaming-store/vnext/index.ts",
-  "docs/gaming-store-supplier-architecture-vnext.md",
+  "docs/architecture/gaming-store-supplier-architecture-vnext.md",
 ];
 const failures = [];
 const passes = [];

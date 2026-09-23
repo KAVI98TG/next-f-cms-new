@@ -1,5 +1,7 @@
 # NEXT F CMS Upgrade Master Plan
 
+> **Planning/history note.** This file is retained for architectural and release history. Current release state lives in `docs/current/PROJECT-STATUS.md` and `RELEASE-STATE.json`.
+
 ## 1. Objective
 
 Upgrade the existing NEXT F internal CMS carefully from its completed V0.11.0 local-product architecture into the approved Platform + NEXT F Digital operating system, while preparing the backend and staff controls required by a completely separate Customer Workspace application.

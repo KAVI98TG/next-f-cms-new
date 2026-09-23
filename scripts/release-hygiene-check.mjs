@@ -22,7 +22,7 @@ check("lockfile version matches package",lock.version===pkg.version&&lock.packag
 check("VERSION matches package",version===pkg.version);
 check("runtime version matches package",appVersion.includes(`APP_VERSION = "${pkg.version}"`));
 for(const script of ["acceptance:production","acceptance:production:final","acceptance:source","check:release-hygiene"]) check(`script ${script}`,Boolean(pkg.scripts?.[script]));
-for(const file of ["infrastructure/cloudflare/wrangler.production.jsonc","infrastructure/cloudflare/src/maintenance.ts","src/app/auth/ProductionBootstrap.tsx","scripts/production-acceptance.mjs","docs/V1.0.0-PRODUCTION-RELEASE.md","docs/GAMING-INTEGRATION-HANDOFF.md"]) check(`file ${file}`,exists(file));
+for(const file of ["infrastructure/cloudflare/wrangler.production.jsonc","infrastructure/cloudflare/src/maintenance.ts","src/app/auth/ProductionBootstrap.tsx","scripts/production-acceptance.mjs","docs/releases/V1.0.0-PRODUCTION-RELEASE.md","docs/architecture/GAMING-INTEGRATION-HANDOFF.md"]) check(`file ${file}`,exists(file));
 
 check("production Worker name",prod.includes('"name": "nextf-cms-api"'));
 check("production API custom domain",prod.includes('"pattern": "cms-api.nextf.lk"')&&prod.includes('"custom_domain": true'));

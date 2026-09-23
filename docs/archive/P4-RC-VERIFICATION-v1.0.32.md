@@ -1,5 +1,7 @@
 # P4 RC verification — CMS v1.0.32
 
+> **Archived historical verification.** This document records the v1.0.32 P4 RC state and must not be used as the current deployment or release authority. See `docs/current/PROJECT-STATUS.md` and `RELEASE-STATE.json`.
+
 Baseline: user-provided CMS v1.0.31 P4 RC.
 
 ## Retained v1.0.31 capabilities
@@ -37,7 +39,7 @@ The final packaging environment could not complete an npm dependency restore/bui
 
 This release changes both CMS frontend and CMS API Worker because Checkout configuration/secrets are brokered server-side. Deploy Checkout API first, then CMS API, then CMS Pages. Configure `CHECKOUT_ADMIN_TOKEN` and `CHECKOUT_SECRET_ADMIN_TOKEN` as Worker secrets. No CMS D1 SQL migration is introduced by this integration.
 
-See `docs/V1.0.32-NEXTF-CHECKOUT-P4.md`.
+See `docs/releases/V1.0.32-NEXTF-CHECKOUT-P4.md`.
 
 ## v1.0.46 Media WebCrypto type fix
 
@@ -48,17 +50,17 @@ Adds mixed image/video hero merchandising, bounded family artwork scrolling, and
 
 ## v1.0.48 global overlay focus stability
 
-Fixed the shared CMS Modal/Drawer focus lifecycle so controlled-input re-renders no longer move keyboard focus to the close button. Initial focus now prefers form controls, close buttons are non-submit controls, and Escape/focus trapping continue to use the latest close callback without restarting the overlay effect. Frontend-only; no D1 migration or API deployment. See `docs/V1.0.48-GLOBAL-OVERLAY-FOCUS-STABILITY.md`.
+Fixed the shared CMS Modal/Drawer focus lifecycle so controlled-input re-renders no longer move keyboard focus to the close button. Initial focus now prefers form controls, close buttons are non-submit controls, and Escape/focus trapping continue to use the latest close callback without restarting the overlay effect. Frontend-only; no D1 migration or API deployment. See `docs/releases/V1.0.48-GLOBAL-OVERLAY-FOCUS-STABILITY.md`.
 
 ## v1.0.49 review UI build fix
 
-Fixed the customer-review moderation page to use the shared `ToastInput.description` and `SectionHeader.action` contracts. This removes the frontend TypeScript build failure while preserving the v1.0.48 global overlay focus-stability fix and the existing review workflow. Frontend-only; no D1 migration or API deployment. See `docs/V1.0.49-REVIEW-UI-BUILD-FIX.md`.
+Fixed the customer-review moderation page to use the shared `ToastInput.description` and `SectionHeader.action` contracts. This removes the frontend TypeScript build failure while preserving the v1.0.48 global overlay focus-stability fix and the existing review workflow. Frontend-only; no D1 migration or API deployment. See `docs/releases/V1.0.49-REVIEW-UI-BUILD-FIX.md`.
 
 ## v1.0.50 review bridge + non-modal moderation
 
-Moves customer-review moderation onto the existing Gaming commerce bridge, removes the review rejection modal, and replaces the status select with explicit segmented controls. Gaming v1.8.25 provides backwards-compatible operations/commerce auth during rollout. No D1 migration. See `docs/V1.0.50-REVIEW-BRIDGE-NONMODAL.md`.
+Moves customer-review moderation onto the existing Gaming commerce bridge, removes the review rejection modal, and replaces the status select with explicit segmented controls. Gaming v1.8.25 provides backwards-compatible operations/commerce auth during rollout. No D1 migration. See `docs/releases/V1.0.50-REVIEW-BRIDGE-NONMODAL.md`.
 
 ## v1.0.51 continuity + binding hardening
 
-Built forward from v1.0.50. Adds the checked-in NEXT F continuity rulebook, release-state manifest, continuity/release gates, and production `secrets.required` validation while preserving all accepted Gaming CMS workflows. No D1 migration. See `docs/V1.0.51-CONTINUITY-BINDING-HARDENING.md`.
+Built forward from v1.0.50. Adds the checked-in NEXT F continuity rulebook, release-state manifest, continuity/release gates, and production `secrets.required` validation while preserving all accepted Gaming CMS workflows. No D1 migration. See `docs/releases/V1.0.51-CONTINUITY-BINDING-HARDENING.md`.
 

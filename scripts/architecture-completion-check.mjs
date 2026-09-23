@@ -7,7 +7,7 @@ const required=[
   "src/next-f/data/repositories/salesRepository.ts","src/next-f/data/repositories/clientsRepository.ts","src/next-f/data/repositories/servicesRepository.ts","src/next-f/data/repositories/projectsRepository.ts","src/next-f/data/repositories/billingRepository.ts","src/next-f/data/repositories/sitesRepository.ts","src/next-f/data/repositories/supportRepository.ts",
   "src/gaming-store/data/repositories/catalogRepository.ts","src/gaming-store/data/repositories/ordersRepository.ts","src/gaming-store/data/repositories/suppliersRepository.ts","src/gaming-store/data/repositories/supportRepository.ts",
   "src/software/data/repositories/catalogRepository.ts","src/software/data/repositories/commercialRepository.ts","src/software/data/repositories/licensingRepository.ts","src/software/data/repositories/releasesRepository.ts","src/software/data/repositories/deliveryRepository.ts","src/software/data/repositories/supportRepository.ts",
-  "docs/NEXT-F-CMS-FINAL-ARCHITECTURE.md"
+  "docs/architecture/NEXT-F-CMS-FINAL-ARCHITECTURE.md"
 ];
 for(const file of required)check(`file ${file}`,exists(file));
 const app=read("src/app/App.tsx"), nav=read("src/app/navigation.ts"), permissions=read("src/app/auth/permissions.ts"), authTypes=read("src/app/auth/types.ts"), platformStore=read("src/platform/services/platformStore.ts"), ops=read("src/platform/services/platformOperationsStore.ts"), digitalAdmin=read("src/next-f/operations/digitalAdminStore.ts"), settings=read("src/next-f/settings/settingsRepository.ts"), sales=read("src/next-f/data/repositories/salesRepository.ts"), projects=read("src/next-f/data/repositories/projectsRepository.ts"), cleanup=read("src/platform/cleanup/CleanupPage.tsx"), acceptance=read("src/services/acceptance/finalAcceptance.ts");

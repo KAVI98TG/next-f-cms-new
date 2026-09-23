@@ -8,12 +8,12 @@ const read=(path)=>fs.readFileSync(path,"utf8");
 [
   "src/next-f/website-platform/customerCapabilityPolicyStore.ts",
   "src/next-f/website-platform/WebsitePlatformPage.tsx",
-  "docs/V0.16.0-SERVICE-ENTITLEMENTS-CUSTOMER-CAPABILITY-POLICY.md",
+  "docs/releases/V0.16.0-SERVICE-ENTITLEMENTS-CUSTOMER-CAPABILITY-POLICY.md",
 ].forEach((path)=>check(`file ${path}`,exists(path)));
 
 const policy=read("src/next-f/website-platform/customerCapabilityPolicyStore.ts");
 const page=read("src/next-f/website-platform/WebsitePlatformPage.tsx");
-const scope=read("docs/NEXT-F-CMS-UPGRADE-MASTER-PLAN.md");
+const scope=read("docs/planning/NEXT-F-CMS-UPGRADE-MASTER-PLAN.md");
 const pkg=JSON.parse(read("package.json"));
 const version=read("VERSION").trim();
 const appVersion=read("src/app/version.ts");

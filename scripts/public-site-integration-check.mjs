@@ -10,8 +10,8 @@ const files=[
   "src/services/backend/localPrototype.ts",
   "src/services/backend/publicSiteApi.ts",
   "src/next-f/website-platform/WebsitePlatformPage.tsx",
-  "docs/V0.19.0-NEXTF-LK-FIRST-PARTY-INTEGRATION.md",
-  "docs/QA-V0.19.0.md",
+  "docs/releases/V0.19.0-NEXTF-LK-FIRST-PARTY-INTEGRATION.md",
+  "docs/qa/QA-V0.19.0.md",
 ];
 files.forEach((path)=>check(`file ${path}`,exists(path)));
 const store=read("src/next-f/website-platform/publicSiteIntegrationStore.ts");
@@ -24,8 +24,8 @@ const page=read("src/next-f/website-platform/WebsitePlatformPage.tsx");
 const types=read("src/next-f/data/types.ts");
 const sales=read("src/next-f/data/repositories/salesRepository.ts");
 const platformOps=read("src/platform/services/platformOperationsStore.ts");
-const scope=read("docs/NEXT-F-CMS-SCOPE-AND-ARCHITECTURE-DIRECTION.md");
-const master=read("docs/NEXT-F-CMS-UPGRADE-MASTER-PLAN.md");
+const scope=read("docs/architecture/NEXT-F-CMS-SCOPE-AND-ARCHITECTURE-DIRECTION.md");
+const master=read("docs/planning/NEXT-F-CMS-UPGRADE-MASTER-PLAN.md");
 const pkg=JSON.parse(read("package.json"));
 const lock=JSON.parse(read("package-lock.json"));
 const version=read("VERSION").trim();

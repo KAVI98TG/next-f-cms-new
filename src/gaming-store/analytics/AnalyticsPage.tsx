@@ -55,7 +55,7 @@ export function GamingAnalyticsPage(){
   if(error&&!snapshot)return <div className="page"><SectionHeader eyebrow="Gaming Store" title="Commerce Analytics" description="Commerce analytics are temporarily unavailable."/><StatePanel state="error" title="Analytics unavailable" description={error} action={<Button onClick={()=>void load()}><RefreshCw size={15}/>Retry</Button>}/></div>;
   if(!snapshot)return null;
   const productColumns:DataTableColumn<GamingAnalyticsProduct>[]=[
-    {key:'product',header:'Product',render:(row)=><div className="entity-cell"><strong>{row.productName}</strong><small>{row.productId}</small></div>},
+    {key:'product',header:'Product',render:(row)=><div className="entity-cell"><strong>{row.productName}</strong></div>},
     {key:'views',header:'Views',render:(row)=><strong>{row.views}</strong>},{key:'checkout',header:'Checkout',render:(row)=><span>{row.checkoutStarted}</span>},{key:'orders',header:'Orders',render:(row)=><span>{row.orders}</span>},{key:'paid',header:'Paid',render:(row)=><span>{row.paidOrders}</span>},{key:'fulfilled',header:'Fulfilled',render:(row)=><span>{row.fulfilledOrders}</span>},{key:'conversion',header:'View → order',render:(row)=><div className="analytics-conversion-cell"><strong>{rate(row.viewToOrderRate)}</strong><span><i style={{width:`${Math.max(0,Math.min(100,row.viewToOrderRate??0))}%`}}/></span></div>},
     ...(snapshot.capabilities.finance?[{key:'revenue',header:'Collected',render:(row:GamingAnalyticsProduct)=><strong>{gamingLkr(row.grossCollectedLkr??0)}</strong>},{key:'margin',header:'Est. margin',render:(row:GamingAnalyticsProduct)=><strong>{gamingLkr(row.estimatedMarginLkr??0)}</strong>}]:[]),
   ];
