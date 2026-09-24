@@ -1,12 +1,12 @@
 {
   "application": "NEXT F CMS",
-  "version": "1.0.62",
-  "baseline": "1.0.61",
-  "releaseDate": "2026-09-23",
+  "version": "1.0.63",
+  "baseline": "1.0.62",
+  "releaseDate": "2026-09-24",
   "schemaOwner": "NEXT F CMS / shared production D1",
   "schemaVersion": "current-production",
   "contractRegistry": "https://contracts.nextf.lk/",
-  "contractVersion": "1.2.0",
+  "contractVersion": "1.4.0",
   "canonical": true,
   "requiredCapabilities": [
     "gaming-dashboard-and-live-operations",
@@ -32,7 +32,11 @@
     "gaming-list-row-hygiene",
     "documentation-information-architecture",
     "stable-form-grid-layout",
-    "no-long-dash-ui-copy"
+    "no-long-dash-ui-copy",
+    "first-party-tracking-collector",
+    "first-party-tracking-sdk",
+    "first-party-analytics-reporting",
+    "first-party-tracking-health"
   ],
   "requiredSecretNames": [
     "CHECKOUT_ADMIN_TOKEN",
@@ -47,9 +51,12 @@
     "NEXTF_MEDIA_R2_ACCOUNT_ID",
     "NEXTF_MEDIA_R2_SECRET_ACCESS_KEY",
     "SERVICE_CREDENTIAL_SECRET",
+    "TRACKING_SERVER_TOKEN",
     "TURNSTILE_SECRET_KEY"
   ],
-  "migrationIds": [],
+  "migrationIds": [
+    "0002_first_party_tracking.sql"
+  ],
   "releaseStatus": "canonical",
   "validation": {
     "sourceRegressionChecks": "passed",

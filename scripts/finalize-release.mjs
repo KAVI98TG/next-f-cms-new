@@ -10,8 +10,8 @@ const run = (label, command, args) => {
 
 const pkg = readJson("package.json");
 const state = readJson("RELEASE-STATE.json");
-if (pkg.version !== "1.0.62" || state.version !== pkg.version || state.baseline !== "1.0.61") {
-  throw new Error("Release finalization is pinned to NEXT F CMS v1.0.62 with canonical parent v1.0.61.");
+if (pkg.version !== "1.0.63" || state.version !== pkg.version || state.baseline !== "1.0.62") {
+  throw new Error("Release finalization is pinned to NEXT F CMS v1.0.63 with canonical parent v1.0.62.");
 }
 if (state.canonical === true && state.releaseStatus === "canonical") {
   console.log("Release is already marked canonical. Re-running verification only.");
@@ -34,4 +34,4 @@ state.validation = {
 };
 fs.writeFileSync("RELEASE-STATE.json", `${JSON.stringify(state, null, 2)}\n`);
 run("Canonical manifest continuity", "npm", ["run", "check:continuity"]);
-console.log("\nNEXT F CMS v1.0.62 is locally validated and marked canonical. Deployment is still a separate operator action.");
+console.log("\nNEXT F CMS v1.0.63 is locally validated and marked canonical. Deployment is still a separate operator action.");

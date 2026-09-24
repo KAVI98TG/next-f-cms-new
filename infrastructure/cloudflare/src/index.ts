@@ -1,4 +1,4 @@
-import type { ProductionEvent, QueueMessageBatchLike, ScheduledControllerLike, WorkerEnv } from "./env";
+import type { ProductionEvent, QueueMessageBatchLike, ScheduledControllerLike, TrackingQueueMessage, WorkerEnv } from "./env";
 import { AccessVerificationError, verifyAccessAssertion } from "./access";
 import { enforcePublicRateLimit, verifyTurnstile } from "./publicIngress";
 import { D1IdempotencyRepository } from "./idempotency";
@@ -7,6 +7,8 @@ import { json, originAllowed, problem, requestId } from "./http";
 import { handleStaffCommand, handleStaffQuery, resolveStaffPrincipal, StaffApiError, type StaffRequestBody } from "./staff";
 import { handleNextfProjectRequest } from "./mainSiteIngest";
 import { servePrivateMedia, servePublicMedia } from "./media";
+import { handleTrackingIngestion, processTrackingEvent } from "./tracking";
+import { serveTrackingSdk } from "./trackingSdk";
 
 const corsHeaders=(origin:string|null,env:WorkerEnv):Record<string,string>=>{
   const allowed=[env.CMS_ORIGIN,env.WORKSPACE_ORIGIN,env.PUBLIC_SITE_ORIGIN];
@@ -14,7 +16,7 @@ const corsHeaders=(origin:string|null,env:WorkerEnv):Record<string,string>=>{
 };
 async function health(env:WorkerEnv){
   const db=await env.DB.prepare("SELECT 1 AS ok").first<{ok:number}>();
-  return {status:db?.ok===1?"ok":"degraded",environment:env.ENVIRONMENT,bindings:{d1:Boolean(env.DB),r2:Boolean(env.FILES),mediaR2:Boolean(env.MEDIA),queue:Boolean(env.EVENTS),rateLimiter:Boolean(env.PUBLIC_RATE_LIMITER)},staffDurableState:true};
+  return {status:db?.ok===1?"ok":"degraded",environment:env.ENVIRONMENT,bindings:{d1:Boolean(env.DB),r2:Boolean(env.FILES),mediaR2:Boolean(env.MEDIA),queue:Boolean(env.EVENTS),trackingQueue:Boolean(env.TRACKING_EVENTS),trackingAnalytics:Boolean(env.TRACKING_ANALYTICS),rateLimiter:Boolean(env.PUBLIC_RATE_LIMITER)},staffDurableState:true};
 }
 function canonical(value:unknown):string{
   if(value===null||typeof value!=="object") return JSON.stringify(value);
@@ -117,6 +119,9 @@ export default {
         response=await servePrivateMedia(env,principal,assetId);
       }
       else if(url.pathname==="/v1/integrations/nextf/project-requests") response=await handleNextfProjectRequest(request,env,id);
+      else if(url.pathname==="/sdk/v1/nextf-tracking.js"&&request.method==="GET") response=serveTrackingSdk();
+      else if(url.pathname==="/tracking/browser") response=await handleTrackingIngestion(request,env,id,"browser");
+      else if(url.pathname==="/tracking/batch") response=await handleTrackingIngestion(request,env,id,"server");
       else if(url.pathname==="/v1/public/leads"&&request.method==="POST") response=await publicCommand(request,env,"public.lead.submit",id);
       else if(url.pathname==="/v1/public/demo-access"&&request.method==="POST") response=await publicCommand(request,env,"public.demo-access.request",id);
       else if(url.pathname==="/v1/public/conversions"&&request.method==="POST") response=await publicCommand(request,env,"public.conversion.track",id);
@@ -129,18 +134,29 @@ export default {
   async scheduled(controller: ScheduledControllerLike, env: WorkerEnv) {
     await runMaintenance(env,"scheduled");
   },
-  async queue(batch: QueueMessageBatchLike<ProductionEvent>, env: WorkerEnv) {
+  async queue(batch: QueueMessageBatchLike<ProductionEvent | TrackingQueueMessage>, env: WorkerEnv) {
     for (const message of batch.messages) {
       const event = message.body;
       try {
-        if (event.type === "system.demo.expiry-sweep" || event.type === "system.retention.cleanup" || event.type === "system.idempotency.cleanup") {
+        if ((event as TrackingQueueMessage).kind === "first-party-tracking") {
+          await processTrackingEvent(env,event as TrackingQueueMessage);
+          message.ack();
+          continue;
+        }
+        const operational=event as ProductionEvent;
+        if (operational.type === "system.demo.expiry-sweep" || operational.type === "system.retention.cleanup" || operational.type === "system.idempotency.cleanup") {
           await runMaintenance(env,"scheduled");
           message.ack();
           continue;
         }
-        await env.DB.prepare("INSERT OR IGNORE INTO outbox_events(id,event_type,idempotency_key,organization_id,workspace_id,payload_json,state,created_at,updated_at) VALUES(?,?,?,?,?,?,\'pending\',?,?)").bind(event.id,event.type,event.idempotencyKey,event.organizationId??null,event.workspaceId??null,JSON.stringify(event.payload),event.occurredAt,new Date().toISOString()).run();
+        await env.DB.prepare("INSERT OR IGNORE INTO outbox_events(id,event_type,idempotency_key,organization_id,workspace_id,payload_json,state,created_at,updated_at) VALUES(?,?,?,?,?,?,\'pending\',?,?)").bind(operational.id,operational.type,operational.idempotencyKey,operational.organizationId??null,operational.workspaceId??null,JSON.stringify(operational.payload),operational.occurredAt,new Date().toISOString()).run();
         message.ack();
       } catch {
+        if ((event as TrackingQueueMessage).kind === "first-party-tracking") {
+          const tracking=event as TrackingQueueMessage;
+          await env.DB.prepare("UPDATE tracking_ingestion_events SET status='failed' WHERE site_id=? AND environment=? AND event_id=? AND status='queued'").bind(tracking.siteId,tracking.environment,tracking.event.eventId).run();
+          await env.DB.prepare("UPDATE tracking_health_counters SET processing_failure_count=processing_failure_count+1,updated_at=? WHERE site_id=? AND environment=?").bind(new Date().toISOString(),tracking.siteId,tracking.environment).run();
+        }
         message.retry();
       }
     }

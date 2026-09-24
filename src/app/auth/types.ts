@@ -11,6 +11,8 @@ export const permissionValues = [
   "platform.backup.manage",
   "platform.cleanup.manage",
   "platform.help.manage",
+  "marketing.analytics.view",
+  "marketing.tracking.view",
   "digital.read",
   "digital.sales.manage",
   "digital.projects.manage",

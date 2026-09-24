@@ -1,5 +1,6 @@
 import type { D1DatabaseLike, WorkerEnv } from "./env";
 import { D1DocumentRepository } from "./repository";
+import { trackingHealth, trackingReport } from "./tracking";
 import { D1IdempotencyRepository } from "./idempotency";
 import { recordAudit } from "./audit";
 import { runMaintenance } from "./maintenance";
@@ -127,6 +128,14 @@ async function requireCustomerWorkspaceScope(input:{body:StaffRequestBody;princi
 export async function handleStaffQuery(input:{operation:string;body:StaffRequestBody;principal:StaffPrincipal;env:WorkerEnv;requestId:string;correlationId:string}){
   if(input.operation==="staff.session.get") return { principalId:input.principal.principalId, staffUserId:input.principal.staffUserId, organizationId:input.principal.organizationId, email:input.principal.email, permissions:input.principal.permissions, assurance:"cloudflare-access" as const };
   const repository=new D1DocumentRepository(input.env.DB);
+  if(input.operation==="staff.marketing.analytics.report.get"){
+    if(!hasPermission(input.principal,"marketing.analytics.view")) throw new StaffApiError(403,"FORBIDDEN","Analytics reporting permission is required");
+    try{return await trackingReport(input.env,input.body.input);}catch(error){if(error instanceof Error&&error.message==="TRACKING_SCOPE_DENIED")throw new StaffApiError(403,"FORBIDDEN","Analytics scope is not available to this principal");throw error;}
+  }
+  if(input.operation==="staff.marketing.tracking.health.get"){
+    if(!hasPermission(input.principal,"marketing.tracking.view")) throw new StaffApiError(403,"FORBIDDEN","Tracking health permission is required");
+    try{return await trackingHealth(input.env,input.body.input);}catch(error){if(error instanceof Error&&error.message==="TRACKING_SCOPE_DENIED")throw new StaffApiError(403,"FORBIDDEN","Tracking scope is not available to this principal");throw error;}
+  }
   if(input.operation==="staff.state.snapshot.get"){
     const rows=await repository.list(STATE_NAMESPACE);
     return { documents: rows.filter((row)=>stateReadAllowed(input.principal,row.id)).map((row)=>({key:row.id,value:row.payload,version:row.version,updatedAt:row.updatedAt})), source:"d1" as const };

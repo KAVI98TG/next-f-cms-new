@@ -22,12 +22,15 @@ export interface QueueMessageLike<T = unknown> { body: T; ack(): void; retry(opt
 export interface QueueMessageBatchLike<T = unknown> { messages: QueueMessageLike<T>[]; }
 export interface ScheduledControllerLike { scheduledTime: number; cron: string; }
 export interface RateLimiterLike { limit(input: { key: string }): Promise<{ success: boolean }> }
+export interface AnalyticsEngineDatasetLike { writeDataPoint(event: { indexes?: string[]; blobs?: string[]; doubles?: number[] }): void; }
 
 export type WorkerEnv = {
   DB: D1DatabaseLike;
   FILES: R2BucketLike;
   MEDIA: R2BucketLike;
   EVENTS: QueueLike<ProductionEvent>;
+  TRACKING_EVENTS: QueueLike<TrackingQueueMessage>;
+  TRACKING_ANALYTICS: AnalyticsEngineDatasetLike;
   PUBLIC_RATE_LIMITER: RateLimiterLike;
   ENVIRONMENT: "staging" | "production";
   CMS_ORIGIN: string;
@@ -53,9 +56,37 @@ export type WorkerEnv = {
   NEXTF_MEDIA_R2_SECRET_ACCESS_KEY?: string;
   TURNSTILE_SECRET_KEY: string;
   SERVICE_CREDENTIAL_SECRET: string;
+  TRACKING_SERVER_TOKEN?: string;
+  TRACKING_SITE_ID: string;
+  TRACKING_ORGANIZATION_ID: string;
+  TRACKING_ALLOWED_ORIGINS: string;
+  TRACKING_EVENT_KEYS: string;
+  TRACKING_CONTRACT_VERSION: string;
+  TRACKING_ENVELOPE_VERSIONS: string;
+  TRACKING_SDK_VERSIONS: string;
   NEXTF_MAIN_SITE_INGEST_TOKEN: string;
   AUDIT_RETENTION_DAYS?: string;
   OUTBOX_RETENTION_DAYS?: string;
+};
+
+export type TrackingQueueMessage = {
+  kind: "first-party-tracking";
+  batchId: string;
+  receivedAt: string;
+  siteId: string;
+  organizationId: string;
+  environment: "development" | "preview" | "staging" | "production";
+  sdk: { sdkId: string; sdkVersion: string };
+  event: {
+    eventId: string;
+    eventKey: string;
+    occurredAt: string;
+    schemaVersion: string;
+    debug: boolean;
+    context: Record<string, unknown>;
+    properties: Record<string, unknown>;
+    source: "browser" | "server";
+  };
 };
 
 export type ProductionEvent = {

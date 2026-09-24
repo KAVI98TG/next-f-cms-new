@@ -2,6 +2,7 @@ import { useEffect, type ReactNode } from "react";
 import { AppShell } from "./layout/AppShell";
 import { useRouter } from "./router/RouterProvider";
 import { PlatformDashboard } from "../platform/dashboard/PlatformDashboard";
+import { FirstPartyAnalyticsPage } from "../platform/dashboard/FirstPartyAnalyticsPage";
 import { UsersPage } from "../platform/users/UsersPage";
 import { AccessPage } from "../platform/roles/AccessPage";
 import { AuditPage } from "../platform/audit/AuditPage";
@@ -75,6 +76,7 @@ function LegacyGamingRedirect({to}:{to:string}){
 
 const routes: Record<string, ReactNode> = {
   "/platform/dashboard": <PlatformDashboard />,
+  "/platform/analytics": <FirstPartyAnalyticsPage />,
   "/platform/users": <UsersPage />,
   "/platform/organizations": <OrganizationsPage />,
   "/platform/domains": <DomainsPage />,

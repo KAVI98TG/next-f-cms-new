@@ -66,5 +66,6 @@ Remove-Item Env:NEXTF_ACCESS_TOKEN -ErrorAction SilentlyContinue
 
 - CMS: `https://cms.nextf.lk`
 - API: `https://cms-api.nextf.lk`
+- Tracking collector and SDK: `https://tracking.nextf.lk`
 - Contracts: `https://contracts.nextf.lk/`
 - Customer Workspace: `https://workspace.nextf.lk`

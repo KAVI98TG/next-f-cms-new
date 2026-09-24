@@ -15,6 +15,10 @@
     {
       "pattern": "media.nextf.lk",
       "custom_domain": true
+    },
+    {
+      "pattern": "tracking.nextf.lk",
+      "custom_domain": true
     }
   ],
   "vars": {
@@ -30,6 +34,13 @@
     "CHECKOUT_CONTRACT_RELEASE": "1.0.0",
     "MEDIA_ORIGIN": "https://media.nextf.lk",
     "NEXTF_MEDIA_R2_BUCKET_NAME": "nextf-media-production",
+    "TRACKING_SITE_ID": "site_nextf_main",
+    "TRACKING_ORGANIZATION_ID": "org_nextf",
+    "TRACKING_ALLOWED_ORIGINS": "https://nextf.lk",
+    "TRACKING_EVENT_KEYS": "page.viewed,cta.clicked,form.started,form.submitted",
+    "TRACKING_CONTRACT_VERSION": "1.4.0",
+    "TRACKING_ENVELOPE_VERSIONS": "1.0.0",
+    "TRACKING_SDK_VERSIONS": "1.0.0",
     "AUDIT_RETENTION_DAYS": "365",
     "OUTBOX_RETENTION_DAYS": "90"
   },
@@ -56,6 +67,10 @@
       {
         "binding": "EVENTS",
         "queue": "nextf-cms-production-events"
+      },
+      {
+        "binding": "TRACKING_EVENTS",
+        "queue": "nextf-tracking-production-events"
       }
     ],
     "consumers": [
@@ -63,9 +78,22 @@
         "queue": "nextf-cms-production-events",
         "dead_letter_queue": "nextf-cms-production-events-dlq",
         "max_retries": 3
+      },
+      {
+        "queue": "nextf-tracking-production-events",
+        "dead_letter_queue": "nextf-tracking-production-events-dlq",
+        "max_batch_size": 20,
+        "max_batch_timeout": 5,
+        "max_retries": 3
       }
     ]
   },
+  "analytics_engine_datasets": [
+    {
+      "binding": "TRACKING_ANALYTICS",
+      "dataset": "nextf_tracking_production"
+    }
+  ],
   "ratelimits": [
     {
       "name": "PUBLIC_RATE_LIMITER",
@@ -95,6 +123,7 @@
       "NEXTF_MEDIA_R2_ACCOUNT_ID",
       "NEXTF_MEDIA_R2_SECRET_ACCESS_KEY",
       "SERVICE_CREDENTIAL_SECRET",
+      "TRACKING_SERVER_TOKEN",
       "TURNSTILE_SECRET_KEY"
     ]
   }

@@ -62,6 +62,12 @@ export const domains: DomainDefinition[] = [
         description: "Platform health and shared operations.",
       },
       {
+        label: "Analytics",
+        path: "/platform/analytics",
+        icon: ChartNoAxesCombined,
+        description: "First-party traffic, event volume and tracking health.",
+      },
+      {
         label: "Users",
         path: "/platform/users",
         icon: UsersRound,

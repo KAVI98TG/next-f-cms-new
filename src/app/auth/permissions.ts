@@ -1,6 +1,7 @@
 import type { Permission } from "./types";
 
 const routePermissions: Array<[string, Permission]> = [
+  ["/platform/analytics", "marketing.analytics.view"],
   ["/platform/users", "platform.users.manage"],
   ["/platform/identity", "platform.users.manage"],
   ["/platform/organizations", "platform.organizations.manage"],

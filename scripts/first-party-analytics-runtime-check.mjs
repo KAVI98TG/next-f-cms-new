@@ -1,0 +1,16 @@
+import fs from "node:fs";
+const read=(file)=>fs.readFileSync(file,"utf8");const pass=[];const fail=[];const check=(label,value)=>value?pass.push(label):fail.push(label);
+const worker=read("infrastructure/cloudflare/src/index.ts");const runtime=read("infrastructure/cloudflare/src/tracking.ts");const sdk=read("infrastructure/cloudflare/src/trackingSdk.ts");const env=read("infrastructure/cloudflare/src/env.ts");const config=read("infrastructure/cloudflare/wrangler.production.jsonc");const migration=read("infrastructure/cloudflare/migrations/0002_first_party_tracking.sql");const permissions=read("src/app/auth/types.ts");const page=read("src/platform/dashboard/FirstPartyAnalyticsPage.tsx");
+check("browser collector route",worker.includes('url.pathname==="/tracking/browser"'));
+check("server collector route",worker.includes('url.pathname==="/tracking/batch"'));
+check("dedupe boundary",runtime.includes("INSERT OR IGNORE INTO tracking_ingestion_events"));
+check("consent is fail closed",runtime.includes('state==="granted"')&&runtime.includes('status:"restricted"'));
+check("property privacy denylist",runtime.includes("PROHIBITED_KEY")&&runtime.includes('reject("prohibited-property")'));
+check("queue processing is idempotent",runtime.includes('existing.status==="processed"'));
+check("raw event payload is not persisted",!migration.includes("properties_json")&&!migration.includes("context_json"));
+check("tracking queue is isolated",env.includes("TRACKING_EVENTS")&&config.includes("nextf-tracking-production-events-dlq"));
+check("Analytics Engine is bound",env.includes("TRACKING_ANALYTICS")&&config.includes("nextf_tracking_production"));
+check("public SDK is bounded",sdk.includes("MAX_QUEUE=20")&&sdk.includes("MAX_ATTEMPTS=3")&&sdk.includes("keepalive:true"));
+check("canonical reporting permissions",permissions.includes('"marketing.analytics.view"')&&permissions.includes('"marketing.tracking.view"'));
+check("CMS analytics surface",page.includes("First-party analytics")&&page.includes("Tracking health"));
+console.log(`NEXT F first-party analytics runtime check: ${pass.length} passed, ${fail.length} failed`);for(const item of pass)console.log(`PASS  ${item}`);for(const item of fail)console.error(`FAIL  ${item}`);if(fail.length)process.exit(1);

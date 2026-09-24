@@ -1,5 +1,11 @@
 # NEXT F CMS Release Notes
 
+## v1.0.63 - First-Party Analytics Runtime
+
+Canonical parent: **v1.0.62**. Adds the Phase 41 reference collector, isolated Queue/DLQ, D1 deduplication and hourly aggregates, Analytics Engine sink, bounded SDK, permission-controlled reporting/health APIs, and Platform Analytics screen. Includes migration `0002_first_party_tracking.sql`, the `tracking.nextf.lk` Worker domain, and a new `TRACKING_SERVER_TOKEN` secret. Finalization and the Cloudflare production rollout completed on 2026-09-24; the runtime remains dormant until the main Site completes its explicit Contract Registry upgrade.
+
+See `docs/releases/V1.0.63-FIRST-PARTY-ANALYTICS-RUNTIME.md`.
+
 ## v1.0.62 - Form and Content Clarity
 
 Canonical parent: **v1.0.61**. Fixes uneven/stretched modal form controls, gives long modal fields deliberate full-width rows, moves the product supplier-name reset into the field header, cleans homepage-section and hero-slide editor layouts, and removes long-dash characters from UI copy with a regression guard. Pages/frontend only; no D1 migration, Worker/API contract change, binding change, or new secret.

@@ -1,19 +1,24 @@
 # NEXT F CMS - Current Project Status
 
-**Source release:** v1.0.62 - Form and Content Clarity  
-**Canonical parent:** v1.0.61  
-**Release authority:** `RELEASE-STATE.json`  
-**Production CMS:** `https://cms.nextf.lk`  
-**Production API:** `https://cms-api.nextf.lk`  
-**Live Contracts Registry:** `https://contracts.nextf.lk/` - Production v1.2.0 at release preparation time
+**Source release:** v1.0.63 - First-Party Analytics Runtime
+
+**Canonical parent:** v1.0.62
+
+**Release authority:** `RELEASE-STATE.json`
+
+**Production CMS:** `https://cms.nextf.lk`
+
+**Production API:** `https://cms-api.nextf.lk`
+
+**Runtime contract target:** Contract Registry v1.4.0 / Phase 41
 
 ## Current release
 
-v1.0.62 is a focused frontend UI cleanup built forward from v1.0.61. It does not change CMS business behavior, the production API contract, D1 schema, Worker bindings, or required secrets.
+v1.0.63 is the canonical, deployed first-party analytics runtime release. It adds public and server collectors, queue processing, D1 aggregates, Analytics Engine delivery, a bounded browser SDK, health/reporting APIs, canonical permissions and a CMS analytics surface.
 
-The release stabilizes two-column modal forms, makes long controls deliberately span both columns, cleans the Catalog product editor and Storefront section/hero editors, simplifies Pricing mode copy, and establishes a no-long-dash rule for UI content.
+The main Site remains pinned to Contract Registry v1.0.0. The runtime is deployed dormant; SDK installation and production event collection require a separate explicit Site upgrade review to v1.4.0.
 
-Static regression **71/71 passed** and the targeted release gate passed during packaging. The package remains a candidate until `npm run release:finalize` completes the frontend production build and Worker/API typecheck.
+Release finalization, Worker typecheck, frontend build, remote D1 migration, Cloudflare resource provisioning, Worker deployment and Pages deployment passed on 2026-09-24. Live health and SDK-delivery checks passed; authenticated browser acceptance and production event ingestion remain intentionally unrun.
 
 ## Current UI baseline
 
