@@ -1,5 +1,7 @@
 # NEXT F CMS — Deployment Guide
 
+> **New-account migration hold (2026-09-29):** Do not run any deployment, remote D1 migration, or old-account mutation until the owner explicitly approves new-account deployment. The local production Worker config now targets account `df47917ecc2d22a3612202862f42fb38` and new D1 `0784f4cf-85c1-4fe5-9f4f-b4c3af11f13e`, but new Access and other account-bound resources remain unverified. CMS staging is not being migrated. See `docs/planning/NEW-CLOUDFLARE-PRODUCTION-ACCOUNT-MIGRATION.md`. The commands below are historical/general guidance, **not authorization to run them now**.
+
 This is the current operator deployment guide. Version-specific release records may narrow the deployment scope further; they must not silently broaden it.
 
 ## 1. Install the locked dependencies

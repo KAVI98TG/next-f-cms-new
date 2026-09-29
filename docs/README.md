@@ -37,6 +37,7 @@ Historical documents must not override the live Contracts Registry or current re
 - `governance/PROJECT-RULES.md` — short mandatory project rules
 - `governance/CMS-UI-CONTENT-AND-TYPOGRAPHY-STANDARD.md` — UI content and readability standard
 - `architecture/NEXT-F-CMS-FINAL-ARCHITECTURE.md` — system architecture reference
+- `planning/NEW-CLOUDFLARE-PRODUCTION-ACCOUNT-MIGRATION.md` — active migration hold, new-account inventory and proposed cutover sequence; not deployment authority
 
 ## Documentation rules
 

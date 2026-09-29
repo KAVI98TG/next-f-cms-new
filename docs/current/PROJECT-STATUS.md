@@ -12,6 +12,8 @@
 
 **Runtime contract target:** Contract Registry v1.4.0 / Phase 41
 
+**Cloudflare account migration:** CMS v1.0.64 remains the live production baseline. The owner is manually migrating production ownership to account `df47917ecc2d22a3612202862f42fb38` and has reported D1/R2 transfer complete. No new-account deployment is approved; CMS staging is excluded. Local config preparation and the pending verification/cutover plan are recorded in `docs/planning/NEW-CLOUDFLARE-PRODUCTION-ACCOUNT-MIGRATION.md`. Unreleased multi-Site analytics code must not be deployed as v1.0.64.
+
 ## Current release
 
 v1.0.64 is the canonical, deployed analytics dashboard release. It turns the Platform Analytics surface into a decision-ready view of canonical page-view, CTA, form-start and form-submission aggregates, with range-aware trends, event progression, event mix, pipeline quality and hourly detail.

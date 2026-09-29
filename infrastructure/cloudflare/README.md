@@ -1,5 +1,7 @@
 # NEXT F CMS Cloudflare Production Adapter
 
+> Production account migration is on deployment hold. Local Worker config pins the new account/D1 but has unresolved new-account Access values. Do not deploy, apply remote migrations, or modify the old account. See `docs/planning/NEW-CLOUDFLARE-PRODUCTION-ACCOUNT-MIGRATION.md`.
+
 This directory is the production-infrastructure foundation for the internal NEXT F CMS and the shared backend boundary.
 
 ## Bindings
