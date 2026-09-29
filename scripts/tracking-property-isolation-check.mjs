@@ -1,0 +1,55 @@
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
+import { DatabaseSync } from "node:sqlite";
+import { build } from "esbuild";
+
+const root=resolve(import.meta.dirname,"..");
+const contractsRoot=resolve(root,"../NEXT-F-CONTRACTS/next-f-contracts");
+const siteRoot=resolve(root,"../NEXT F MAIN NEW SITE/NEXT F MAIN WEBSITE");
+const {GENERATED_VALIDATION}=await import(pathToFileURL(resolve(contractsRoot,"js/generated-validation.js")).href);
+const {parseAndValidateManifest}=await import(pathToFileURL(resolve(contractsRoot,"js/manifest-validation-core.js")).href);
+const bundle=await build({entryPoints:[resolve(root,"infrastructure/cloudflare/src/trackingProperties.ts")],bundle:true,platform:"node",format:"esm",write:false});
+const {provisionTrackingProperty,reconcileTrackingProperty,suspendTrackingProperty,requireTrackingBinding,listTrackingProperties}=await import(`data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].contents).toString("base64")}`);
+const maintenanceBundle=await build({entryPoints:[resolve(root,"infrastructure/cloudflare/src/maintenance.ts")],bundle:true,platform:"node",format:"esm",write:false});
+const {retryTrackingLifecycleOutbox}=await import(`data:text/javascript;base64,${Buffer.from(maintenanceBundle.outputFiles[0].contents).toString("base64")}`);
+const sqlite=new DatabaseSync(":memory:");
+for(const name of ["0001_core.sql","0002_first_party_tracking.sql","0003_tracking_properties.sql","0004_tracking_configuration_records.sql","0005_tracking_write_preconditions.sql"])sqlite.exec(readFileSync(resolve(root,"infrastructure/cloudflare/migrations",name),"utf8"));
+function d1Statement(sql){let params=[];return {bind(...values){params=values;return this;},async first(){return sqlite.prepare(sql).get(...params)||null;},async all(){return {results:sqlite.prepare(sql).all(...params)};},async run(){const result=sqlite.prepare(sql).run(...params);return {success:true,meta:{changes:result.changes}};}};}
+const db={prepare:d1Statement,async batch(statements){sqlite.exec("BEGIN");try{const results=[];for(const statement of statements)results.push(await statement.run());sqlite.exec("COMMIT");return results;}catch(error){sqlite.exec("ROLLBACK");throw error;}}};
+const events=[];
+const env={DB:db,ENVIRONMENT:"production",TRACKING_SDK_VERSIONS:"1.0.0",TRACKING_ENVELOPE_VERSIONS:"1.0.0",EVENTS:{async send(event){events.push(event);}}};
+const principal={organizationId:"org_nextf",permissions:["platform.sites.view","marketing.tracking.view","marketing.tracking.manage"]};
+const proof={requestId:"req_test",correlationId:"corr_test",accountId:"account_test",idempotencyKey:"idem_test"};
+const main=JSON.parse(readFileSync(resolve(siteRoot,"nextf.site.json"),"utf8"));
+const second=structuredClone(main);second.site.siteId="site_nextf_isolation_test";second.site.name="NEXT F Analytics Isolation Test";second.site.primaryUrl="https://analytics-test.nextf.invalid";
+for(const item of second.environments){item.baseUrl=item.kind==="development"?"http://localhost:5174":item.kind==="preview"?"https://preview-analytics-test.nextf.invalid":"https://analytics-test.nextf.invalid";}
+function stage(manifest){const text=JSON.stringify(manifest);const validation=parseAndValidateManifest(text,GENERATED_VALIDATION);assert.equal(validation.valid,true,JSON.stringify(validation.diagnostics));const siteId=manifest.site.siteId;const hash=createHash("sha256").update(text).digest("hex");const validationId=`manifest_${hash.slice(0,32)}`;const now=new Date().toISOString();sqlite.prepare("INSERT OR IGNORE INTO core_sites(site_id,organization_id,name,primary_url,status,created_at,updated_at) VALUES(?,'org_nextf',?,?,'active',?,?)").run(siteId,manifest.site.name,manifest.site.primaryUrl,now,now);sqlite.prepare("INSERT INTO site_manifest_validations(validation_id,site_id,contract_version,manifest_sha256,manifest_json,validator_version,validated_at) VALUES(?,?,'1.5.0',?,?,?,?)").run(validationId,siteId,hash,text,GENERATED_VALIDATION.registryVersion,now);}
+stage(main);stage(second);
+const first=await provisionTrackingProperty(env,principal,main.site.siteId,proof);assert.equal(first.created,true);
+const replay=await provisionTrackingProperty(env,principal,main.site.siteId,proof);assert.equal(replay.created,false);assert.equal(replay.property.propertyId,first.property.propertyId);
+env.EVENTS.send=async()=>{throw new Error("simulated queue outage");};
+const secondProperty=await provisionTrackingProperty(env,principal,second.site.siteId,proof);assert.equal(secondProperty.created,true);assert.notEqual(secondProperty.property.propertyId,first.property.propertyId);
+assert.equal(sqlite.prepare("SELECT count(*) AS n FROM outbox_events WHERE state='pending' AND event_type='tracking.provisioned'").get().n,1);
+env.EVENTS.send=async(event)=>{events.push(event);};
+assert.equal((await retryTrackingLifecycleOutbox(env)).trackingLifecycleDispatched,1);
+assert.equal(sqlite.prepare("SELECT count(*) AS n FROM outbox_events WHERE state='pending' AND event_type='tracking.provisioned'").get().n,0);
+assert.equal(sqlite.prepare("SELECT count(*) AS n FROM tracking_properties").get().n,2);
+assert.equal(events.filter((event)=>event.type==="tracking.provisioned").length,2);
+assert.equal((await listTrackingProperties(db,principal,{})).properties.length,2);
+assert.equal((await listTrackingProperties(db,{organizationId:"org_other",permissions:principal.permissions},{})).properties.length,0);
+assert.equal((await requireTrackingBinding(db,main.site.siteId,"production","https://nextf.lk")).organizationId,"org_nextf");
+await assert.rejects(requireTrackingBinding(db,main.site.siteId,"production","https://analytics-test.nextf.invalid"),/Origin is not allowed/);
+await assert.rejects(requireTrackingBinding(db,second.site.siteId,"production","https://nextf.lk"),/Origin is not allowed/);
+await assert.rejects(requireTrackingBinding(db,main.site.siteId,"preview","https://preview.nextf.lk"),/No active tracking binding/);
+const revised=structuredClone(main);revised.site.name="NEXT F Main Website Reconciled";stage(revised);
+const reconciled=await reconcileTrackingProperty(env,principal,main.site.siteId,first.property.updatedAt,proof);assert.equal(reconciled.changed,true);
+await assert.rejects(reconcileTrackingProperty(env,principal,main.site.siteId,first.property.updatedAt,proof),/If-Match/);
+const suspended=await suspendTrackingProperty(env,principal,second.site.siteId,secondProperty.property.updatedAt,"operator.review",proof);assert.equal(suspended.changed,true);
+assert.equal((await suspendTrackingProperty(env,principal,second.site.siteId,suspended.property.updatedAt,"operator.review",proof)).changed,false);
+await assert.rejects(requireTrackingBinding(db,second.site.siteId,"production","https://analytics-test.nextf.invalid"),/No active tracking binding/);
+assert.equal(events.filter((event)=>event.type==="tracking.reconciled").length,1);assert.equal(events.filter((event)=>event.type==="tracking.suspended").length,1);
+assert.equal(sqlite.prepare("SELECT count(*) AS n FROM tracking_write_preconditions").get().n,0);
+console.log("Tracking property isolation: 2 validated Sites, idempotent provision, distinct properties, Organization scope, exact origins, environment separation, If-Match reconciliation, and non-destructive suspension PASS");

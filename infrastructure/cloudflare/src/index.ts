@@ -7,12 +7,13 @@ import { json, originAllowed, problem, requestId } from "./http";
 import { handleStaffCommand, handleStaffQuery, resolveStaffPrincipal, StaffApiError, type StaffRequestBody } from "./staff";
 import { handleNextfProjectRequest } from "./mainSiteIngest";
 import { servePrivateMedia, servePublicMedia } from "./media";
-import { handleTrackingIngestion, processTrackingEvent } from "./tracking";
+import { handleTrackingIngestion, processTrackingEvent, trackingBootstrap } from "./tracking";
+import { isActiveTrackingOrigin } from "./trackingProperties";
 import { serveTrackingSdk } from "./trackingSdk";
 
-const corsHeaders=(origin:string|null,env:WorkerEnv):Record<string,string>=>{
+const corsHeaders=(origin:string|null,env:WorkerEnv,trackingOriginAllowed=false):Record<string,string>=>{
   const allowed=[env.CMS_ORIGIN,env.WORKSPACE_ORIGIN,env.PUBLIC_SITE_ORIGIN];
-  return origin&&allowed.includes(origin)?{"access-control-allow-origin":origin,"access-control-allow-credentials":"true","access-control-allow-headers":"content-type,idempotency-key,x-turnstile-token,x-correlation-id,x-request-id","access-control-allow-methods":"GET,POST,PUT,PATCH,DELETE,OPTIONS","vary":"origin"}:{};
+  return origin&&(allowed.includes(origin)||trackingOriginAllowed)?{"access-control-allow-origin":origin,"access-control-allow-credentials":"true","access-control-allow-headers":"content-type,idempotency-key,x-turnstile-token,x-correlation-id,x-request-id","access-control-allow-methods":"GET,POST,PUT,PATCH,DELETE,OPTIONS","vary":"origin"}:{};
 };
 async function health(env:WorkerEnv){
   const db=await env.DB.prepare("SELECT 1 AS ok").first<{ok:number}>();
@@ -79,12 +80,15 @@ async function staffResponse(request:Request,env:WorkerEnv,id:string,route:{kind
     const body=await request.json() as StaffRequestBody;
     if(route.kind==="query"){
       const data=await handleStaffQuery({operation:route.operation,body,principal,env,requestId:id,correlationId});
-      return json({ok:true,requestId:id,correlationId,data});
+      const updatedAt=data&&typeof data==="object"&&"updatedAt" in data?String(data.updatedAt):undefined;
+      return json({ok:true,requestId:id,correlationId,data},200,updatedAt?{etag:`"${updatedAt}"`}:{});
     }
     const idempotencyKey=request.headers.get("idempotency-key");
     if(!idempotencyKey) return json({ok:false,requestId:id,correlationId,problem:{code:"IDEMPOTENCY_KEY_REQUIRED",title:"Idempotency key required",detail:"Staff mutations require Idempotency-Key",requestId:id,correlationId,retryable:false}},400);
-    const data=await handleStaffCommand({operation:route.operation,body,principal,env,idempotencyKey,requestId:id,correlationId});
-    return json({ok:true,requestId:id,correlationId,data});
+    const data=await handleStaffCommand({operation:route.operation,body,principal,env,idempotencyKey,requestId:id,correlationId,ifMatch:request.headers.get("if-match")||undefined});
+    const property=data&&typeof data==="object"&&"property" in data?data.property:undefined;
+    const updatedAt=property&&typeof property==="object"&&"updatedAt" in property?String(property.updatedAt):undefined;
+    return json({ok:true,requestId:id,correlationId,data},200,updatedAt?{etag:`"${updatedAt}"`}:{});
   }catch(error){
     const status=error instanceof StaffApiError||error instanceof AccessVerificationError?error.status:500;
     const code=error instanceof StaffApiError||error instanceof AccessVerificationError?error.code:"INTERNAL_ERROR";
@@ -102,8 +106,10 @@ export default {
       if(publicAsset&&(request.method==="GET"||request.method==="HEAD")) return servePublicMedia(request,env,decodeURIComponent(publicAsset[1]));
       return new Response("Not found",{status:404,headers:{"cache-control":"no-store","x-content-type-options":"nosniff"}});
     }
-    if(!originAllowed(origin,allowed)) return problem(403,"ORIGIN_DENIED","Request origin is not allowlisted",id);
-    if(request.method==="OPTIONS") return new Response(null,{status:204,headers:corsHeaders(origin,env)});
+    const trackingPath=url.pathname==="/tracking/browser"||url.pathname==="/tracking/batch"||url.pathname.startsWith("/tracking/bootstrap/")||url.pathname==="/sdk/v1/nextf-tracking.js";
+    const trackingOriginAllowed=Boolean(env.TRACKING_PROPERTY_ROUTING_ENABLED==="true"&&trackingPath&&origin&&await isActiveTrackingOrigin(env.DB,origin));
+    if(!originAllowed(origin,allowed)&&!trackingOriginAllowed) return problem(403,"ORIGIN_DENIED","Request origin is not allowlisted",id);
+    if(request.method==="OPTIONS") return new Response(null,{status:204,headers:corsHeaders(origin,env,trackingOriginAllowed)});
     let response:Response;
     try{
       const staff=staffRoute(url.pathname);
@@ -122,13 +128,14 @@ export default {
       else if(url.pathname==="/sdk/v1/nextf-tracking.js"&&request.method==="GET") response=serveTrackingSdk();
       else if(url.pathname==="/tracking/browser") response=await handleTrackingIngestion(request,env,id,"browser");
       else if(url.pathname==="/tracking/batch") response=await handleTrackingIngestion(request,env,id,"server");
+      else if(url.pathname.match(/^\/tracking\/bootstrap\/[^/]+$/)) response=await trackingBootstrap(request,env,decodeURIComponent(url.pathname.split("/")[3]),id);
       else if(url.pathname==="/v1/public/leads"&&request.method==="POST") response=await publicCommand(request,env,"public.lead.submit",id);
       else if(url.pathname==="/v1/public/demo-access"&&request.method==="POST") response=await publicCommand(request,env,"public.demo-access.request",id);
       else if(url.pathname==="/v1/public/conversions"&&request.method==="POST") response=await publicCommand(request,env,"public.conversion.track",id);
       else if(staff) response=await staffResponse(request,env,id,staff);
       else response=problem(404,"NOT_FOUND","No production API route is registered",id);
     }catch(error){response=problem(500,"INTERNAL_ERROR",error instanceof Error?error.message:"Unexpected production adapter failure",id)}
-    const headers=new Headers(response.headers); for(const [key,value] of Object.entries(corsHeaders(origin,env))) headers.set(key,value); headers.set("x-request-id",id); headers.set("x-content-type-options","nosniff"); headers.set("referrer-policy","no-referrer");
+    const headers=new Headers(response.headers); for(const [key,value] of Object.entries(corsHeaders(origin,env,trackingOriginAllowed))) headers.set(key,value); headers.set("x-request-id",id); headers.set("x-content-type-options","nosniff"); headers.set("referrer-policy","no-referrer");
     return new Response(response.body,{status:response.status,statusText:response.statusText,headers});
   },
   async scheduled(controller: ScheduledControllerLike, env: WorkerEnv) {

@@ -1,8 +1,8 @@
 {
   "application": "NEXT F CMS",
-  "version": "1.0.63",
-  "baseline": "1.0.62",
-  "releaseDate": "2026-09-24",
+  "version": "1.0.64",
+  "baseline": "1.0.63",
+  "releaseDate": "2026-09-28",
   "schemaOwner": "NEXT F CMS / shared production D1",
   "schemaVersion": "current-production",
   "contractRegistry": "https://contracts.nextf.lk/",
@@ -36,7 +36,8 @@
     "first-party-tracking-collector",
     "first-party-tracking-sdk",
     "first-party-analytics-reporting",
-    "first-party-tracking-health"
+    "first-party-tracking-health",
+    "first-party-analytics-decision-dashboard"
   ],
   "requiredSecretNames": [
     "CHECKOUT_ADMIN_TOKEN",

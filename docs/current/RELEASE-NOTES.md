@@ -1,8 +1,14 @@
 # NEXT F CMS Release Notes
 
+## v1.0.64 - Analytics Decision Dashboard
+
+Canonical parent: **v1.0.63**. Replaces the initial first-party analytics status view with a decision-ready dashboard built only from the canonical hourly event aggregates and collector health APIs. Adds range-aware event KPIs, an event trend, event-progression funnel, event mix, data-quality indicators, collection freshness, and hourly detail while explicitly avoiding unsupported unique-user, session, attribution, or revenue claims. Form contents and contact details remain excluded from analytics. Pages/frontend only; no D1 migration, Worker/API contract change, binding change, or new secret.
+
+See `docs/releases/V1.0.64-FIRST-PARTY-ANALYTICS-DASHBOARD.md`.
+
 ## v1.0.63 - First-Party Analytics Runtime
 
-Canonical parent: **v1.0.62**. Adds the Phase 41 reference collector, isolated Queue/DLQ, D1 deduplication and hourly aggregates, Analytics Engine sink, bounded SDK, permission-controlled reporting/health APIs, and Platform Analytics screen. Includes migration `0002_first_party_tracking.sql`, the `tracking.nextf.lk` Worker domain, and a new `TRACKING_SERVER_TOKEN` secret. Finalization and the Cloudflare production rollout completed on 2026-09-24; the runtime remains dormant until the main Site completes its explicit Contract Registry upgrade.
+Canonical parent: **v1.0.62**. Adds the Phase 41 reference collector, isolated Queue/DLQ, D1 deduplication and hourly aggregates, Analytics Engine sink, bounded SDK, permission-controlled reporting/health APIs, and Platform Analytics screen. Includes migration `0002_first_party_tracking.sql`, the `tracking.nextf.lk` Worker domain, and a new `TRACKING_SERVER_TOKEN` secret. Finalization and the Cloudflare production rollout completed on 2026-09-24. The main Site completed its explicit Contract Registry v1.4.0 activation on 2026-09-28 and production collection is active.
 
 See `docs/releases/V1.0.63-FIRST-PARTY-ANALYTICS-RUNTIME.md`.
 

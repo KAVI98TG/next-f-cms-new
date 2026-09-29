@@ -1,6 +1,7 @@
 import type { D1DatabaseLike, WorkerEnv } from "./env";
 import { D1DocumentRepository } from "./repository";
 import { trackingHealth, trackingReport } from "./tracking";
+import { getTrackingProperty, listTrackingProperties, provisionTrackingProperty, reconcileTrackingProperty, suspendTrackingProperty, TrackingPropertyError } from "./trackingProperties";
 import { D1IdempotencyRepository } from "./idempotency";
 import { recordAudit } from "./audit";
 import { runMaintenance } from "./maintenance";
@@ -130,11 +131,18 @@ export async function handleStaffQuery(input:{operation:string;body:StaffRequest
   const repository=new D1DocumentRepository(input.env.DB);
   if(input.operation==="staff.marketing.analytics.report.get"){
     if(!hasPermission(input.principal,"marketing.analytics.view")) throw new StaffApiError(403,"FORBIDDEN","Analytics reporting permission is required");
-    try{return await trackingReport(input.env,input.body.input);}catch(error){if(error instanceof Error&&error.message==="TRACKING_SCOPE_DENIED")throw new StaffApiError(403,"FORBIDDEN","Analytics scope is not available to this principal");throw error;}
+    try{return await trackingReport(input.env,input.body.input,input.principal.organizationId);}catch(error){if(error instanceof TrackingPropertyError||error instanceof Error&&error.message==="TRACKING_SCOPE_DENIED")throw new StaffApiError(403,"FORBIDDEN","Analytics scope is not available to this principal");throw error;}
   }
   if(input.operation==="staff.marketing.tracking.health.get"){
     if(!hasPermission(input.principal,"marketing.tracking.view")) throw new StaffApiError(403,"FORBIDDEN","Tracking health permission is required");
-    try{return await trackingHealth(input.env,input.body.input);}catch(error){if(error instanceof Error&&error.message==="TRACKING_SCOPE_DENIED")throw new StaffApiError(403,"FORBIDDEN","Tracking scope is not available to this principal");throw error;}
+    try{return await trackingHealth(input.env,input.body.input,input.principal.organizationId);}catch(error){if(error instanceof TrackingPropertyError||error instanceof Error&&error.message==="TRACKING_SCOPE_DENIED")throw new StaffApiError(403,"FORBIDDEN","Tracking scope is not available to this principal");throw error;}
+  }
+  if(input.operation==="api.nextf-admin.list-tracking-properties"){
+    try{return await listTrackingProperties(input.env.DB,input.principal,input.body.input);}catch(error){if(error instanceof TrackingPropertyError)throw new StaffApiError(error.code==="FORBIDDEN"?403:404,error.code,error.message);throw error;}
+  }
+  if(input.operation==="api.nextf-admin.get-tracking-property"){
+    const query=input.body.input as Record<string,unknown>|undefined;
+    try{return await getTrackingProperty(input.env.DB,input.principal,typeof query?.siteId==="string"?query.siteId:"");}catch(error){if(error instanceof TrackingPropertyError)throw new StaffApiError(error.code==="FORBIDDEN"?403:404,error.code,error.message);throw error;}
   }
   if(input.operation==="staff.state.snapshot.get"){
     const rows=await repository.list(STATE_NAMESPACE);
@@ -212,7 +220,7 @@ export async function handleStaffQuery(input:{operation:string;body:StaffRequest
   throw new StaffApiError(404,"NOT_FOUND",`No staff query handler is registered for ${input.operation}`);
 }
 
-export async function handleStaffCommand(input:{operation:string;body:StaffRequestBody;principal:StaffPrincipal;env:WorkerEnv;idempotencyKey:string;requestId:string;correlationId:string}){
+export async function handleStaffCommand(input:{operation:string;body:StaffRequestBody;principal:StaffPrincipal;env:WorkerEnv;idempotencyKey:string;requestId:string;correlationId:string;ifMatch?:string}){
   const repository=new D1DocumentRepository(input.env.DB); const idempotency=new D1IdempotencyRepository(input.env.DB);
   const commandInput=input.body.input as Record<string,unknown>|undefined;
   const requestHash=await sha256(canonical({operation:input.operation,input:commandInput,workspaceScope:input.body.workspaceScope}));
@@ -221,6 +229,27 @@ export async function handleStaffCommand(input:{operation:string;body:StaffReque
   if(claim.outcome==="replay"&&claim.record.state==="claimed") throw new StaffApiError(409,"IDEMPOTENCY_IN_PROGRESS","A command with this idempotency key is still in progress");
   if(claim.outcome==="replay"&&claim.record.state==="failed") throw new StaffApiError(409,"IDEMPOTENCY_PREVIOUSLY_FAILED","The previous command attempt with this idempotency key failed");
   try{
+  if(input.operation==="api.nextf-admin.provision-tracking-property"){
+      if(claim.outcome==="replay"){try{return {...JSON.parse(claim.record.response_reference) as Record<string,unknown>,replayed:true};}catch{throw new StaffApiError(409,"IDEMPOTENCY_REPLAY_RESULT_UNAVAILABLE","The completed property result cannot be replayed safely");}}
+      const siteId=typeof commandInput?.siteId==="string"?commandInput.siteId.trim():"";
+      if(!siteId)throw new StaffApiError(400,"VALIDATION_FAILED","Canonical siteId is required");
+      let response:Awaited<ReturnType<typeof provisionTrackingProperty>>;
+      try{response=await provisionTrackingProperty(input.env,input.principal,siteId,{requestId:input.requestId,correlationId:input.correlationId,accountId:input.principal.accountId,idempotencyKey:input.idempotencyKey});}catch(error){if(error instanceof TrackingPropertyError)throw new StaffApiError(error.code==="FORBIDDEN"?403:error.code==="NOT_FOUND"?404:error.code==="CONFLICT"?409:400,error.code,error.message);throw error;}
+      await idempotency.complete(input.idempotencyKey,JSON.stringify(response));
+      return response;
+    }
+  if(input.operation==="api.nextf-admin.reconcile-tracking-property"||input.operation==="api.nextf-admin.suspend-tracking-property"){
+      if(claim.outcome==="replay"){try{return {...JSON.parse(claim.record.response_reference) as Record<string,unknown>,replayed:true};}catch{throw new StaffApiError(409,"IDEMPOTENCY_REPLAY_RESULT_UNAVAILABLE","The completed property result cannot be replayed safely");}}
+      const siteId=typeof commandInput?.siteId==="string"?commandInput.siteId.trim():"";
+      if(!siteId)throw new StaffApiError(400,"VALIDATION_FAILED","Canonical siteId is required");
+      const audit={requestId:input.requestId,correlationId:input.correlationId,accountId:input.principal.accountId};
+      try{
+        const response=input.operation==="api.nextf-admin.reconcile-tracking-property"
+          ?await reconcileTrackingProperty(input.env,input.principal,siteId,input.ifMatch||"",audit)
+          :await suspendTrackingProperty(input.env,input.principal,siteId,input.ifMatch||"",typeof commandInput?.reasonCode==="string"?commandInput.reasonCode:"",audit);
+        await idempotency.complete(input.idempotencyKey,JSON.stringify(response));return response;
+      }catch(error){if(error instanceof TrackingPropertyError)throw new StaffApiError(error.code==="FORBIDDEN"?403:error.code==="NOT_FOUND"?404:error.code==="PRECONDITION_FAILED"?412:error.code==="CONFLICT"?409:400,error.code,error.message);throw error;}
+    }
   if(input.operation==="staff.media.upload.create"){
       const purpose=String(commandInput?.purpose||"");
       const required=purpose==="support_evidence"?"gaming.orders.manage":"gaming.products.manage";

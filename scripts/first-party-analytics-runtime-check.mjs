@@ -12,5 +12,7 @@ check("tracking queue is isolated",env.includes("TRACKING_EVENTS")&&config.inclu
 check("Analytics Engine is bound",env.includes("TRACKING_ANALYTICS")&&config.includes("nextf_tracking_production"));
 check("public SDK is bounded",sdk.includes("MAX_QUEUE=20")&&sdk.includes("MAX_ATTEMPTS=3")&&sdk.includes("keepalive:true"));
 check("canonical reporting permissions",permissions.includes('"marketing.analytics.view"')&&permissions.includes('"marketing.tracking.view"'));
-check("CMS analytics surface",page.includes("First-party analytics")&&page.includes("Tracking health"));
+check("CMS analytics surface",page.includes("First-party analytics")&&page.includes("Events over time")&&page.includes("Event progression")&&page.includes("Collection health"));
+check("analytics dashboard uses real canonical events",["page.viewed","cta.clicked","form.started","form.submitted"].every((event)=>page.includes(event)));
+check("analytics dashboard preserves measurement honesty",page.includes("not unique-user conversion")&&page.includes("Form contents and contact details are excluded"));
 console.log(`NEXT F first-party analytics runtime check: ${pass.length} passed, ${fail.length} failed`);for(const item of pass)console.log(`PASS  ${item}`);for(const item of fail)console.error(`FAIL  ${item}`);if(fail.length)process.exit(1);
