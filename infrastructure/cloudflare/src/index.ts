@@ -12,7 +12,7 @@ import { isActiveTrackingOrigin } from "./trackingProperties";
 import { serveTrackingSdk } from "./trackingSdk";
 
 const corsHeaders=(origin:string|null,env:WorkerEnv,trackingOriginAllowed=false):Record<string,string>=>{
-  const allowed=[env.CMS_ORIGIN,env.WORKSPACE_ORIGIN,env.PUBLIC_SITE_ORIGIN];
+  const allowed=[env.CMS_ORIGIN,env.WORKSPACE_ORIGIN,env.PUBLIC_SITE_ORIGIN,env.GAMING_ADMIN_ORIGIN].filter((value):value is string=>Boolean(value));
   return origin&&(allowed.includes(origin)||trackingOriginAllowed)?{"access-control-allow-origin":origin,"access-control-allow-credentials":"true","access-control-allow-headers":"content-type,idempotency-key,x-turnstile-token,x-correlation-id,x-request-id","access-control-allow-methods":"GET,POST,PUT,PATCH,DELETE,OPTIONS","vary":"origin"}:{};
 };
 async function health(env:WorkerEnv){
@@ -99,7 +99,7 @@ async function staffResponse(request:Request,env:WorkerEnv,id:string,route:{kind
 
 export default {
   async fetch(request:Request,env:WorkerEnv):Promise<Response>{
-    const id=requestId(request); const url=new URL(request.url); const origin=request.headers.get("origin"); const allowed=[env.CMS_ORIGIN,env.WORKSPACE_ORIGIN,env.PUBLIC_SITE_ORIGIN];
+    const id=requestId(request); const url=new URL(request.url); const origin=request.headers.get("origin"); const allowed=[env.CMS_ORIGIN,env.WORKSPACE_ORIGIN,env.PUBLIC_SITE_ORIGIN,env.GAMING_ADMIN_ORIGIN].filter((value):value is string=>Boolean(value));
     const mediaHost=env.MEDIA_ORIGIN?new URL(env.MEDIA_ORIGIN).host:"media.nextf.lk";
     if(url.host===mediaHost){
       const publicAsset=url.pathname.match(/^\/a\/([^/]+)$/);
@@ -116,7 +116,16 @@ export default {
       if(url.pathname==="/auth/complete"&&request.method==="GET"){
         const identity=await verifyAccessAssertion(request,env);
         await resolveStaffPrincipal(env.DB,identity);
-        response=new Response(null,{status:302,headers:{location:env.CMS_ORIGIN,"cache-control":"no-store"}});
+        const requestedReturn=url.searchParams.get("returnTo");
+        let location=env.CMS_ORIGIN;
+        if(requestedReturn&&env.GAMING_ADMIN_ORIGIN){
+          try{
+            const target=new URL(requestedReturn);
+            const gamingOrigin=new URL(env.GAMING_ADMIN_ORIGIN);
+            if(target.origin===gamingOrigin.origin&&(target.pathname==="/admin"||target.pathname.startsWith("/admin/"))) location=target.toString();
+          }catch{/* Invalid return target falls back to the CMS origin. */}
+        }
+        response=new Response(null,{status:302,headers:{location,"cache-control":"no-store"}});
       }
       else if(url.pathname==="/health"&&request.method==="GET") response=json({ok:true,requestId:id,data:await health(env)});
       else if(request.method==="GET"&&url.pathname.match(/^\/v1\/staff\/media\/[^/]+\/download$/)){
