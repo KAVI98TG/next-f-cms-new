@@ -36,7 +36,6 @@ export type WorkerEnv = {
   CMS_ORIGIN: string;
   WORKSPACE_ORIGIN: string;
   PUBLIC_SITE_ORIGIN: string;
-  GAMING_ADMIN_ORIGIN?: string;
   ACCESS_TEAM_DOMAIN: string;
   ACCESS_AUD: string;
   CONTRACTS_BASE_URL: string;
