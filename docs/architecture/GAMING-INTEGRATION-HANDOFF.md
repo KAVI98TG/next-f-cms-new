@@ -1,3 +1,5 @@
+> **Superseded for control-plane ownership (Unreleased):** Gaming administration has moved to `gaming.nextf.lk/admin` and the Gaming-owned Admin API. This document remains as historical integration context. CMS is now a read-only Gaming summary consumer and must not be used as the Gaming control plane.
+
 # Gaming Integration Handoff
 
 ## Starting point
