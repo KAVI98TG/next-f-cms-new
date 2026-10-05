@@ -48,3 +48,7 @@ Historical documents must not override the live Contracts Registry or current re
 - Move superseded operational documents to `archive/` instead of leaving them beside current documentation.
 - Do not store secret values, credentials, access tokens, or private keys in documentation.
 - Use `npm run check:docs` to verify the documentation structure and references.
+
+### Gaming control-plane update
+
+Gaming Store administration is now owned by the dedicated Gaming Admin. CMS retains read-only company visibility through the Gaming summary integration; previous Gaming control pages are no longer active.
