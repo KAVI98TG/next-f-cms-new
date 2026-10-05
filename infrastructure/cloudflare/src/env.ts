@@ -36,7 +36,6 @@ export type WorkerEnv = {
   CMS_ORIGIN: string;
   WORKSPACE_ORIGIN: string;
   PUBLIC_SITE_ORIGIN: string;
-  GAMING_ADMIN_ORIGIN?: string;
   ACCESS_TEAM_DOMAIN: string;
   ACCESS_AUD: string;
   CONTRACTS_BASE_URL: string;
@@ -45,6 +44,7 @@ export type WorkerEnv = {
   CHECKOUT_CONTRACT_RELEASE?: string;
   CHECKOUT_ADMIN_TOKEN?: string;
   CHECKOUT_SECRET_ADMIN_TOKEN?: string;
+  GAMING_SUMMARY_INGEST_TOKEN?: string;
   GAMING_CMS_OPERATIONS_TOKEN?: string;
   GAMING_CMS_COMMERCE_TOKEN?: string;
   GAMING_CMS_REVIEWS_TOKEN?: string;
