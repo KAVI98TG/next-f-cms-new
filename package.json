@@ -93,7 +93,7 @@
     "check:all-static": "node scripts/all-static-checks.mjs",
     "release:finalize": "node scripts/finalize-release.mjs",
     "check:docs": "node scripts/docs-organization-check.mjs",
-    "check:gaming-admin-origin": "node scripts/gaming-admin-origin-check.mjs"
+    "check:gaming-summary-consumer": "node scripts/gaming-summary-consumer-check.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
