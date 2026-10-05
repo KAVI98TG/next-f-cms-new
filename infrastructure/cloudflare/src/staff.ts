@@ -288,7 +288,7 @@ export async function handleStaffCommand(input:{operation:string;body:StaffReque
     }
     throw new StaffApiError(404,"NOT_FOUND",`No staff command handler is registered for ${input.operation}`);
   }catch(error){
-    const mapped = error instanceof StaffApiError ? error : error instanceof GamingControlError ? new StaffApiError(error.status,error.code,error.message) : error instanceof Error && error.message.includes("Optimistic concurrency conflict") ? new StaffApiError(409,"CONFLICT","Durable state changed since this CMS session loaded. Refresh before retrying the mutation.") : error;
+    const mapped = error instanceof StaffApiError ? error : error instanceof Error && error.message.includes("Optimistic concurrency conflict") ? new StaffApiError(409,"CONFLICT","Durable state changed since this CMS session loaded. Refresh before retrying the mutation.") : error;
     if(claim.outcome==="claimed") await idempotency.fail(input.idempotencyKey,mapped instanceof StaffApiError?mapped.code:"INTERNAL_ERROR");
     throw mapped;
   }
