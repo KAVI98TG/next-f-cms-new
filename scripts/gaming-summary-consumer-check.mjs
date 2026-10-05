@@ -11,7 +11,7 @@ const checks = [
   ['Gaming browser origin removed from CMS config', !config.includes('GAMING_ADMIN_ORIGIN')],
   ['Summary ingest secret is server-side', env.includes('GAMING_SUMMARY_INGEST_TOKEN') && config.includes('GAMING_SUMMARY_INGEST_TOKEN')],
   ['Summary endpoint is registered', index.includes('/v1/integrations/gaming/summary') && index.includes('handleGamingSummary')],
-  ['Summary endpoint is bearer authenticated', summary.includes('GAMING_SUMMARY_INGEST_TOKEN') && summary.includes("authorization"),
+  ['Summary endpoint is bearer authenticated', summary.includes('GAMING_SUMMARY_INGEST_TOKEN') && summary.includes("authorization")],
   ['Summary contract is intentionally small', summary.includes("source: 'nextf-gaming-admin'") && summary.includes('commerce?:') && summary.includes('operations?:') && summary.includes('supplier?:')],
   ['Gaming summary has dedicated storage', migration.includes('gaming_summary_snapshots')],
   ['CMS auth completion returns only to CMS', index.includes('location:env.CMS_ORIGIN') && !index.includes('requestedReturn')],
