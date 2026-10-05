@@ -10,6 +10,7 @@ import { servePrivateMedia, servePublicMedia } from "./media";
 import { handleTrackingIngestion, processTrackingEvent, trackingBootstrap } from "./tracking";
 import { isActiveTrackingOrigin } from "./trackingProperties";
 import { serveTrackingSdk } from "./trackingSdk";
+import { ingestGamingSummary } from "./gamingSummary";
 
 const corsHeaders=(origin:string|null,env:WorkerEnv,trackingOriginAllowed=false):Record<string,string>=>{
   const allowed=[env.CMS_ORIGIN,env.WORKSPACE_ORIGIN,env.PUBLIC_SITE_ORIGIN,env.GAMING_ADMIN_ORIGIN].filter((value):value is string=>Boolean(value));
@@ -133,6 +134,7 @@ export default {
         if(!principal.permissions.includes("gaming.orders.manage")) throw new StaffApiError(403,"FORBIDDEN","Gaming order management permission is required");
         response=await servePrivateMedia(env,principal,assetId);
       }
+      else if(url.pathname==="/v1/integrations/gaming/summary") response=await ingestGamingSummary(request,env,id);
       else if(url.pathname==="/v1/integrations/nextf/project-requests") response=await handleNextfProjectRequest(request,env,id);
       else if(url.pathname==="/sdk/v1/nextf-tracking.js"&&request.method==="GET") response=serveTrackingSdk();
       else if(url.pathname==="/tracking/browser") response=await handleTrackingIngestion(request,env,id,"browser");
