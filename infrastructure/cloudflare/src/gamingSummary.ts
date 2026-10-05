@@ -62,7 +62,7 @@ export async function handleGamingSummary(request:Request,env:WorkerEnv,requestI
   if(!valid(payload))return problem(400,'VALIDATION_FAILED','Gaming summary payload does not match the supported contract',requestId);
   const now=new Date().toISOString();
   await env.DB.prepare(`INSERT INTO gaming_summary_snapshots(source_key,schema_version,generated_at,received_at,payload_json,updated_at)
-    VALUES('gaming',1,?,?,?,?,?)
+    VALUES('gaming',1,?,?,?,?)
     ON CONFLICT(source_key) DO UPDATE SET
       schema_version=excluded.schema_version,
       generated_at=excluded.generated_at,
