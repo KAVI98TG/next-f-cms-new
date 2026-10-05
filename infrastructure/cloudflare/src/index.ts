@@ -10,9 +10,10 @@ import { servePrivateMedia, servePublicMedia } from "./media";
 import { handleTrackingIngestion, processTrackingEvent, trackingBootstrap } from "./tracking";
 import { isActiveTrackingOrigin } from "./trackingProperties";
 import { serveTrackingSdk } from "./trackingSdk";
+import { handleGamingSummary } from "./gamingSummary";
 
 const corsHeaders=(origin:string|null,env:WorkerEnv,trackingOriginAllowed=false):Record<string,string>=>{
-  const allowed=[env.CMS_ORIGIN,env.WORKSPACE_ORIGIN,env.PUBLIC_SITE_ORIGIN,env.GAMING_ADMIN_ORIGIN].filter((value):value is string=>Boolean(value));
+  const allowed=[env.CMS_ORIGIN,env.WORKSPACE_ORIGIN,env.PUBLIC_SITE_ORIGIN];
   return origin&&(allowed.includes(origin)||trackingOriginAllowed)?{"access-control-allow-origin":origin,"access-control-allow-credentials":"true","access-control-allow-headers":"content-type,idempotency-key,x-turnstile-token,x-correlation-id,x-request-id","access-control-allow-methods":"GET,POST,PUT,PATCH,DELETE,OPTIONS","vary":"origin"}:{};
 };
 async function health(env:WorkerEnv){
@@ -99,7 +100,7 @@ async function staffResponse(request:Request,env:WorkerEnv,id:string,route:{kind
 
 export default {
   async fetch(request:Request,env:WorkerEnv):Promise<Response>{
-    const id=requestId(request); const url=new URL(request.url); const origin=request.headers.get("origin"); const allowed=[env.CMS_ORIGIN,env.WORKSPACE_ORIGIN,env.PUBLIC_SITE_ORIGIN,env.GAMING_ADMIN_ORIGIN].filter((value):value is string=>Boolean(value));
+    const id=requestId(request); const url=new URL(request.url); const origin=request.headers.get("origin"); const allowed=[env.CMS_ORIGIN,env.WORKSPACE_ORIGIN,env.PUBLIC_SITE_ORIGIN];
     const mediaHost=env.MEDIA_ORIGIN?new URL(env.MEDIA_ORIGIN).host:"media.nextf.lk";
     if(url.host===mediaHost){
       const publicAsset=url.pathname.match(/^\/a\/([^/]+)$/);
@@ -116,16 +117,7 @@ export default {
       if(url.pathname==="/auth/complete"&&request.method==="GET"){
         const identity=await verifyAccessAssertion(request,env);
         await resolveStaffPrincipal(env.DB,identity);
-        const requestedReturn=url.searchParams.get("returnTo");
-        let location=env.CMS_ORIGIN;
-        if(requestedReturn&&env.GAMING_ADMIN_ORIGIN){
-          try{
-            const target=new URL(requestedReturn);
-            const gamingOrigin=new URL(env.GAMING_ADMIN_ORIGIN);
-            if(target.origin===gamingOrigin.origin&&(target.pathname==="/admin"||target.pathname.startsWith("/admin/"))) location=target.toString();
-          }catch{/* Invalid return target falls back to the CMS origin. */}
-        }
-        response=new Response(null,{status:302,headers:{location,"cache-control":"no-store"}});
+        response=new Response(null,{status:302,headers:{location:env.CMS_ORIGIN,"cache-control":"no-store"}});
       }
       else if(url.pathname==="/health"&&request.method==="GET") response=json({ok:true,requestId:id,data:await health(env)});
       else if(request.method==="GET"&&url.pathname.match(/^\/v1\/staff\/media\/[^/]+\/download$/)){
@@ -134,6 +126,7 @@ export default {
         response=await servePrivateMedia(env,principal,assetId);
       }
       else if(url.pathname==="/v1/integrations/nextf/project-requests") response=await handleNextfProjectRequest(request,env,id);
+      else if(url.pathname==="/v1/integrations/gaming/summary") response=await handleGamingSummary(request,env,id);
       else if(url.pathname==="/sdk/v1/nextf-tracking.js"&&request.method==="GET") response=serveTrackingSdk();
       else if(url.pathname==="/tracking/browser") response=await handleTrackingIngestion(request,env,id,"browser");
       else if(url.pathname==="/tracking/batch") response=await handleTrackingIngestion(request,env,id,"server");
