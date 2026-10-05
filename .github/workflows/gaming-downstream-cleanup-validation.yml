@@ -1,0 +1,26 @@
+name: Gaming Downstream Cleanup Validation
+
+on:
+  push:
+    branches:
+      - feature/gaming-downstream-cleanup
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run check:gaming-downstream-cleanup
+      - run: npx tsc -p infrastructure/cloudflare/tsconfig.json --noEmit
+      - run: npm run build
