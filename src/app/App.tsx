@@ -35,19 +35,7 @@ import { SupportPage } from "../next-f/support/SupportPage";
 import { AutomationPage } from "../next-f/automation/AutomationPage";
 import { ReportsPage } from "../next-f/reports/ReportsPage";
 import { DigitalSettingsPage } from "../next-f/settings/DigitalSettingsPage";
-import { GamingDashboard } from "../gaming-store/dashboard/GamingDashboard";
-import { LiveOperationsPage as GamingLiveOperationsPage } from "../gaming-store/live-operations/LiveOperationsPage";
-import { PricingPage as GamingPricingPage } from "../gaming-store/pricing/PricingPage";
-import { SuppliersPage as GamingSuppliersPage } from "../gaming-store/suppliers/SuppliersPage";
-import { CustomersPage as GamingCustomersPage } from "../gaming-store/customers/CustomersPage";
-import { ReviewsPage as GamingReviewsPage } from "../gaming-store/reviews/ReviewsPage";
-import { FinancePage as GamingFinancePage } from "../gaming-store/finance/FinancePage";
-import { GamingAnalyticsPage } from "../gaming-store/analytics/AnalyticsPage";
-import { PromotionsPage as GamingPromotionsPage } from "../gaming-store/promotions/PromotionsPage";
-import { SupportPage as GamingSupportPage } from "../gaming-store/support/SupportPage";
-import { CatalogVNextPage } from "../gaming-store/vnext/cms/CatalogVNextPage";
-import { StorefrontVNextPage } from "../gaming-store/vnext/cms/StorefrontVNextPage";
-import { PublicGamingStorefront } from "../gaming-store/vnext/public/PublicGamingStorefront";
+import { GamingSummaryPage } from "../gaming-store/summary/GamingSummaryPage";
 import { SoftwareDashboard } from "../software/dashboard/SoftwareDashboard";
 import { ProductsPage as SoftwareProductsPage } from "../software/products/ProductsPage";
 import { ReleasesPage as SoftwareReleasesPage } from "../software/releases/ReleasesPage";
@@ -109,22 +97,22 @@ const routes: Record<string, ReactNode> = {
   "/next-f/automation": <AutomationPage />,
   "/next-f/reports": <ReportsPage />,
   "/next-f/settings": <DigitalSettingsPage />,
-  "/gaming-store/dashboard": <GamingDashboard />,
-  "/gaming-store/live-operations": <GamingLiveOperationsPage />,
-  "/gaming-store/orders": <LegacyGamingRedirect to="/gaming-store/live-operations" />,
-  "/gaming-store/products": <LegacyGamingRedirect to="/gaming-store/catalog" />,
-  "/gaming-store/pricing": <GamingPricingPage />,
-  "/gaming-store/suppliers": <GamingSuppliersPage />,
-  "/gaming-store/customers": <GamingCustomersPage />,
-  "/gaming-store/reviews": <GamingReviewsPage />,
-  "/gaming-store/finance": <GamingFinancePage />,
-  "/gaming-store/analytics": <GamingAnalyticsPage />,
-  "/gaming-store/promotions": <GamingPromotionsPage />,
-  "/gaming-store/support": <GamingSupportPage />,
+  "/gaming-store/dashboard": <GamingSummaryPage />,
+  "/gaming-store/live-operations": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
+  "/gaming-store/orders": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
+  "/gaming-store/products": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
+  "/gaming-store/pricing": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
+  "/gaming-store/suppliers": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
+  "/gaming-store/customers": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
+  "/gaming-store/reviews": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
+  "/gaming-store/finance": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
+  "/gaming-store/analytics": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
+  "/gaming-store/promotions": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
+  "/gaming-store/support": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
   "/gaming-store/settings": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
-  "/gaming-store/catalog-vnext": <LegacyGamingRedirect to="/gaming-store/catalog" />,
-  "/gaming-store/catalog": <CatalogVNextPage />,
-  "/gaming-store/storefront": <StorefrontVNextPage />,
+  "/gaming-store/catalog-vnext": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
+  "/gaming-store/catalog": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
+  "/gaming-store/storefront": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
   "/software/dashboard": <SoftwareDashboard />,
   "/software/products": <SoftwareProductsPage />,
   "/software/releases": <SoftwareReleasesPage />,
@@ -142,7 +130,6 @@ const routes: Record<string, ReactNode> = {
 export function App() {
   const { pathname } = useRouter();
   const { can } = useSession();
-  if (pathname === "/gaming" || pathname.startsWith("/gaming/")) return <AppErrorBoundary scope="route" resetKey={pathname}><PublicGamingStorefront /></AppErrorBoundary>;
   const known = domains.some((domain) => domain.navigation.some((item) => pathname === item.path || pathname.startsWith(`${item.path}/`)));
   const permission = permissionForPath(pathname);
   const content = permission && !can(permission) ? <AccessDeniedPage permission={permission} /> : routes[pathname] ?? (known ? <ModuleOverviewPage /> : <NotFoundPage />);
