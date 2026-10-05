@@ -13,6 +13,7 @@ import { gamingCustomersSnapshot } from "./gamingCustomers";
 import { GamingControlError, commandGamingSupportCase, completeGamingRefund, createGamingPromotion, createGamingRefund, createGamingSupportCase, createGamingSupplierFundingPayment, decideGamingRefund, decideGamingRisk, getGamingSupplierFundingPayment, getGamingSupplierFundingSnapshot, getGamingNotificationHealth, listGamingReviews, decideGamingReview, markGamingRefundSent, reviewGamingPayment, retryGamingFulfillment, retryGamingNotification, updateGamingPromotion, verifyGamingSupplierFundingPayment } from "./gamingControl";
 import { createMediaUpload, finalizeMediaUpload } from "./media";
 import { CheckoutControlError, checkoutPaymentsSnapshot, checkCheckoutProviderHealth, rotateCheckoutSecret, updateCheckoutBusiness, updateCheckoutBusinessRule, updateCheckoutMarketRule, updateCheckoutProvider } from "./checkoutControl";
+import { readGamingSummary } from "./gamingSummary";
 
 export type StaffAccessIdentity = { subject:string; email:string; assurance:"cloudflare-access" };
 export type StaffPrincipal = { principalId:string; staffUserId:string; accountId:string; organizationId:string; permissions:string[]; email:string };
@@ -55,7 +56,7 @@ function stateReadAllowed(principal:StaffPrincipal,key:string){
   if(key.startsWith('nextf.v0.7.operations.acknowledged.')) return ownOperationsAckKey(principal,key)&&hasPermission(principal,'platform.read');
   if(key.startsWith("nextf.v0.4.digital.")||key.startsWith("nextf.v0.10.digital.")||key.startsWith("nextf.v0.12.digital.")||key.startsWith("nextf.v0.13.digital.")||key.startsWith("nextf.v0.14.digital.")||key.startsWith("nextf.v0.19.digital.")||key.includes("website-platform")||key.includes("contract-registry")) return hasPermission(principal,"digital.read")||hasPermission(principal,"digital.website-platform.manage");
   if(key.startsWith("nextf.v0.5.gaming.")) return false;
-  if(key.startsWith("nextf.vnext.gaming.")) return hasPermission(principal,"gaming.read");
+  if(key.startsWith("nextf.vnext.gaming.")) return false;
   if(key.startsWith("nextf.v0.6.software.")) return hasPermission(principal,"software.read");
   if(key.startsWith("nextf.v0.11.help.")) return hasPermission(principal,"platform.read")||hasPermission(principal,"platform.help.manage");
   return hasPermission(principal,"platform.read");
@@ -71,13 +72,7 @@ function stateWriteAllowed(principal:StaffPrincipal,key:string){
   if(key.startsWith("nextf.v0.4.digital.activity")) return hasAny(principal,DIGITAL_MANAGE_PERMISSIONS);
   if(key.includes("website-platform")||key.includes("contract-registry")||key.startsWith("nextf.v0.12.digital.")||key.startsWith("nextf.v0.13.digital.")||key.startsWith("nextf.v0.14.digital.")||key.startsWith("nextf.v0.19.digital.")||key.startsWith("nextf.v0.10.digital.portal-access")) return hasPermission(principal,"digital.website-platform.manage");
   if(key.startsWith("nextf.v0.5.gaming.")) return false;
-  if(key.startsWith("nextf.vnext.gaming.supplier-status.")) return false;
-  if(key.startsWith("nextf.vnext.gaming.supplier-config.")||key.startsWith("nextf.vnext.gaming.supplier-command.")) return hasPermission(principal,"gaming.suppliers.manage");
-  if(key.startsWith("nextf.vnext.gaming.pricing.")) return hasPermission(principal,"gaming.products.manage");
-  if(key.startsWith("nextf.vnext.gaming.storefront")||key.startsWith("nextf.vnext.gaming.game-families")) return hasPermission(principal,"gaming.products.manage");
-  if(key.startsWith("nextf.vnext.gaming.products")||key.startsWith("nextf.vnext.gaming.offers")||key.startsWith("nextf.vnext.gaming.mappings")) return hasPermission(principal,"gaming.products.manage");
-  if(key.startsWith("nextf.vnext.gaming.orders")) return hasPermission(principal,"gaming.orders.manage");
-  if(key.startsWith("nextf.vnext.gaming.")) return hasAny(principal,["gaming.products.manage","gaming.orders.manage","gaming.suppliers.manage","gaming.finance.manage"]);
+  if(key.startsWith("nextf.vnext.gaming.")) return false;
   if(key.startsWith("nextf.v0.6.software.products")||key.startsWith("nextf.v0.6.software.editions")||key.startsWith("nextf.v0.6.software.settings")) return hasPermission(principal,"software.products.manage");
   if(key.startsWith("nextf.v0.6.software.releases")||key.startsWith("nextf.v0.6.software.updates")||key.startsWith("nextf.v0.6.software.downloads")) return hasPermission(principal,"software.releases.manage");
   if(key.startsWith("nextf.v0.6.software.licenses")||key.startsWith("nextf.v0.6.software.activations")) return hasPermission(principal,"software.licenses.manage");
@@ -128,6 +123,11 @@ async function requireCustomerWorkspaceScope(input:{body:StaffRequestBody;princi
 
 export async function handleStaffQuery(input:{operation:string;body:StaffRequestBody;principal:StaffPrincipal;env:WorkerEnv;requestId:string;correlationId:string}){
   if(input.operation==="staff.session.get") return { principalId:input.principal.principalId, staffUserId:input.principal.staffUserId, organizationId:input.principal.organizationId, email:input.principal.email, permissions:input.principal.permissions, assurance:"cloudflare-access" as const };
+  if(input.operation==="staff.gaming.summary.get"){
+    if(!hasPermission(input.principal,"gaming.read")) throw new StaffApiError(403,"FORBIDDEN","Gaming read permission is required");
+    return {summary:await readGamingSummary(input.env),adminUrl:"https://gaming.nextf.lk/admin",controlPlane:"gaming-admin"};
+  }
+  if(input.operation.startsWith("staff.gaming.")) throw new StaffApiError(410,"GAMING_CONTROL_MOVED","Gaming operations have moved to gaming.nextf.lk/admin");
   const repository=new D1DocumentRepository(input.env.DB);
   if(input.operation==="staff.marketing.analytics.report.get"){
     if(!hasPermission(input.principal,"marketing.analytics.view")) throw new StaffApiError(403,"FORBIDDEN","Analytics reporting permission is required");
@@ -221,6 +221,7 @@ export async function handleStaffQuery(input:{operation:string;body:StaffRequest
 }
 
 export async function handleStaffCommand(input:{operation:string;body:StaffRequestBody;principal:StaffPrincipal;env:WorkerEnv;idempotencyKey:string;requestId:string;correlationId:string;ifMatch?:string}){
+  if(input.operation.startsWith("staff.gaming.")) throw new StaffApiError(410,"GAMING_CONTROL_MOVED","Gaming operations have moved to gaming.nextf.lk/admin");
   const repository=new D1DocumentRepository(input.env.DB); const idempotency=new D1IdempotencyRepository(input.env.DB);
   const commandInput=input.body.input as Record<string,unknown>|undefined;
   const requestHash=await sha256(canonical({operation:input.operation,input:commandInput,workspaceScope:input.body.workspaceScope}));
