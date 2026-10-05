@@ -27,7 +27,6 @@
     "CMS_ORIGIN": "https://cms.nextf.lk",
     "WORKSPACE_ORIGIN": "https://workspace.nextf.lk",
     "PUBLIC_SITE_ORIGIN": "https://nextf.lk",
-    "GAMING_ADMIN_ORIGIN": "https://gaming.nextf.lk",
     "ACCESS_TEAM_DOMAIN": "PENDING_NEW_ACCOUNT_ACCESS_TEAM_DOMAIN",
     "ACCESS_AUD": "PENDING_NEW_ACCOUNT_ACCESS_AUD",
     "CONTRACTS_BASE_URL": "https://contracts.nextf.lk",
@@ -116,6 +115,7 @@
     "required": [
       "CHECKOUT_ADMIN_TOKEN",
       "CHECKOUT_SECRET_ADMIN_TOKEN",
+      "GAMING_SUMMARY_INGEST_TOKEN",
       "GAMING_CMS_COMMERCE_TOKEN",
       "GAMING_CMS_REVIEWS_TOKEN",
       "GAMING_CMS_OPERATIONS_TOKEN",
