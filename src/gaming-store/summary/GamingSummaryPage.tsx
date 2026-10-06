@@ -43,7 +43,7 @@ export function GamingSummaryPage(){
     <SectionHeader
       eyebrow="Gaming · Read only"
       title="Gaming summary"
-      description="CMS keeps company-level visibility only. Catalog, suppliers, FazerCards, storefront and operational controls are owned by Gaming Admin."
+      description="Company-level Gaming visibility only. Operational controls are owned by Gaming Admin."
       action={<div style={{display:"flex",gap:8}}><Button variant="secondary" onClick={()=>void load()} disabled={loading}><RefreshCw size={14}/>Refresh</Button><Button onClick={()=>window.open(data?.adminUrl||"https://gaming.nextf.lk/admin","_blank","noopener,noreferrer")}><Store size={14}/>Open Gaming Admin <ArrowUpRight size={13}/></Button></div>}
     />
     {!summary?<StatePanel state="empty" title="No Gaming summary received yet" description="Gaming Admin will publish the first company summary after its new control plane is deployed."/>:<>
