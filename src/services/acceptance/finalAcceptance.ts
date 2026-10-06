@@ -3,7 +3,6 @@ import { platformPermissionCatalog, platformStore } from "../../platform/service
 import { platformOperationsStore } from "../../platform/services/platformOperationsStore";
 import { digitalStore } from "../../next-f/data/digitalStore";
 import { digitalAdminStore } from "../../next-f/operations/digitalAdminStore";
-import { gamingVNextStore } from "../../gaming-store/vnext/runtime/store";
 import { softwareStore } from "../../software/data/softwareStore";
 import { commerceCenter } from "../shared/commerceCenter";
 import { buildGlobalSearchIndex } from "../shared/searchIndex";
@@ -33,7 +32,6 @@ export function runFinalAcceptance():AcceptanceReport {
   const helpCategories=helpCenterStore.getCategories(); const helpArticles=helpCenterStore.getArticles(); const helpFaqs=helpCenterStore.getFaqs(); const helpAnnouncements=helpCenterStore.getAnnouncements(); const helpReplies=helpCenterStore.getReplies(); const helpRequests=helpCenterStore.getRequests(); const helpSettings=helpCenterStore.getSettings();
   const services=digitalStore.getServices(); const leads=digitalStore.getLeads(); const opps=digitalStore.getOpportunities(); const proposals=digitalStore.getProposals(); const clients=digitalStore.getClients(); const invoices=digitalStore.getInvoices(); const projects=digitalStore.getProjects(); const tasks=digitalStore.getTasks(); const deliverables=digitalStore.getDeliverables(); const approvals=digitalStore.getApprovals(); const subscriptions=digitalStore.getSubscriptions(); const sites=digitalStore.getSites(); const tickets=digitalStore.getTickets();
   const addons=digitalAdminStore.getAddons(); const projectTemplates=digitalAdminStore.getTemplates(); const adjustments=digitalAdminStore.getAdjustments(); const portalAccess=digitalAdminStore.getPortalAccess(); const digitalSettings=digitalAdminStore.getSettings();
-  const gamingProducts=gamingVNextStore.getProducts(); const gamingOffers=gamingVNextStore.getOffers(); const gamingMappings=gamingVNextStore.getMappings(); const gamingFamilies=gamingVNextStore.getGameFamilies();
   const swProducts=softwareStore.getProducts(); const editions=softwareStore.getEditions(); const releases=softwareStore.getReleases(); const swCustomers=softwareStore.getCustomers(); const swOrders=softwareStore.getOrders(); const licenses=softwareStore.getLicenses(); const activations=softwareStore.getActivations(); const swSubs=softwareStore.getSubscriptions(); const updates=softwareStore.getUpdates(); const downloads=softwareStore.getDownloads(); const swSupport=softwareStore.getSupportCases();
 
   const routePaths=allNavigation.map((item)=>item.path);
@@ -80,14 +78,8 @@ export function runFinalAcceptance():AcceptanceReport {
   checks.push(check("Digital","portal-refs","Client portal relationships",portalAccess.every((row)=>clientIds.has(row.clientId))&&unique(portalAccess.map((row)=>row.clientId)),"Portal access records map one-to-one to valid clients.","Client portal access contains an orphan or duplicate client mapping."));
   checks.push(check("Digital","workflow-settings","Digital workflow settings",digitalSettings.proposalValidityDays>=1&&digitalSettings.invoiceDueDays>=1&&digitalSettings.renewalReminderDays>=1&&digitalSettings.defaultGraceDays>=0,"Digital workflow defaults are within supported bounds.","Digital workflow settings contain an invalid threshold."));
 
-  const gamingProductIds=ids(gamingProducts), gamingOfferIds=ids(gamingOffers);
-  checks.push(check("Gaming","catalog-product-slugs","Canonical product slugs",unique(gamingProducts.map((row)=>row.slug)),"Canonical Gaming product slugs are unique.","Duplicate canonical Gaming product slugs detected."));
-  checks.push(check("Gaming","catalog-offer-refs","Offer → product relationships",gamingOffers.every((row)=>gamingProductIds.has(row.productId)),"Every retail offer references a canonical NEXT F product.","A retail offer references a missing canonical product."));
-  checks.push(check("Gaming","catalog-routing-refs","Supplier routing relationships",gamingMappings.every((row)=>gamingOfferIds.has(row.offerId)&&row.priority>=1),"Supplier mappings reference valid retail offers with positive routing priority.","A supplier mapping has an invalid offer reference or priority."));
-  const routingKeys=gamingMappings.map((row)=>`${row.offerId}:${row.priority}`);
-  checks.push(check("Gaming","catalog-routing-priority","Unique route priorities",unique(routingKeys),"Supplier route priorities are unique within each offer.","Two supplier mappings share the same routing priority for one offer.",true));
-  checks.push(check("Gaming","family-slugs","Game-family identities",unique(gamingFamilies.map((row)=>row.slug)),"Game-family slugs are unique.","Duplicate game-family slugs detected."));
-  checks.push(check("Gaming","legacy-production-retired","Legacy production surfaces retired",!routePaths.includes("/gaming-store/products")&&!routePaths.includes("/gaming-store/orders")&&!routePaths.includes("/gaming-store/settings")&&routePaths.includes("/gaming-store/catalog")&&routePaths.includes("/gaming-store/customers"),"Gaming navigation uses the canonical catalog, Live Operations and Customer 360 surfaces.","Legacy Gaming navigation is still exposed."));
+  const gamingRoutes=routePaths.filter((path)=>path.startsWith("/gaming-store/"));
+  checks.push(check("Gaming","summary-only","Read-only Gaming summary surface",gamingRoutes.length===1&&gamingRoutes[0]==="/gaming-store/dashboard","CMS exposes only the read-only Gaming summary route.","CMS still exposes retired Gaming operational routes.",true));
 
   const swProductIds=ids(swProducts), editionIds=ids(editions), swCustomerIds=ids(swCustomers), swOrderIds=ids(swOrders), licenseIds=ids(licenses), releaseIds=ids(releases);
   checks.push(check("Software","edition-refs","Edition → product references",editions.every((row)=>swProductIds.has(row.productId)),"All commercial editions reference valid products.","An edition references a missing software product."));
