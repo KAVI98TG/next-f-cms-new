@@ -7,12 +7,12 @@ import { readProductionRuntimeConfig } from "../../services/production/runtime";
 type GamingSummary={
   generatedAt:string;
   store:"gaming";
-  orders?:{total?:number;completed?:number;paymentReview?:number;fulfillmentAttention?:number};
-  finance?:{netSalesLkr?:number;grossCollectedLkr?:number;completedRefundsLkr?:number;estimatedMarginLkr?:number};
-  support?:{open?:number;inProgress?:number;urgent?:number;slaBreached?:number};
-  suppliers?:{fazercards?:{connected?:boolean;lastHealthAt?:string|null;lastSync?:unknown;lastError?:string|null}};
-  promotions?:{active?:number;total?:number};
-  analytics?:{orders?:number;verifiedOrders?:number;fulfilledOrders?:number};
+  orders:{total:number;completed:number;paymentReview:number;fulfillmentAttention:number};
+  finance:{netSalesLkr:number;grossCollectedLkr:number;completedRefundsLkr:number;estimatedMarginLkr:number};
+  support:{open:number;inProgress:number;urgent:number;slaBreached:number};
+  suppliers:{fazercards:{connected:boolean;lastHealthAt:string|null}};
+  promotions:{active:number;total:number};
+  analytics:{orders:number;verifiedOrders:number;fulfilledOrders:number};
 };
 type SummaryResponse={summary:GamingSummary|null;adminUrl:string;controlPlane:string};
 
@@ -56,8 +56,8 @@ export function GamingSummaryPage(){
       <div className="grid-2">
         <Card>
           <div className="section-heading"><div><span>Supplier health</span><h3>FazerCards</h3></div><Badge tone={summary.suppliers?.fazercards?.connected?"success":"warning"}>{summary.suppliers?.fazercards?.connected?"Connected":"Check required"}</Badge></div>
-          <p className="muted">Detailed supplier configuration, balance, sync and routing are intentionally not stored or controlled in CMS.</p>
-          {summary.suppliers?.fazercards?.lastError?<p className="error-copy">{summary.suppliers.fazercards.lastError}</p>:null}
+          <p className="muted">CMS receives health visibility only. Supplier credentials, balance, sync and routing stay in Gaming Admin.</p>
+          <small>{summary.suppliers.fazercards.lastHealthAt ? `Last health check ${new Date(summary.suppliers.fazercards.lastHealthAt).toLocaleString()}` : "No supplier health timestamp received"}</small>
         </Card>
         <Card>
           <div className="section-heading"><div><span>Control plane</span><h3>Gaming-owned</h3></div><Badge tone="success">Moved</Badge></div>
