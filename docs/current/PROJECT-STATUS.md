@@ -14,6 +14,14 @@
 
 **Cloudflare account migration:** CMS v1.0.64 remains the live production baseline. The owner is manually migrating production ownership to account `df47917ecc2d22a3612202862f42fb38` and has reported D1/R2 transfer complete. No new-account deployment is approved; CMS staging is excluded. Local config preparation and the pending verification/cutover plan are recorded in `docs/planning/NEW-CLOUDFLARE-PRODUCTION-ACCOUNT-MIGRATION.md`. Unreleased multi-Site analytics code must not be deployed as v1.0.64.
 
+## Unreleased Gaming ownership cleanup
+
+Branch: `feature/gaming-final-cleanup`.
+
+The CMS source is being reduced to a read-only Gaming company summary. Duplicate Gaming catalog, supplier/FazerCards, storefront, operations, customers, reviews, finance/risk, analytics, support and media-write controls have been removed from this branch. The only active CMS Gaming surface is `/gaming-store/dashboard`, backed by a bounded server-to-server summary ingest.
+
+This cleanup does not change the currently deployed v1.0.64 runtime until the branch is separately approved and deployed. It also does not perform the Gaming customer/checkout data cutover.
+
 ## Current release
 
 v1.0.64 is the canonical, deployed analytics dashboard release. It turns the Platform Analytics surface into a decision-ready view of canonical page-view, CTA, form-start and form-submission aggregates, with range-aware trends, event progression, event mix, pipeline quality and hourly detail.
@@ -27,8 +35,7 @@ Release finalization and the Cloudflare Pages production deployment passed on 20
 ## Current UI baseline
 
 - metric and summary cards do not carry filler footer/helper copy;
-- Gaming operator screens prioritize controls, primary status, and actionable exceptions;
-- normal Gaming list rows hide internal IDs and redundant healthy-state metadata;
+- CMS Gaming UI is limited to company-level read-only summary information;
 - modal form controls keep their normal height even when a neighboring field has uploads or secondary actions;
 - long descriptions, media controls, and multi-item pickers use full-width modal rows where appropriate;
 - UI copy does not use em dash or en dash glyphs;
@@ -36,7 +43,7 @@ Release finalization and the Cloudflare Pages production deployment passed on 20
 
 ## Production foundation retained
 
-The release preserves the existing production foundation: Cloudflare Access, production D1/R2/Queue resources, the CMS Worker/API boundary, Gaming bridges, Checkout controls, NEXT F Media, production acceptance automation, contract validation, and current least-privilege secret boundaries.
+The release preserves the existing production foundation: Cloudflare Access, production D1/R2/Queue resources, the CMS Worker/API boundary, the bounded Gaming summary ingest, Checkout controls, read-only legacy public media compatibility, production acceptance automation, contract validation, and current least-privilege secret boundaries.
 
 No migration is included in v1.0.64.
 
