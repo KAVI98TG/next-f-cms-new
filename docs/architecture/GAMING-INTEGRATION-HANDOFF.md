@@ -1,51 +1,83 @@
-> **Superseded for control-plane ownership (Unreleased):** Gaming administration has moved to `gaming.nextf.lk/admin` and the Gaming-owned Admin API. This document remains as historical integration context. CMS is now a read-only Gaming summary consumer and must not be used as the Gaming control plane.
-
 # Gaming Integration Handoff
 
-## Starting point
+## Current ownership
 
-The CMS V1 production boundary is the baseline for the Gaming site. Do not build the Gaming storefront against local fixture assumptions. Start G0 by resolving the canonical public/staff contracts against `contracts.nextf.lk` and the deployed CMS API.
+Gaming administration is owned by the dedicated Gaming application:
 
-## Existing CMS Gaming state domains
+- staff UI: `https://gaming.nextf.lk/admin`
+- Admin API: `https://gaming-admin-api.nextf.lk`
+- canonical Gaming operational state: Gaming-owned production D1/R2 and Gaming Worker services
 
-The CMS already contains Gaming administration for products, orders, customers, suppliers, pricing/finance, support and settings under `nextf.v0.5.gaming.*`. Staff access remains Cloudflare Access protected and must never be consumed directly by an anonymous storefront.
+NEXT F CMS is **not** a Gaming control plane. It does not manage Gaming catalog, storefront merchandising, suppliers, FazerCards, pricing, promotions, orders, customers, reviews, finance/risk, analytics or support.
 
-## Required G0 decision before storefront implementation
+CMS keeps one read-only company summary so the wider NEXT F organization can see Gaming business health without duplicating operational state.
 
-Define and approve a dedicated public Gaming API contract for:
+## CMS summary contract
 
-- catalogue/products and categories;
-- pricing and availability/stock semantics;
-- public product media;
-- cart/checkout command model;
-- customer/order creation;
-- payment provider handoff and verified callbacks;
-- delivery/fulfilment state;
-- customer order-status lookup;
-- idempotency, abuse protection and public error envelopes.
+Gaming Admin pushes the summary server-to-server to:
 
-Do not expose generic `staff.state.*` operations to the Gaming site.
+`POST https://cms-api.nextf.lk/v1/integrations/gaming/summary`
 
-## Security baseline inherited from CMS V1
+Authentication uses the dedicated `GAMING_SUMMARY_INGEST_TOKEN`. No browser receives this credential.
 
-- staff routes: Cloudflare Access JWT + exact D1 staff binding;
-- public mutations: path-scoped Access bypass, origin allowlist, rate limiting, Turnstile where appropriate, durable D1 idempotency and Queue handoff;
-- tenant/workspace operations: organization + workspace scope and fail-closed mismatch denial;
-- secrets: Workers Secrets only, never Site Manifest, frontend bundle or D1 public projection;
-- contracts: stable Registry/Site Manifest 1.0.0 validation before managed-site activation.
+CMS normalizes the payload before storage and retains only:
 
-## First managed-site proof
+- order counts: total, completed, payment-review and fulfillment-attention counts;
+- finance totals: net sales, gross collected, completed refunds and estimated margin;
+- support counts: open, in-progress, urgent and SLA-breached cases;
+- FazerCards health visibility: connected state and last-health timestamp;
+- promotion counts: active and total;
+- analytics counts: orders, verified orders and fulfilled orders.
 
-If Gaming is registered as the first managed Site Connection, V1's `managed_site_adapter` N/A status must be reopened. Capture a real `nextf.site.json` plus real revision/apply/publish receipt and rerun production acceptance with those evidence URLs.
+The accepted body is capped at 16 KB. Extra Gaming fields are discarded before persistence.
 
-## P4 canonical support control plane
+The normalized document is stored under CMS integration state as `cms.integration / gaming.summary`.
 
-Gaming support no longer relies on the legacy `nextf.v0.5.gaming.support` local prototype UI for live operations. Canonical records now live in shared D1 under `gaming.support.case`, `gaming.support.message` and `gaming.support.evidence` and are surfaced through the CMS staff API.
+## Information CMS must not store or control
 
-Support reads and mutations require the existing `gaming.orders.manage` permission. CMS mutations cross the server-only Gaming boundary through the dedicated `GAMING_CMS_SUPPORT_TOKEN`; do not substitute the broader operations, commerce, supplier or finance credentials.
+Do not reintroduce any of the following into CMS:
 
-Customer-facing case messages emit Gaming commerce events and are delivered by the existing notification outbox. Binary evidence upload is intentionally deferred until the governed R2 media/evidence service is implemented.
+- supplier credentials or provider API keys;
+- FazerCards catalog, wallet funding, balances, sync commands or routing configuration;
+- Gaming product/offer/mapping/storefront configuration;
+- payment proofs, refund workflow details or risk assessments;
+- customer 360 records or order histories;
+- support threads or private support evidence;
+- review moderation queues;
+- Gaming analytics event detail;
+- fulfillment jobs or notification queues.
 
-## Current verified-purchase Reviews control plane (CMS v1.0.55)
+Those records belong to Gaming Admin and its Gaming-owned services.
 
-CMS review listing and moderation cross the server-only Gaming API boundary with `GAMING_CMS_REVIEWS_TOKEN` on both Workers. This dedicated credential was introduced in CMS v1.0.52 / Gaming API v1.8.28; it does not authorize promotions, payments or other operations. v1.0.53 and v1.0.54 changed only the Reviews frontend; v1.0.55 is a CMS-wide UI clarity release and does not change the review API boundary. Do not follow the historical v1.0.50 commerce-token rollout instructions when deploying the current release. See `V1.0.52-REVIEWS-BRIDGE-RECOVERY.md`, `V1.0.54-REVIEWS-LAYOUT-CONSISTENCY.md` and `V1.0.55-CMS-UI-CLARITY-SYSTEM.md`.
+## CMS staff surface
+
+The only active Gaming navigation item in CMS is **Gaming > Summary** at `/gaming-store/dashboard`.
+
+The CMS permission for this surface is `gaming.read`. CMS does not define Gaming manage permissions.
+
+Historical `/gaming-store/*` operator bookmarks use one compatibility redirect to the Summary page. They are not hidden control surfaces.
+
+The CMS staff API supports `staff.gaming.summary.get`. Other `staff.gaming.*` operations fail with `410 GAMING_CONTROL_MOVED` and direct staff to Gaming Admin.
+
+## Media compatibility
+
+New Gaming public media and private support evidence are owned by Gaming Admin.
+
+CMS retains read-only delivery for already-published legacy public `media.nextf.lk` asset URLs so existing content is not broken during cleanup. CMS no longer creates/finalizes Gaming media uploads and no longer serves private Gaming support evidence.
+
+Do not use this compatibility path for new Gaming uploads.
+
+## Security boundary
+
+- CMS summary ingest is server-to-server and uses only the dedicated summary token.
+- Gaming Admin staff authentication remains Cloudflare Access plus the Gaming staff binding and Gaming permission model.
+- CMS `gaming.read` does not grant Gaming Admin mutation permissions.
+- Supplier/provider secrets stay in Gaming Worker Secrets.
+- Private Gaming support evidence stays behind the Gaming Admin Access boundary.
+- CMS and Gaming maintain separate control-plane data ownership.
+
+## Phase 4 deployment boundary
+
+The final CMS Gaming cleanup removes duplicate administration only. It does **not** change the public Gaming checkout, payment-provider behavior, order creation, supplier selection, fulfillment execution or the current customer-data runtime.
+
+The later customer/checkout data cutover must be treated as a separate controlled migration with its own validation and rollback plan.
