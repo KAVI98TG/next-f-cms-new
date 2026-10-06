@@ -98,21 +98,6 @@ const routes: Record<string, ReactNode> = {
   "/next-f/reports": <ReportsPage />,
   "/next-f/settings": <DigitalSettingsPage />,
   "/gaming-store/dashboard": <GamingSummaryPage />,
-  "/gaming-store/live-operations": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
-  "/gaming-store/orders": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
-  "/gaming-store/products": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
-  "/gaming-store/pricing": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
-  "/gaming-store/suppliers": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
-  "/gaming-store/customers": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
-  "/gaming-store/reviews": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
-  "/gaming-store/finance": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
-  "/gaming-store/analytics": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
-  "/gaming-store/promotions": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
-  "/gaming-store/support": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
-  "/gaming-store/settings": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
-  "/gaming-store/catalog-vnext": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
-  "/gaming-store/catalog": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
-  "/gaming-store/storefront": <LegacyGamingRedirect to="/gaming-store/dashboard" />,
   "/software/dashboard": <SoftwareDashboard />,
   "/software/products": <SoftwareProductsPage />,
   "/software/releases": <SoftwareReleasesPage />,
@@ -132,6 +117,7 @@ export function App() {
   const { can } = useSession();
   const known = domains.some((domain) => domain.navigation.some((item) => pathname === item.path || pathname.startsWith(`${item.path}/`)));
   const permission = permissionForPath(pathname);
-  const content = permission && !can(permission) ? <AccessDeniedPage permission={permission} /> : routes[pathname] ?? (known ? <ModuleOverviewPage /> : <NotFoundPage />);
+  const gamingLegacy = pathname.startsWith("/gaming-store/") && pathname !== "/gaming-store/dashboard";
+  const content = permission && !can(permission) ? <AccessDeniedPage permission={permission} /> : routes[pathname] ?? (gamingLegacy ? <LegacyGamingRedirect to="/gaming-store/dashboard" /> : known ? <ModuleOverviewPage /> : <NotFoundPage />);
   return <AppShell><AppErrorBoundary scope="route" resetKey={pathname}>{content}</AppErrorBoundary></AppShell>;
 }
