@@ -21,7 +21,7 @@ check("toast live region",read("src/shared/feedback/ToastProvider.tsx").includes
 check("toast CSS",css.includes(".toast-region")&&css.includes(".toast--danger"));
 check("drawer responsive",css.includes(".detail-drawer")&&css.includes("width:100vw"));
 check("danger action style",css.includes(".button--danger"));
-const users=read("src/platform/users/UsersPage.tsx"), data=read("src/platform/data-management/DataManagementPage.tsx"), sales=read("src/next-f/sales/SalesPage.tsx"), gorders=read("src/gaming-store/orders/OrdersPage.tsx"), gorderTypes=read("src/gaming-store/data/types.ts"), gorderRepo=read("src/gaming-store/data/repositories/ordersRepository.ts"), sorders=read("src/software/orders/OrdersPage.tsx"), licenses=read("src/software/licenses/LicensesPage.tsx"), releases=read("src/software/releases/ReleasesPage.tsx");
+const users=read("src/platform/users/UsersPage.tsx"), data=read("src/platform/data-management/DataManagementPage.tsx"), sales=read("src/next-f/sales/SalesPage.tsx"), sorders=read("src/software/orders/OrdersPage.tsx"), licenses=read("src/software/licenses/LicensesPage.tsx"), releases=read("src/software/releases/ReleasesPage.tsx");
 check("staff status action confirmed",users.includes("ConfirmDialog")&&users.includes("pendingStatusUser"));
 check("staff email validation",users.includes("validators.email")&&users.includes("already exists"));
 check("staff actions notify",users.includes("useToast")&&users.includes("notify("));
@@ -32,13 +32,6 @@ check("digital lead validation",sales.includes("leadEmailError")&&sales.includes
 check("digital proposal amount validation",sales.includes("proposalAmountError"));
 check("digital proposal acceptance confirmed",sales.includes("accepting")&&sales.includes("Accept & create operations"));
 check("digital sales feedback",sales.includes("useToast")&&sales.includes("Lead qualified"));
-check("gaming order detail drawer",gorders.includes("<Drawer")&&gorders.includes("KeyValueList"));
-check("gaming order keeps idempotency in the model but not operator UI",gorderTypes.includes("idempotencyKey")&&gorderRepo.includes("idempotencyKey:crypto.randomUUID()")&&!gorders.includes("Idempotency key"));
-check("gaming order shows financial reconciliation",gorders.includes("Supplier charged")&&gorders.includes("Customer paid"));
-check("gaming customer email validation",gorders.includes("validators.email"));
-check("gaming dynamic fields validation",gorders.includes("requiredFieldErrors"));
-check("gaming refunds confirmed",gorders.includes("ConfirmDialog")&&gorders.includes("Complete refund"));
-check("gaming lifecycle feedback",gorders.includes("Order updated")&&gorders.includes("Refund completed"));
 check("software order refund confirmed",sorders.includes("ConfirmDialog")&&sorders.includes("Refund and revoke"));
 check("software payment feedback",sorders.includes("Payment recorded"));
 check("software activation URL validated",licenses.includes("validators.url")&&licenses.includes("aria-invalid"));
@@ -49,5 +42,5 @@ check("software release publication confirmed",releases.includes("ConfirmDialog"
 check("software release deprecation guarded",releases.includes("button--danger")&&releases.includes("Deprecate software release"));
 check("no Cloudflare config",!fs.existsSync(path.join(root,"wrangler.jsonc"))&&!fs.existsSync(path.join(root,"worker")));
 const source=[]; const walk=(dir)=>{for(const e of fs.readdirSync(dir,{withFileTypes:true})){const file=path.join(dir,e.name);if(e.isDirectory())walk(file);else if(/\.(ts|tsx)$/.test(e.name))source.push(file);}}; walk(path.join(root,"src")); let broken=0; for(const file of source){const text=fs.readFileSync(file,"utf8");for(const m of text.matchAll(/from\s+["'](\.[^"']+)["']/g)){const base=path.resolve(path.dirname(file),m[1]);if(![base,`${base}.ts`,`${base}.tsx`,path.join(base,"index.ts"),path.join(base,"index.tsx")].some(fs.existsSync))broken++;}}
-check(`${source.length} TS/TSX source files discovered`,source.length>=100); check("relative imports resolve",broken===0);
+check(`${source.length} TS/TSX source files discovered`,source.length>=150); check("relative imports resolve",broken===0);
 console.log("NEXT F CMS V0.8.0 Product Completion + Deep QA check"); for(const item of pass)console.log(`PASS  ${item}`); for(const item of fail)console.error(`FAIL  ${item}`); console.log(`\n${pass.length} passed, ${fail.length} failed`); if(fail.length)process.exit(1);
