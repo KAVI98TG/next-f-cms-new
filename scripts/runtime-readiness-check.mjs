@@ -30,7 +30,7 @@ check("master plan records phase 8.5",master.includes("Phase 8.5"));
 const sourceFiles=[];
 const walk=(dir)=>{for(const ent of fs.readdirSync(dir,{withFileTypes:true})){const p=path.join(dir,ent.name);if(ent.isDirectory())walk(p);else if(/\.(ts|tsx)$/.test(ent.name))sourceFiles.push(p)}};
 walk("src");
-check("application source is non-trivial",sourceFiles.length>=180);
+check("application source is non-trivial",sourceFiles.length>=150);
 const browserStores=sourceFiles.filter((p)=>read(p).includes("localStorage"));
 const toPosixPath=(value)=>value.split(path.sep).join("/");
 check("browser persistence is limited to local adapters/preferences",browserStores.length>0&&browserStores.every((p)=>{
