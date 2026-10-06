@@ -31,11 +31,7 @@ check("digital project integrity",acceptance.includes("Project relationships")&&
 check("digital delivery integrity",acceptance.includes("Task/deliverable/approval relationships"));
 check("digital recurring integrity",acceptance.includes("Recurring-service relationships"));
 check("digital site/support integrity",acceptance.includes("Site/support relationships"));
-check("gaming canonical product integrity",acceptance.includes("Canonical product slugs"));
-check("gaming offer integrity",acceptance.includes("Offer → product relationships"));
-check("gaming supplier routing integrity",acceptance.includes("Supplier routing relationships")&&acceptance.includes("Unique route priorities"));
-check("gaming family integrity",acceptance.includes("Game-family identities"));
-check("gaming legacy surfaces retired",acceptance.includes("Legacy production surfaces retired"));
+check("gaming summary boundary",acceptance.includes("Read-only Gaming summary surface"));
 check("software edition/release integrity",acceptance.includes("Edition → product references")&&acceptance.includes("Release → product references"));
 check("software order/license integrity",acceptance.includes("Software order relationships")&&acceptance.includes("License relationships"));
 check("software license uniqueness",acceptance.includes("Unique license keys"));
@@ -50,19 +46,17 @@ check("production infrastructure active",acceptance.includes("Production infrast
 check("CSV escaping",csv.includes("replaceAll")&&csv.includes("createCsv"));
 check("CSV browser download",csv.includes("URL.createObjectURL")&&csv.includes("anchor.download"));
 check("shared CSV action feedback",exportButton.includes("useToast")&&exportButton.includes("CSV exported"));
-for(const [name,file] of [["shared account export","src/platform/accounts/AccountsPage.tsx"],["unified payment export","src/platform/payments/PaymentsPage.tsx"],["digital report export","src/next-f/reports/ReportsPage.tsx"],["gaming finance export","src/gaming-store/finance/FinancePage.tsx"],["software analytics export","src/software/analytics/AnalyticsPage.tsx"]]) check(name,read(file).includes("ExportCsvButton"));
-const services=read("src/next-f/services/ServicesPage.tsx"), sites=read("src/next-f/sites/SitesPage.tsx"), suppliers=read("src/gaming-store/suppliers/SuppliersPage.tsx"), swProducts=read("src/software/products/ProductsPage.tsx");
+for(const [name,file] of [["shared account export","src/platform/accounts/AccountsPage.tsx"],["unified payment export","src/platform/payments/PaymentsPage.tsx"],["digital report export","src/next-f/reports/ReportsPage.tsx"],["software analytics export","src/software/analytics/AnalyticsPage.tsx"]]) check(name,read(file).includes("ExportCsvButton"));
+const services=read("src/next-f/services/ServicesPage.tsx"), sites=read("src/next-f/sites/SitesPage.tsx"), swProducts=read("src/software/products/ProductsPage.tsx");
 check("digital service validation",services.includes("validators.positive")&&services.includes("already exists")&&services.includes("useToast"));
 check("digital site URL/domain validation",sites.includes("validators.url")&&sites.includes("validDomain")&&sites.includes("aria-invalid"));
 check("digital maintenance guarded",sites.includes("ConfirmDialog")&&sites.includes("Record maintenance mode"));
-check("supplier page uses canonical production control plane",!suppliers.includes("gamingStore")&&!suppliers.includes("addSupplier(")&&suppliers.includes("saveFazerConfig")&&suppliers.includes("queueFazerCommand")&&!suppliers.includes("FAZERCARDS_API_KEY")&&!suppliers.includes("apiSecret"));
-check("supplier placeholder registry retired",!suppliers.includes("addSupplier(")&&!suppliers.includes("getSuppliers("));
 check("software product slug validation",swProducts.includes("validators.slug")&&swProducts.includes("slug already exists"));
 check("software edition value validation",swProducts.includes("validators.positive")&&swProducts.includes("Activation limit"));
 check("software product feedback",swProducts.includes("useToast")&&swProducts.includes("Software product created"));
 const source=[]; const walk=(dir)=>{for(const e of fs.readdirSync(dir,{withFileTypes:true})){const f=path.join(dir,e.name);if(e.isDirectory())walk(f);else if(/\.(ts|tsx)$/.test(e.name))source.push(f);}}; walk(path.join(root,"src"));
 let broken=0; for(const file of source){const text=fs.readFileSync(file,"utf8");for(const m of text.matchAll(/from\s+["'](\.[^"']+)["']/g)){const base=path.resolve(path.dirname(file),m[1]);if(![base,`${base}.ts`,`${base}.tsx`,path.join(base,"index.ts"),path.join(base,"index.tsx")].some(fs.existsSync))broken++;}}
-check(`${source.length} TS/TSX source files discovered`,source.length>=110); check("relative imports resolve",broken===0);
+check(`${source.length} TS/TSX source files discovered`,source.length>=60); check("relative imports resolve",broken===0);
 const forbidden=[]; const scan=(dir)=>{for(const e of fs.readdirSync(dir,{withFileTypes:true})){if(["node_modules","dist"].includes(e.name))continue;const f=path.join(dir,e.name);if(e.isDirectory())scan(f);else if(e.name===".gitkeep"||e.name==="README.md"&&f.includes(`${path.sep}src${path.sep}`))forbidden.push(f);}}; scan(path.join(root,"src")); check("no placeholder architecture",forbidden.length===0);
 check("no Cloudflare runtime/config",!["wrangler.toml","wrangler.jsonc","worker"].some((name)=>fs.existsSync(path.join(root,name))));
 const todo=source.flatMap((file)=>{const text=fs.readFileSync(file,"utf8");return /\b(TODO|FIXME)\b/.test(text)?[file]:[];}); check("no TODO/FIXME debt in implementation",todo.length===0);
