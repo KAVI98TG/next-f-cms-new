@@ -1,5 +1,14 @@
 # NEXT F CMS Release Notes
 
+
+## Unreleased - Gaming Control-Plane Ownership Cleanup
+
+Moves the remaining Gaming administration responsibility out of CMS and into `gaming.nextf.lk/admin`. CMS now retains only a read-only company summary, the authenticated Gaming summary ingest endpoint, and read-only compatibility delivery for already-published public CMS media assets.
+
+Removed from CMS source are the duplicate Gaming catalog/storefront, suppliers/FazerCards/funding, pricing/promotions, live operations, customers, reviews, finance/risk, analytics, support, private evidence, Gaming product search entries, Gaming operations polling, and related browser/runtime control code. CMS Gaming permissions are reduced to `gaming.read`; old operator URLs redirect to Summary; other CMS `staff.gaming.*` control operations remain retired with `GAMING_CONTROL_MOVED`.
+
+The CMS Gaming secret surface is reduced to `GAMING_SUMMARY_INGEST_TOKEN`. The summary body is normalized and capped at 16 KB before persistence. No customer checkout, payment-provider, supplier-routing or fulfillment cutover is included in this cleanup.
+
 ## v1.0.64 - Analytics Decision Dashboard
 
 Canonical parent: **v1.0.63**. Replaces the initial first-party analytics status view with a decision-ready dashboard built only from the canonical hourly event aggregates and collector health APIs. Adds range-aware event KPIs, an event trend, event-progression funnel, event mix, data-quality indicators, collection freshness, and hourly detail while explicitly avoiding unsupported unique-user, session, attribution, or revenue claims. Form contents and contact details remain excluded from analytics. Pages/frontend only; no D1 migration, Worker/API contract change, binding change, or new secret.
