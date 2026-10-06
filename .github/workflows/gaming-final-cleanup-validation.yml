@@ -1,0 +1,28 @@
+name: Gaming Final Cleanup Validation
+
+on:
+  push:
+    branches:
+      - feature/gaming-final-cleanup
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run check:gaming-final-cleanup
+      - run: npx tsc -p infrastructure/cloudflare/tsconfig.json --noEmit
+      - run: npm run release:gate
+      - run: npm run build
+      - run: npm run check:all-static
