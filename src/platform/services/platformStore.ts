@@ -87,7 +87,7 @@ const seedUsers: PlatformUser[] = [
 export const platformPermissionCatalog = [
   { group: "Platform", permissions: ["platform.read", "platform.users.manage", "platform.access.manage", "platform.audit.read", "platform.settings.manage", "platform.organizations.manage", "platform.domains.manage", "platform.security.manage", "platform.logs.read", "platform.backup.manage", "platform.cleanup.manage", "platform.help.manage"] },
   { group: "NEXT F Digital", permissions: ["digital.read", "digital.sales.manage", "digital.projects.manage", "digital.billing.manage", "digital.sites.manage", "digital.website-platform.manage", "digital.settings.manage"] },
-  { group: "Gaming Store", permissions: ["gaming.read", "gaming.orders.manage", "gaming.products.manage", "gaming.suppliers.manage", "gaming.finance.manage"] },
+  { group: "Gaming Store", permissions: ["gaming.read"] },
   { group: "NEXT F Software", permissions: ["software.read", "software.products.manage", "software.releases.manage", "software.licenses.manage", "software.billing.manage"] },
 ];
 
@@ -96,7 +96,7 @@ const allPermissions = platformPermissionCatalog.flatMap((group) => group.permis
 const seedRoles: PlatformRole[] = [
   { id: "role_super", name: "Super Admin", description: "Full control across the entire NEXT F platform.", members: 1, permissions: allPermissions, system: true },
   { id: "role_digital", name: "Digital Manager", description: "Operate sales, clients, projects, billing and client sites.", members: 1, permissions: ["platform.read", "digital.read", "digital.sales.manage", "digital.projects.manage", "digital.billing.manage", "digital.sites.manage", "digital.website-platform.manage", "digital.settings.manage"], system: false },
-  { id: "role_gaming", name: "Gaming Operator", description: "Operate Gaming Store catalog, orders, suppliers and finance.", members: 1, permissions: ["platform.read", "gaming.read", "gaming.orders.manage", "gaming.products.manage", "gaming.suppliers.manage", "gaming.finance.manage"], system: false },
+  { id: "role_gaming", name: "Gaming Viewer", description: "View the company-level Gaming summary and open Gaming Admin for operational work.", members: 1, permissions: ["platform.read", "gaming.read"], system: false },
   { id: "role_support", name: "Support", description: "Read customer operations and work the shared Help Center and business support queues.", members: 1, permissions: ["platform.read", "platform.help.manage", "digital.read", "gaming.read", "software.read"], system: false },
 ];
 
@@ -116,7 +116,6 @@ const seedNotifications: PlatformNotification[] = [
 const seedIntegrations: IntegrationRecord[] = [
   { id: "int_email", name: "Transactional Email", category: "Communication", description: "Shared outbound email provider adapter.", status: "not_configured", environment: "production" },
   { id: "int_payment", name: "Payment Gateway", category: "Finance", description: "Shared payment abstraction for Digital, Gaming and Software.", status: "not_configured", environment: "production" },
-  { id: "int_supplier", name: "Gaming Supplier API", category: "Gaming Store", description: "Provider-independent supplier connection layer.", status: "not_configured", environment: "production" },
   { id: "int_update", name: "Software Update Service", category: "NEXT F Software", description: "License-aware product update and download service.", status: "not_configured", environment: "production" },
   { id: "int_local", name: "Local Browser Repository", category: "Development", description: "Browser-persistent adapter for fully developing the CMS before backend wiring.", status: "ready", environment: "local" },
 ];
