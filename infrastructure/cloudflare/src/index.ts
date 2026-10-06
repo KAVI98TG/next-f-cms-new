@@ -6,7 +6,7 @@ import { runMaintenance } from "./maintenance";
 import { json, originAllowed, problem, requestId } from "./http";
 import { handleStaffCommand, handleStaffQuery, resolveStaffPrincipal, StaffApiError, type StaffRequestBody } from "./staff";
 import { handleNextfProjectRequest } from "./mainSiteIngest";
-import { servePrivateMedia, servePublicMedia } from "./media";
+import { servePublicMedia } from "./media";
 import { handleTrackingIngestion, processTrackingEvent, trackingBootstrap } from "./tracking";
 import { isActiveTrackingOrigin } from "./trackingProperties";
 import { serveTrackingSdk } from "./trackingSdk";
@@ -120,11 +120,6 @@ export default {
         response=new Response(null,{status:302,headers:{location:env.CMS_ORIGIN,"cache-control":"no-store"}});
       }
       else if(url.pathname==="/health"&&request.method==="GET") response=json({ok:true,requestId:id,data:await health(env)});
-      else if(request.method==="GET"&&url.pathname.match(/^\/v1\/staff\/media\/[^/]+\/download$/)){
-        const identity=await verifyAccessAssertion(request,env); const principal=await resolveStaffPrincipal(env.DB,identity); const assetId=decodeURIComponent(url.pathname.split("/")[4]||"");
-        if(!principal.permissions.includes("gaming.orders.manage")) throw new StaffApiError(403,"FORBIDDEN","Gaming order management permission is required");
-        response=await servePrivateMedia(env,principal,assetId);
-      }
       else if(url.pathname==="/v1/integrations/gaming/summary") response=await ingestGamingSummary(request,env,id);
       else if(url.pathname==="/v1/integrations/nextf/project-requests") response=await handleNextfProjectRequest(request,env,id);
       else if(url.pathname==="/sdk/v1/nextf-tracking.js"&&request.method==="GET") response=serveTrackingSdk();
