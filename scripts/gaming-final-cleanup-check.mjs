@@ -22,6 +22,10 @@ const operations=read("src/services/shared/operationsCenter.ts");
 const operationsHook=read("src/services/shared/useOperationsCenter.ts");
 const search=read("src/services/shared/searchIndex.ts");
 const acceptance=read("src/services/acceptance/finalAcceptance.ts");
+const authTypes=read("src/app/auth/types.ts");
+const session=read("src/app/auth/SessionProvider.tsx");
+const backendContracts=read("src/services/backend/contracts.ts");
+const platformStore=read("src/platform/services/platformStore.ts");
 const pkg=JSON.parse(read("package.json"));
 
 const gamingUi=walk("src/gaming-store").filter((p)=>p!=="src/gaming-store/summary/GamingSummaryPage.tsx");
@@ -29,6 +33,9 @@ check("CMS Gaming UI contains only the read-only summary",gamingUi.length===0&&e
 check("Gaming navigation exposes only Summary",/id: "gaming-store"[\s\S]*?navigation: \[[\s\S]*?label: "Summary"/.test(nav)&&!/gaming-store\/(?:catalog|products|orders|suppliers|support|finance|analytics|promotions|reviews|storefront)"/.test(nav));
 check("Retired Gaming paths use one compatibility catch-all",/const gamingLegacy = pathname\.startsWith\("\/gaming-store\/"\)/.test(app)&&!/gaming-store\/suppliers": <LegacyGamingRedirect/.test(app));
 check("CMS Gaming route permission is read-only",permissions.includes('["/gaming-store", "gaming.read"]')&&!permissions.includes("gaming.orders.manage")&&!permissions.includes("gaming.products.manage")&&!permissions.includes("gaming.suppliers.manage")&&!permissions.includes("gaming.finance.manage"));
+check("CMS permission vocabulary contains only gaming.read",authTypes.includes('"gaming.read"')&&!authTypes.includes("gaming.orders.manage")&&!authTypes.includes("gaming.products.manage")&&!authTypes.includes("gaming.suppliers.manage")&&!authTypes.includes("gaming.finance.manage")&&!session.includes("gaming.orders.manage"));
+check("Shared backend registry contains no Gaming control commands",!backendContracts.includes("staff.gaming.supplier")&&!backendContracts.includes("gaming.suppliers.manage")&&!backendContracts.includes("gaming.finance.manage"));
+check("CMS local platform catalog advertises Gaming viewer only",platformStore.includes('name: "Gaming Viewer"')&&platformStore.includes('{ group: "Gaming Store", permissions: ["gaming.read"] }')&&!platformStore.includes('name: "Gaming Supplier API"'));
 
 const retiredWorker=["gamingAnalytics.ts","gamingControl.ts","gamingCustomers.ts","gamingOperations.ts","gamingPromotions.ts","gamingSupport.ts"];
 check("Retired CMS Gaming Worker modules are deleted",retiredWorker.every((file)=>!exists("infrastructure/cloudflare/src/"+file))&&exists("infrastructure/cloudflare/src/gamingSummary.ts"));
