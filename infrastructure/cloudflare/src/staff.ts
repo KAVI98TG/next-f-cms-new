@@ -5,7 +5,6 @@ import { getTrackingProperty, listTrackingProperties, provisionTrackingProperty,
 import { D1IdempotencyRepository } from "./idempotency";
 import { recordAudit } from "./audit";
 import { runMaintenance } from "./maintenance";
-import { createMediaUpload, finalizeMediaUpload } from "./media";
 import { CheckoutControlError, checkoutPaymentsSnapshot, checkCheckoutProviderHealth, rotateCheckoutSecret, updateCheckoutBusiness, updateCheckoutBusinessRule, updateCheckoutMarketRule, updateCheckoutProvider } from "./checkoutControl";
 import { readGamingSummary } from "./gamingSummary";
 
@@ -202,25 +201,6 @@ export async function handleStaffCommand(input:{operation:string;body:StaffReque
           :await suspendTrackingProperty(input.env,input.principal,siteId,input.ifMatch||"",typeof commandInput?.reasonCode==="string"?commandInput.reasonCode:"",audit);
         await idempotency.complete(input.idempotencyKey,JSON.stringify(response));return response;
       }catch(error){if(error instanceof TrackingPropertyError)throw new StaffApiError(error.code==="FORBIDDEN"?403:error.code==="NOT_FOUND"?404:error.code==="PRECONDITION_FAILED"?412:error.code==="CONFLICT"?409:400,error.code,error.message);throw error;}
-    }
-  if(input.operation==="staff.media.upload.create"){
-      const purpose=String(commandInput?.purpose||"");
-      const required=purpose==="support_evidence"?"gaming.orders.manage":"gaming.products.manage";
-      if(!hasPermission(input.principal,required)) throw new StaffApiError(403,"FORBIDDEN","Staff permission does not allow this media upload");
-      if(claim.outcome==="replay"){try{return {...JSON.parse(claim.record.response_reference) as Record<string,unknown>,replayed:true};}catch{throw new StaffApiError(409,"IDEMPOTENCY_REPLAY_RESULT_UNAVAILABLE","The completed media upload result cannot be replayed safely");}}
-      let response:Record<string,unknown>;
-      try{response=await createMediaUpload(input.env,input.principal,commandInput||{});}catch(error){const code=error instanceof Error?error.message:"MEDIA_UPLOAD_FAILED";const status=code==="MEDIA_FORBIDDEN"?403:code.includes("NOT_FOUND")?404:code==="MEDIA_SIGNING_NOT_CONFIGURED"?503:400;throw new StaffApiError(status,code,"Media upload could not be created");}
-      await idempotency.complete(input.idempotencyKey,JSON.stringify(response));
-      await recordAudit(input.env.DB,{id:crypto.randomUUID(),action:input.operation,principalKind:"staff",principalId:input.principal.accountId,organizationId:input.principal.organizationId,targetType:"media.asset",targetId:String(response.assetId||""),outcome:"upload_pending",requestId:input.requestId,correlationId:input.correlationId,detail:JSON.stringify({assetId:String(response.assetId||""),purpose})});
-      return response;
-    }
-    if(input.operation==="staff.media.upload.finalize"){
-      if(claim.outcome==="replay"){try{return {...JSON.parse(claim.record.response_reference) as Record<string,unknown>,replayed:true};}catch{throw new StaffApiError(409,"IDEMPOTENCY_REPLAY_RESULT_UNAVAILABLE","The completed media finalize result cannot be replayed safely");}}
-      let response:Record<string,unknown>;
-      try{response=await finalizeMediaUpload(input.env,input.principal,commandInput||{}) as unknown as Record<string,unknown>;}catch(error){const code=error instanceof Error?error.message:"MEDIA_FINALIZE_FAILED";const status=code==="MEDIA_FORBIDDEN"?403:code.includes("NOT_FOUND")?404:code==="MEDIA_VERSION_CONFLICT"?409:400;throw new StaffApiError(status,code,"Media upload could not be finalized");}
-      await idempotency.complete(input.idempotencyKey,JSON.stringify(response));
-      await recordAudit(input.env.DB,{id:crypto.randomUUID(),action:input.operation,principalKind:"staff",principalId:input.principal.accountId,organizationId:input.principal.organizationId,targetType:"media.asset",targetId:String(response.assetId||""),outcome:"ready",requestId:input.requestId,correlationId:input.correlationId,detail:JSON.stringify({assetId:String(response.assetId||""),purpose:String(response.purpose||"")})});
-      return response;
     }
     if(input.operation==="staff.checkout.provider.update"){
       if(!hasPermission(input.principal,"platform.settings.manage")) throw new StaffApiError(403,"FORBIDDEN","Platform settings permission is required");
